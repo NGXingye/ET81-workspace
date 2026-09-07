@@ -1,0 +1,46 @@
+﻿---
+description: ET81-workspace 冷启动读序、单活契约与 trunk Markdown 门禁。改源码或权威文档时使用。
+alwaysApply: false
+---
+
+# ET81 冷启动与写序（Agent decides）
+
+根目录 AGENTS.md 只保留硬约束。章节布局见 global_rules/md_governance.md；键值预算见 global_rules/kv_budget.md；代码门禁见 global_rules/code_governance.md；工具写法见 global_rules/tools_code.md。
+
+# 1. 冷启动协议
+
+每个新 Agent 或无历史上下文的任务按以下顺序读取：
+
+1. 工作区根 AGENTS.md（已注入则不必再读）
+2. project_cursor.md
+3. 若 contract_ref 不是 none，读取该契约（通常为 contracts/current.md）
+4. 若 active_profile 不是 none，读取 profiles/<active_profile>.md
+5. standards/source_code_map.md 中与当前需求相关的路由节
+6. standards/framework_baseline.md 中仅与当前任务相关的节
+
+禁止在冷启动中读取 trunk 的 AGENTS.md、Documents 或其他 trunk Markdown。
+
+无契约（contract_ref 为 none）时：允许只读；禁止改源码；禁止新建权威 Markdown。未选模块时不打开业务源码。
+
+# 2. 实现任务协议（写）
+
+1. 确认 contracts/current.md 为开工形态，且契约 allowed_write（若有）不宽于模块配置。
+2. 默认 source_root 为现有 trunk。仅当用户明确要求时才使用第二工作副本。
+3. 先对白名单路径 svn update；失败则 blocked 并停止。
+4. 先更新本任务拥有的 workspace 文档（契约列出的 workspace_writes）。
+5. 按代码地图或模块配置打开源码；禁止全量扫描 source_root。
+6. 只在 source_root 与本单白名单内改源码。
+7. 工作区根执行 powershell -File tools/check-workspace.ps1。
+8. 需要时同步 source_code_map.md、模块配置或 tools/_index.md。
+9. 不自动 svn commit。用户本机验证并明确授权后，才可按 code_governance.md 提交说明格式提交白名单内改动。
+10. 任务结束：稳定知识回写标准或配置，current.md 恢复空闲，游标回到 idle。
+
+# 3. 混合隔离
+
+- 默认：source_root 指向现有 trunk，白名单内直接修改。
+- 高风险（Core/Loader、协议或配置生成、跨模块批量等）：先 blocked，等用户确认后仍默认改同一份 trunk。
+- 第二工作副本：仅用户明确要求时才切换 isolated_source_root。
+
+# 4. 文档操作
+
+受管理 Markdown 必须符合 global_rules/md_governance.md：先读该文件一级标题再读相关节。游标、配置、契约的键值项必须符合 global_rules/kv_budget.md。改代码必须符合 global_rules/code_governance.md。tools 下未登记脚本禁止存在。

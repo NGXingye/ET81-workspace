@@ -1,0 +1,13 @@
+﻿{
+	"folders": [
+		{
+			"path": ".",
+			"name": "ET81-control"
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"**/.svn": true
+		}
+	}
+}

@@ -1,0 +1,6 @@
+﻿# ET81-workspace local ignores
+.cache/
+.tmp/
+*.tmp
+tools/check-output/
+local/
