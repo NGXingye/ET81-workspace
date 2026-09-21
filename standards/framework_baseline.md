@@ -1,20 +1,18 @@
-> 最新修改时间：2026-09-07 15:25 UTC+8
-> 版本号：1.1.0
+> 最新修改时间：2026-09-14 15:15 UTC+8
+> 版本号：1.2.0
 > 文档状态：生效
-> 读取等级：L1（框架相关开发前读取相关节）
+> 读取等级：L2（人类展开；Agent 优先机读 JSON）
 
 # 0. 职责定位
 
-本文件是 ET81-workspace 内**唯一**的 ET8.1 框架基线知识源，保存经工程配置核验后的版本、分层、放置与验证规则。
-
-它不保存模块业务细节（由模块配置维护）或 trunk 文档原文。
+Agent 框架事实**优先** [`trunk/target.json`](./trunk/target.json)。本文件为 L2 备份与核验表，不保存模块业务细节（见 `trunk/modules/*.json` 与模块配置）。
 
 # 1. 工程与版本（已核验）
 
 | 项 | 值 | 证据 |
 |---|---|---|
 | 框架 | ET8.1 双端共源 | 初始化自 trunk 目录结构 + 工程布局 |
-| Unity 编辑器 | 2022.3.62f3c1 | `Unity/ProjectSettings/ProjectVersion.txt` |
+| Unity 编辑器 | 2022.3.62f3 | `Unity/ProjectSettings/ProjectVersion.txt` |
 | Unity 客户端目标框架 | .NET Framework 4.7.1 | Unity 生成 csproj |
 | Unity 客户端 C# | 9 | 初始化自 trunk `Unity/AGENTS.md`（已冻结，不再回读） |
 | 服务端 | .NET 8.0 | `DotNet/*.csproj` |
@@ -88,9 +86,11 @@ Unity 批处理入口（如需）：`Unity/scripts/unity.ps1`（相对 `source_r
 | Combat 战斗 | `Unity/Assets/Scripts/Hotfix/Server/Module/Combat` |
 | Numeric 数值 | `Hotfix/Server/Module/Numeric`、`Hotfix/Client/Module/Numeric` |
 
-完整模块列表在初始化时自 trunk 模块索引抽取；新增模块须在 `source_code_map.md` 与模块配置中登记。
+模块路由：优先 `catalog.json` + `modules/*.json`；遗留见 `source_code_map.md`。
 
 # 7. 版本历史
 
+- 1.2.0（2026-09-14）：机读主源迁至 `trunk/target.json`；本文件降为 L2。
+- 1.1.1（2026-09-12）：Unity 版本与现行 `ProjectVersion.txt` 对齐为 2022.3.62f3。
 - 1.1.0（2026-09-07）：合并源码位置与程序集为一节，以符合章节上限 8。
-- 1.0.0（2026-09-07）：首版框架基线；Unity 2022.3.62f3c1 经 ProjectVersion.txt 核验。
+- 1.0.0（2026-09-07）：首版框架基线；当时记录为 2022.3.62f3c1。

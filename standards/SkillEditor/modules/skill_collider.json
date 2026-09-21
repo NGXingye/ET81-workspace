@@ -1,0 +1,108 @@
+{
+  "module_id": "skill_collider",
+  "editor": "SkillEditor",
+  "load": "on_match",
+  "trust": "verified",
+  "keywords": [
+    "导出碰撞体",
+    "variantColliderSets",
+    "colliderdata",
+    "csvdemo",
+    "MonsterScalingLevelConfig.bytes",
+    "无法生成角色模型"
+  ],
+  "routes": [
+    {
+      "keyword": "碰撞体导出",
+      "prefer": [
+        "Assets/Editor/SkillEditor/ControlColliderCS.cs",
+        "Assets/Editor/SkillEditor/SkillEditor2.cs",
+        "Assets/Scripts/App/Comm/Battle/SkillDataBase.cs",
+        "Assets/Editor/SkillEditor/csvdemo/MonsterSkillConfig.bytes",
+        "Assets/Editor/SkillEditor/csvdemo/MonsterScalingLevelConfig.bytes"
+      ],
+      "avoid": [
+        "Assets/collider/"
+      ],
+      "trust": "verified",
+      "source_task": "t012"
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "stale_csvdemo_prefab",
+      "signals": [
+        "unable_generate_character",
+        "monster_c_100281",
+        "csvdemo_older_than_downloads"
+      ],
+      "check_first": "csvdemo/MonsterScalingLevelConfig.bytes PrefabName；不是 MonsterSkillConfig.MonsterId",
+      "expected": "PrefabName 与 Resources/prefabs/model 目录同名",
+      "cause": "导出读 csvdemo 加密表。骨架=MonsterId→主表 PrefabName。V2 无加载 ScalingLevel 按钮；只加载/导入技能表不够。Downloads CSV 不会自动进编辑器。",
+      "resolution_kind": "config",
+      "owner_target": "SkillEditor",
+      "validation_target": "SkillEditor",
+      "entry_paths": [
+        "Assets/Editor/SkillEditor/csvdemo/MonsterScalingLevelConfig.bytes",
+        "Assets/Editor/SkillEditor/ControlColliderCS.cs"
+      ],
+      "validation": [
+        "覆盖 csvdemo 主表后 Console 骨架名与磁盘 prefab 一致",
+        "变体1 能 Generatecharacter"
+      ],
+      "trust": "verified",
+      "source_task": "t012"
+    },
+    {
+      "id": "variant_n_empty_collider_export",
+      "signals": [
+        "skill_id_N_colliderdata_empty",
+        "variantColliderSets_empty"
+      ],
+      "check_first": "GetCollidersForVariant；变体1=colliders，N≥2=variantColliderSets",
+      "expected": "N≥2 未配置 launchPoint 时回退变体1形状，按当前 Timeline 烘发射点并弹提示",
+      "cause": "变体不共用已导出文件。回退前空列表会走 ViewPoint 写出空 asset。",
+      "resolution_kind": "code",
+      "owner_target": "SkillEditor",
+      "validation_target": "SkillEditor",
+      "entry_paths": [
+        "Assets/Editor/SkillEditor/ControlColliderCS.cs",
+        "Assets/Editor/SkillEditor/SkillEditor2.cs"
+      ],
+      "validation": [
+        "导出 _2/_3 弹回退提示且 Collision Data 非空",
+        "变体1 再导出不弹回退"
+      ],
+      "trust": "verified",
+      "source_task": "t012"
+    }
+  ],
+  "facts": [
+    {
+      "id": "csvdemo_not_downloads",
+      "note": "碰撞导出读 Assets/Editor/SkillEditor/csvdemo/*.bytes。MonsterSkillConfig 只给 MonsterId；PrefabName 在 MonsterScalingLevelConfig。EquipDB 认名字即过，不查 Resources。",
+      "trust": "verified",
+      "source_task": "t012"
+    },
+    {
+      "id": "variant_collider_fallback",
+      "note": "ResolveCollidersForExport：N≥2 无 launchPoint≠None 则回退变体1列表并 DisplayDialog。发射点用当前 Timeline，不复用变体1轨迹。角色/怪物/召唤物三条导出共用。一次按钮只导当前 Timeline。",
+      "trust": "verified",
+      "source_task": "t012"
+    }
+  ],
+  "excluded_causes": [
+    {
+      "id": "variant_index_maps_prefab",
+      "note": "变体编号不参与骨架名；100281 不是 100280 算错号",
+      "trust": "verified",
+      "source_task": "t012"
+    },
+    {
+      "id": "monster_skill_config_memory_cache",
+      "note": "ParseCsvToDictionary 每次读盘；主表才按文件指纹缓存。旧 Prefab 是 csvdemo 文件旧，不是技能表内存钉死",
+      "trust": "verified",
+      "source_task": "t012"
+    }
+  ]
+}

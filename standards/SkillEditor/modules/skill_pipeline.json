@@ -1,0 +1,83 @@
+{
+  "module_id": "skill_pipeline",
+  "editor": "SkillEditor",
+  "load": "on_match",
+  "trust": "observed",
+  "keywords": [
+    "技能管线",
+    "怪物页",
+    "一键导入",
+    "SkillPipeline",
+    "只读面板"
+  ],
+  "routes": [
+    {
+      "keyword": "本地管线面板",
+      "prefer": [
+        "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/",
+        "Assets/Scripts/App/Comm/EditorTools/BallisticPathEditorWindow.cs",
+        "Assets/Editor/SkillEditor/csvdemo/MonsterSkillConfig.bytes",
+        "Assets/Editor/SkillEditor/csvdemo/MonsterScalingLevelConfig.bytes"
+      ],
+      "avoid": [
+        "Assets/Editor/SkillEditor/SkillEditor2.cs",
+        "Assets/Scripts/App/Comm/EditorTools/DirectionalPathPreviewBinder.cs",
+        "Assets/Scripts/App/Comm/EditorTools/BallisticBakeService.cs"
+      ],
+      "trust": "observed",
+      "source_task": "t015"
+    }
+  ],
+  "facts": [
+    {
+      "id": "slice_l0_l1_readonly",
+      "note": "第一期只做 L0 怪物页 + L1 动作页只读。不写 Timeline、不写 csvdemo、不转 Bridge/Trunk。优先 Unique+Directional。特效/脚手架/导入 Tab 占位禁用。",
+      "trust": "observed",
+      "source_task": "t015"
+    },
+    {
+      "id": "host_new_window",
+      "note": "新窗口 OdinEditorWindow，菜单 Tools/Skill Pipeline (local)。禁止塞进 SkillEditor3（SkillEditor2.cs 已约 3200 行）或 BallisticPathEditorWindow（IMGUI EditorWindow，约 1965 行）。弹道窗口只读纳入：PrefabFolders=monster_c/pet_c，动画同名文件夹；本切片不改它、不转 Odin。",
+      "trust": "observed",
+      "source_task": "t015"
+    },
+    {
+      "id": "svn_isolation",
+      "note": "目录 C:/myProject/SkillEditor/Assets/Scripts/App/Comm/EditorTools/SkillPipeline/。开工前对父目录 EditorTools 把 SkillPipeline 写入 svn:ignore（与现有 ignore 合并，勿覆盖）。禁止 svn add / svn commit 该目录与 .meta。误 revert 只应碰到已跟踪文件；忽略目录本就不在 BASE。白名单写集仅此目录。",
+      "trust": "observed",
+      "source_task": "t015"
+    },
+    {
+      "id": "file_budget",
+      "note": "只允许 4 个 cs：SkillPipelineWindow（壳/Tab/菜单）、SkillPipelineTableView（L0）、SkillPipelineMotionView（L1）、SkillPipelineSessionPrefs（EditorPrefs，键前缀 SkillPipeline.）。单文件 80–500 行，硬顶 600。超限拆方法不拆职责到弹道窗或 SkillEditor3。禁止拷贝 Unity 源码进 workspace。",
+      "trust": "observed",
+      "source_task": "t015"
+    },
+    {
+      "id": "odin_layout",
+      "note": "Sirenix 已在 SkillEditor2 引用，新窗用同一套。TabGroup「页」：怪物 | 动作 | 特效 | 脚手架 | 导入；后三页 EnableIf false。L0：怪物 Id 下拉、PrefabName/CharacterType 只读 Label、技能表（id/CD/类型）只读。L1：主动作 skill_{id}、变体 skill_{id}_{N} 列表、动画名过滤只读。禁止 BoxGroup 把控制开关藏进组；禁用 ToggleGroup 包住开关本身。会话：LastMonsterId/LastSkillId 进 EditorPrefs，表数据内存缓存、关窗可丢。",
+      "trust": "observed",
+      "source_task": "t015"
+    },
+    {
+      "id": "illegal_io",
+      "note": "路径必须落在 SkillPipeline/ 下，拒绝 .. 与盘符跳转。禁止写 csvdemo .bytes、playable、Library、Res、Generate、Model/Generate。禁止全树 Glob/Grep。表只读走现有 csvdemo Parse，不手写解密。非法路径：按钮 Disable + 状态栏红字，不抛到编辑器外。本切片 write_paths 空，禁止改任何 SkillEditor 文件。",
+      "trust": "observed",
+      "source_task": "t015"
+    }
+  ],
+  "excluded_causes": [
+    {
+      "id": "extend_ballistic_window",
+      "note": "弹道窗口是 IMGUI 作者面，不管线面板；不改成 Odin、不塞怪物页",
+      "trust": "observed",
+      "source_task": "t015"
+    },
+    {
+      "id": "extend_skilleditor3",
+      "note": "主编辑器已超量，管线不进 SkillEditor2.cs / SkillEditor3",
+      "trust": "observed",
+      "source_task": "t015"
+    }
+  ]
+}

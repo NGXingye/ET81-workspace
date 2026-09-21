@@ -1,5 +1,5 @@
-> 最新修改时间：2026-09-07 16:55 UTC+8
-> 版本号：1.2.0
+> 最新修改时间：2026-09-17 17:40 UTC+8
+> 版本号：1.5.0
 > 文档状态：生效
 > 读取等级：L1（改游标、模块配置或开工契约的键值项时必读）
 
@@ -32,7 +32,7 @@
 | 缺少最小必要 | 只补缺失的必要键，不补可选项凑数 |
 | `idle` 却多写 | 游标回到 11 项；契约回到 2 项；删掉条件项 |
 | 同一事实写了两处 | 留下 `kv_budget.md` 规定的那一处，另一处删除 |
-| 机检 `FIELD_MAX` / `FIELD_MIN` / `FIELD_DUP` / `FIELD_IDLE` | 按上表改完后重跑 `tools/check-workspace.ps1` |
+| 机检 `FIELD_MAX` / `FIELD_MIN` / `FIELD_DUP` / `FIELD_IDLE` | 按上表改完后重跑 `runtime/etctl.ps1 check` |
 
 # 2. 游标 `project_cursor.md`
 
@@ -105,6 +105,16 @@
 | `task_id` | `none` |
 | `contract_status` | `idle` |
 
+**发现形态（最小 3）**
+
+| 键 | 说明 |
+|---|---|
+| `task_id` | 短稳定 ID |
+| `contract_status` | `discovery` |
+| `goal` | 一句话目标 |
+
+发现阶段允许 `active_profile` 为 `none`。默认禁止改 trunk；`route=fast` 且用户明确授权时按 `plan` 改活卡 `write_paths`。分析包写在 `current_scope.json`。
+
 **开工最小（6）**
 
 | 键 | 说明 |
@@ -125,17 +135,20 @@
 | `out_of_scope` | 无额外排除 | 需要防止顺手重构时 |
 | `unblock` | 无 | 当前 `blocked` 时写解阻条件 |
 
-**上限：10**。空闲时 2 行；开工时至少 6 行，最多 10 行。
+**上限：10**。空闲时 2 行；发现时至少 3 行；开工时至少 6 行，最多 10 行。
 
-禁止在契约里重复抄模块长期白名单，除非本单收窄。禁止写进度日记。
+禁止在契约里重复抄模块长期白名单，除非本单收窄。禁止写进度日记。阶段、路径、证据、风险只写 `contracts/current_scope.json`，不新增契约键。
 
 # 5. 其他文类
 
 - `AGENTS.md`、索引、`md_governance.md`、`standards/`：**只用章节布局**，不设键值预算。
-- `source_import_record.md`：表结构固定，按行追加，无键值上限。
+- `audit/source_import_record.md`：表结构固定，按行追加，无键值上限。
+- JSON 数据（`contracts/current_scope.json`、`targets/*.json`）：字段不计入本文件键值预算；必填项由 `runtime/schema/` 与机检约束。
 
 # 6. 版本历史
 
+- 1.5.0（2026-09-17）：discovery 默认禁改 trunk；fast 授权例外。
+- 1.4.0（2026-09-12）：增加契约 `discovery` 形态。
+- 1.3.0（2026-09-12）：声明 scope/target JSON 不计键值预算；机检改走 etctl。
 - 1.2.0（2026-09-07）：键值违规必须按处置表处理；章节指针改为 md_governance §2。
 - 1.1.0（2026-09-07）：正名为键值预算；声明不是 `# N` 章节规范。由 `field_schema.md` 迁入。
-- 1.0.0（2026-09-07）：建立最小必要 + 条件/可选 + 硬上限。

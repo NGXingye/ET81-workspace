@@ -1,0 +1,10 @@
+{
+  "target_id": "BridgeEditor",
+  "runtime_config": "targets/BridgeEditor.json",
+  "load": "on_match",
+  "trust": "verified",
+  "workspace_path": "C:\\myProject\\BridgeEditor",
+  "vcs": "svn",
+  "editor": "unity",
+  "note": "目录存在已核验；模块知识尚未 harvest"
+}

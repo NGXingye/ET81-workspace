@@ -1,0 +1,82 @@
+{
+  "module_id": "playeffect",
+  "editor": "SkillEditor",
+  "load": "on_match",
+  "trust": "verified",
+  "keywords": [
+    "弹道轨迹编辑器",
+    "BallisticConfig",
+    "DirectionalPathEval",
+    "directionalForwardDistance",
+    "绘制轨迹",
+    "HangPoint"
+  ],
+  "routes": [
+    {
+      "keyword": "弹道轨迹编辑器",
+      "prefer": [
+        "Assets/Scripts/App/Comm/EditorTools/BallisticPathEditorWindow.cs",
+        "Assets/Scripts/App/Comm/Config/BallisticConfig.cs",
+        "Assets/Scripts/App/Comm/Battle/behaviac_generated/types/Effect/DirectionalPathEval.cs"
+      ],
+      "avoid": [
+        "Assets/Scripts/App/Comm/EditorTools/DirectionalPathPreviewBinder.cs",
+        "Assets/Scripts/App/Comm/EditorTools/BallisticBakeService.cs"
+      ],
+      "trust": "verified",
+      "source_task": "t003"
+    }
+  ],
+  "facts": [
+    {
+      "id": "config_is_authority",
+      "note": "Directional 权威只在 BallisticConfig。场景样条是作者面；点「烘焙写入」才 Inverse 成 XYZ。UseVelocityCurve 关。不要用曲线图当编辑器。",
+      "trust": "verified",
+      "source_task": "t003"
+    },
+    {
+      "id": "d_is_end_on_circle",
+      "note": "directionalForwardDistance 是以发射点为圆心的水平半径 D，绿点必须在圆上（偏航+高度 Y）。Clip/飞行走完一定到绿点。中途弧长、左右弯、飞出再飞回都不改 D。Eval：fire+dir*(D*progress)+right*X+up*Y+dir*Z，Z 是相对 D×progress 的前后余量。",
+      "trust": "verified",
+      "source_task": "t003"
+    },
+    {
+      "id": "draw_preview_split",
+      "note": "绘制：Fire 锁红点，打黄点（时间+世界坐标，对动作必到），连接直线锁折线。黄点可「选择」后 Scene 坐标轴微调。预览：红/黄位置与时间锁定；每段青水平弧、品红垂直弧、白段内快慢、橙中点沿段偏移。绿点只调圆上偏航与 Y。时间尺 30 帧对齐。",
+      "trust": "verified",
+      "source_task": "t003"
+    },
+    {
+      "id": "eval_shared",
+      "note": "运行时与预览正算走 DirectionalPathEval，禁止再抄一份公式。编辑预览跟场景样条；烘焙后 Config 密采样逼近。模型 AnimationMode.SampleAnimationClip，预制体 monster_c/pet_c，动画在 animations/model 同名文件夹。",
+      "trust": "verified",
+      "source_task": "t003"
+    },
+    {
+      "id": "z_meters_not_et_copy_z",
+      "note": "SkillEditor Directional 的 Z 是米（相对 D×progress 的前后余量）。ET Copy.Z 会被 ×L。对齐在 Bridge SampleBallisticCurves：Z_copy=Z米/D。不要在 SkillEditor 里改成分数。",
+      "trust": "verified",
+      "source_task": "t004"
+    }
+  ],
+  "excluded_causes": [
+    {
+      "id": "curve_chart_authors_arc",
+      "note": "XYZ/速度 AnimationCurve 图不是弧度/速度的作者面；黄帧时间也不是变速手段",
+      "trust": "verified",
+      "source_task": "t003"
+    },
+    {
+      "id": "d_is_path_arclength",
+      "note": "D 不是沿轨迹走了多远，只约束终点落在水平圆上",
+      "trust": "verified",
+      "source_task": "t003"
+    },
+    {
+      "id": "timeline_clip_as_authoring_entry",
+      "note": "不把 Unity Timeline / 选 Clip 当弹道主入口；Binder 不是主界面",
+      "trust": "verified",
+      "source_task": "t003"
+    }
+  ]
+}

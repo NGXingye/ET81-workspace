@@ -1,0 +1,269 @@
+{
+  "module_id": "climbing_tower",
+  "editor": "trunk",
+  "load": "on_match",
+  "trust": "verified",
+  "keywords": [
+    "爬塔",
+    "ClimbingTower",
+    "TowerView",
+    "Item_Stage",
+    "Item_Stage1",
+    "关卡列表",
+    "分页",
+    "FloorPage",
+    "Panel_Guanqia",
+    "Panel_Stage01",
+    "u_DataLayer",
+    "ClimbingTowerTaskTracing",
+    "任务栏",
+    "Panel_Task01",
+    "已击杀",
+    "TowerWinView",
+    "Text_Time",
+    "离开倒计时",
+    "打开爬塔胜利界面"
+  ],
+  "routes": [
+    {
+      "keyword": "关卡列表分页",
+      "prefer": [
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/ClimbingTower/TowerViewComponentSystem.cs",
+        "Unity/Assets/Scripts/ModelView/Client/YIUIComponent/ClimbingTower/TowerViewComponent.cs"
+      ],
+      "avoid": [
+        "Unity/Assets/Plugins/YIUIFramework/",
+        "Unity/Assets/Res/",
+        "Unity/Assets/Scripts/Model/Generate/"
+      ],
+      "trust": "verified",
+      "source_task": "t009"
+    },
+    {
+      "keyword": "Item_Stage1 五槽页",
+      "prefer": [
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/ClimbingTower/Item_Stage1ComponentSystem.cs",
+        "Unity/Assets/Scripts/ModelView/Client/YIUIComponent/ClimbingTower/Item_Stage1Component.cs",
+        "Unity/Assets/Scripts/ModelView/Client/YIUIGen/ClimbingTower/Item_Stage1ComponentGen.cs"
+      ],
+      "avoid": [
+        "Unity/Assets/Scripts/HotfixView/Client/YIUIGen/ClimbingTower/Item_Stage1ComponentSystemGen.cs",
+        "Unity/Assets/Res/"
+      ],
+      "trust": "verified",
+      "source_task": "t009"
+    },
+    {
+      "keyword": "Item_Stage 单关",
+      "prefer": [
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/ClimbingTower/Item_StageComponentSystem.cs",
+        "Unity/Assets/Scripts/ModelView/Client/YIUIComponent/ClimbingTower/TowerStagePairData.cs",
+        "Unity/Assets/Scripts/ModelView/Client/YIUIComponent/ClimbingTower/Item_StageComponent.cs"
+      ],
+      "avoid": [
+        "Unity/Assets/Scripts/HotfixView/Client/YIUIGen/ClimbingTower/Item_StageComponentSystemGen.cs",
+        "Unity/Assets/Scripts/ModelView/Client/YIUIGen/ClimbingTower/Item_StageComponentGen.cs"
+      ],
+      "trust": "verified",
+      "source_task": "t007"
+    },
+    {
+      "keyword": "主界面任务栏已击杀/总数",
+      "prefer": [
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/Main/ClimbingTowerTaskTracingCellComponentSystem.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/Main/MainPanelComponentSystem.cs",
+        "Unity/Assets/Scripts/ModelView/Client/YIUIComponent/Main/MainPanelComponent.cs"
+      ],
+      "avoid": [
+        "Unity/Assets/Res/",
+        "Unity/Assets/Scripts/ModelView/Client/YIUIGen/Main/MainPanelComponentGen.cs"
+      ],
+      "trust": "verified",
+      "source_task": "t008"
+    },
+    {
+      "keyword": "TowerWinView 离开倒计时",
+      "prefer": [
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/ClimbingTower/TowerWinViewComponentSystem.cs",
+        "Unity/Assets/Scripts/ModelView/Client/YIUIComponent/ClimbingTower/TowerWinViewComponent.cs"
+      ],
+      "avoid": [
+        "Unity/Assets/Scripts/ModelView/Client/YIUIGen/ClimbingTower/TowerWinViewComponentGen.cs",
+        "Unity/Assets/Res/",
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/Common/Comm_Item_BaseItemComponentSystem.cs"
+      ],
+      "trust": "verified",
+      "source_task": "t010"
+    },
+    {
+      "keyword": "爬塔 GM 预览/进关",
+      "prefer": [
+        "Unity/Assets/Scripts/HotfixView/Client/Module/GM/GM_Command_ClimbingTower.cs",
+        "Unity/Assets/Scripts/ModelView/Client/YIUIComponent/ClimbingTower/TowerWinViewComponent.cs"
+      ],
+      "avoid": [
+        "Unity/Assets/Scripts/Model/Share/Module/ServerGM/",
+        "Unity/Assets/Res/"
+      ],
+      "trust": "verified",
+      "source_task": "t010"
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "page0_shows_last_floors",
+      "signals": [
+        "viewport shows high floors at open",
+        "first clone is last page"
+      ],
+      "check_first": "LayoutFloorPageItems：itemIndex=pageCount-1-i；页0锚点 (-741, 1165.2)；Content 先归零",
+      "expected": "打开时视口是最低层页（右下圈=1）",
+      "cause": "容器后进的 clone 在列表末，正向 i 会把末页放到 BaseY",
+      "resolution_kind": "code",
+      "owner_target": "trunk",
+      "validation_target": "trunk",
+      "entry_paths": [
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/ClimbingTower/TowerViewComponentSystem.cs"
+      ],
+      "validation": [
+        "第一页右下为层 1"
+      ],
+      "trust": "verified",
+      "source_task": "t009"
+    },
+    {
+      "id": "only_slot1_has_floor_num",
+      "signals": [
+        "only bottom-right circle has number",
+        "Lock Text_Title empty",
+        "FinishState2-5 没有任何关联"
+      ],
+      "check_first": "原件 Item_Stage1 数据表 u_DataLayer2Num-5 是否反向绑到 Stage02-05 的 Pass/Lock/Now Text_Title（UIDataBind Text TMP）。FinishState 无关联不是缺字原因。",
+      "expected": "五槽 Text_Title 显示页内层号；锁定关显示 Lock 下的字",
+      "cause": "只加了数据键或只绑了 Stage01；未绑的 TMP 保持空串。UIDataBind 会覆盖手填/运行时 .text",
+      "resolution_kind": "config",
+      "owner_target": "trunk",
+      "validation_target": "trunk",
+      "entry_paths": [
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/ClimbingTower/Item_Stage1ComponentSystem.cs"
+      ],
+      "validation": [
+        "第一页 1-5、第二页 6-10 圈内有字"
+      ],
+      "trust": "verified",
+      "source_task": "t009"
+    },
+    {
+      "id": "task_bar_remaining_not_killed",
+      "signals": [
+        "enter floor shows remaining/total",
+        "kill decreases left number",
+        "mechanism row shows prefab 3/99"
+      ],
+      "check_first": "Cell SetCounts(killed,total)/AddKilled；Panel_Task01/02/03 同时写 Unfinished 与 Finished；Text_All 与 Text_FinishedAll 都带 /b；completed=killed>=total（0/0 打勾）；切 Panel 与 Image_Unfinished/Image_Finished/Image_FinishedHolk",
+      "expected": "进关 0/b 或回填已击杀；杀一只 +1；机关无配置 0/0 打勾",
+      "cause": "旧 UI 用剩余数；只刷 Unfinished 时 Finished 露出预制体默认字",
+      "resolution_kind": "code",
+      "owner_target": "trunk",
+      "validation_target": "trunk",
+      "entry_paths": [
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/Main/MainPanelComponentSystem.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/Main/ClimbingTowerTaskTracingCellComponentSystem.cs"
+      ],
+      "validation": [
+        "Content 下计数均为已击杀/总数",
+        "无机关/BOSS 配置时 0/0 且 Finished 勾亮"
+      ],
+      "trust": "verified",
+      "source_task": "t008"
+    }
+  ],
+  "facts": [
+    {
+      "id": "item_stage1_page_layout",
+      "note": "TowerView 关卡列表：YIUIItemContainer<Item_Stage1>，一页一个 clone。预制体已排 Panel_Stage01-05，01=页内最小层、右下。禁止再用 t007 单关列偏移。常量：FloorPageSize=5；FloorPageBaseX=-741；FloorPageBaseY=1165.2；FloorPageGap=200；FloorPageDragThreshold=180；FloorPageSnapFrames=8。pageStep=Item_Stage1 Rect 高+200。Layout：itemIndex=pageCount-1-i，pos=(BaseX, BaseY+i*step)。跟手/阈值/8帧吸附仍按页。旧 Item_Stage 保留但不用于本面板。",
+      "trust": "verified",
+      "source_task": "t009"
+    },
+    {
+      "id": "paging_behavior",
+      "note": "全量按 5 层一页 RefreshPage；禁止 5 槽换编号。Viewport EventTrigger Begin/Drag/End 跟手；Y 夹在邻页 pageStep 内。松手 ContentY-页基准超过阈值进下一页（更高层），反向回上一页；否则回当前页。吸附 8 帧 lerp。WaitFloorListSnapFrame 直接 return timer.WaitFrameAsync()，禁止把 TimerComponent 跨 await（ET0035）。",
+      "trust": "verified",
+      "source_task": "t009"
+    },
+    {
+      "id": "item_stage1_cde_layer_nums",
+      "note": "层号只走 CDE：代码 SetValue u_DataLayer1Num-5 / FinishState1-5 / IsSelect1-5。原件须把每个 Stage0N 的 Pass、Lock、Now 上 Text_Title 反向绑到对应 LayerNNum（UIDataBind Text TMP），再点生成。只加键不反向绑则 Text_Title 空。FinishState 无关联不影响锁态：Pass/Lock/Now 仍代码 SetActive。禁止 RuntimeFloorNum 或手填 TMP。事件 u_EventSelectLayer1-5；Event 表反向列表可空，Panel 上 UIEventBindClick 或运行时 EventTrigger 即可。禁止手改 *Gen。",
+      "trust": "verified",
+      "source_task": "t009"
+    },
+    {
+      "id": "item_stage_single_floor",
+      "note": "旧 Item_Stage 仍一层 Floor+FinishState，只用 Layer1/RewardList1/SelectLayer1。本面板已改 Item_Stage1，旧件兼容保留、本单未改。Gen 只许用户在 YIUI 点「生成」。",
+      "trust": "verified",
+      "source_task": "t007"
+    },
+    {
+      "id": "task_tracing_killed_over_total",
+      "note": "ClimbingTowerTaskTracing 计数=已击杀/总数。Cell：u_DataCurrentCount=killed，进关 RefreshData(name,0,total)，死亡 AddKilled。固定行 Panel_Task01 怪物/02 机关/03 BOSS：u_ComTowerTaskList 上 Find，无 CDE。Unfinished 写 Text_Num 与 Text_All=/b；Finished 写 Text_FinishedNum 与 Text_FinishedAll=/b。completed=killed>=total（含 0/0 打勾）。切 Panel_Unfinished/Finished 与 Image_Unfinished、Image_Finished、Image_FinishedHolk。机关无配置不新做击杀。Quest 杀怪掩码只回填已有数据。通关看有进度行 killed>=total。禁止手改 *Gen；手写可空 u_DataHasSpecSkill。",
+      "trust": "verified",
+      "source_task": "t008"
+    },
+    {
+      "id": "tower_win_leave_countdown",
+      "note": "TowerWinView 离开倒计时 10s。Text_Time 在 Comm_Btn02 (1) 下（不要绑第一颗 Comm_Btn02），文案 (Ns)；不在 View CDE 组件表，禁止 FindComponent。不绑 CDE、不点生成。WaitAsync+EntityRef 每秒刷新；禁止跨 await 持有 TimerComponent。到 0 走 OnEventExit（C2M_TowerLeave+关面板）。点 BaseItem：AddClickEvent+GetComponentInParents，互斥 Select(Image_Select)，停表且不恢复，隐藏 Text_Time 只留按钮「离开」。不做 tips。YIUIOpen 须 ResetLeaveUiState（清 isLeaving）。Hotfix 禁止可变 static。",
+      "trust": "verified",
+      "source_task": "t010"
+    },
+    {
+      "id": "climbing_tower_gm_preview",
+      "note": "GM 案列页：打开爬塔胜利界面（跳过 C2M_TowerFloorClear；GmPreviewOpen 在 ModelView TowerWinViewComponent 且 [StaticField]；预览 2 个 BaseItem 来自 TowerFloorRewardConfig）；进入爬塔关卡（FloorId 发 C2M_TowerChallenge）。路径 HotfixView/Client/Module/GM/GM_Command_ClimbingTower.cs。不重置任务。",
+      "trust": "verified",
+      "source_task": "t010"
+    }
+  ],
+  "excluded_causes": [
+    {
+      "id": "finishstate_unbind_hides_floor_num",
+      "note": "FinishState2-5 运行时已有值但仍「无关联」时，锁态圈仍可由代码 SetActive。缺层号只查 LayerNNum→Text_Title 反向绑定。",
+      "trust": "verified",
+      "source_task": "t009"
+    },
+    {
+      "id": "runtime_tmp_or_hand_text",
+      "note": "手填 TMP Text Input 或运行时建 RuntimeFloorNum 会被 UIDataBind 清掉或错位。层号只走 CDE SetValue。",
+      "trust": "verified",
+      "source_task": "t009"
+    },
+    {
+      "id": "code_auto_bind_cde",
+      "note": "代码不能给未绑的数据键自动挂 UIDataBind。须在原件 CDE 反向绑定后生成。",
+      "trust": "verified",
+      "source_task": "t009"
+    },
+    {
+      "id": "reward_cde_blocks_floor_paging",
+      "note": "TowerView Gen 仍 Find u_ComInfoRewardLIst / Panel_DropItemList，运行可能报 CDE/组件表缺失。用户确认关卡分页可用即可忽略；不要手改 TowerView Gen 去对齐。",
+      "trust": "observed",
+      "source_task": "t007"
+    },
+    {
+      "id": "mechanism_kill_system_missing",
+      "note": "配置无机关数量与击杀；t008 不新做机关击杀系统。无配置行 SetCounts(0,0) 并打勾。",
+      "trust": "verified",
+      "source_task": "t008"
+    },
+    {
+      "id": "cde_bind_text_time",
+      "note": "Text_Time 不在 TowerWinView 组件表。FindComponent 会 Error。倒计时按层级找 Comm_Btn02 (1)/Text_Time，不要为此绑 CDE 或手改 Gen。",
+      "trust": "verified",
+      "source_task": "t010"
+    },
+    {
+      "id": "gm_reopen_item_click_highlight",
+      "note": "GM 第二次打开同一 TowerWinView 时，点道具停表/高亮不稳定。真通关路径不依赖此复用。留给后续任务，本单不收口。",
+      "trust": "observed",
+      "source_task": "t010"
+    }
+  ]
+}

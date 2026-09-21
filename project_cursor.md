@@ -1,4 +1,4 @@
-> 最新修改时间：2026-09-07 16:55 UTC+8
+> 最新修改时间：2026-09-21 18:50 UTC+8
 > 版本号：1.1.0
 > 文档状态：活动
 > 读取等级：L0（每次冷启动必读、任务状态变更时更新）
@@ -17,16 +17,16 @@
 
 # 2. 源码工作副本
 
-- `source_root`：`C:\myProject\trunk`
+- `source_root`：`C:\myProject\SkillEditor`
 - `source_root_mode`：`normal`
 - `version_control`：`svn`
 
 # 3. 当前任务
 
-- `task_id`：`none`
-- `task_status`：`idle`
-- `active_profile`：`none`
-- `contract_ref`：`none`
+- `task_id`：`t015`
+- `task_status`：`awaiting_approval`
+- `active_profile`：`skill_pipeline`
+- `contract_ref`：`contracts/current.md`
 - `blocked`：`false`
 
 # 4. 版本历史

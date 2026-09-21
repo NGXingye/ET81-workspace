@@ -1,0 +1,9 @@
+{
+  "target_id": "SkillEditor",
+  "display_name": "SkillEditor",
+  "workspace_path": "C:\\myProject\\SkillEditor",
+  "vcs": "svn",
+  "editor": "unity",
+  "forbidden": ["Library/", "Logs/", "Temp/"],
+  "validation": {}
+}

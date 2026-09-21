@@ -1,0 +1,9 @@
+{
+  "target_id": "BridgeEditor",
+  "display_name": "BridgeEditor",
+  "workspace_path": "C:\\myProject\\BridgeEditor",
+  "vcs": "svn",
+  "editor": "unity",
+  "forbidden": ["Library/", "Logs/", "Temp/"],
+  "validation": {}
+}

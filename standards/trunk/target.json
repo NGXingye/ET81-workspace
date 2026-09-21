@@ -1,0 +1,39 @@
+{
+  "target_id": "trunk",
+  "runtime_config": "targets/trunk.json",
+  "load": "on_match",
+  "trust": "verified",
+  "workspace_path": "C:\\myProject\\trunk",
+  "framework": "ET8.1",
+  "unity_version": "2022.3.62f3",
+  "unity_version_evidence": "Unity/ProjectSettings/ProjectVersion.txt",
+  "client_target_framework": ".NET Framework 4.7.1",
+  "csharp": "9",
+  "server_runtime": ".NET 8.0",
+  "solution": "ET.sln",
+  "vcs": "svn",
+  "config_root": "Unity/Assets/Config/",
+  "source_scripts_root": "Unity/Assets/Scripts/",
+  "assemblies": {
+    "server_and_share": ["Core", "Loader", "Model", "Hotfix"],
+    "client_only": ["ModelView", "HotfixView"]
+  },
+  "placement": [
+    "data Model; logic Hotfix; Client/Server/Share by execution",
+    "no new .cs under DotNet/Model or DotNet/Hotfix",
+    "never hand-edit Model/Generate/"
+  ],
+  "forbidden_edit_globs": [
+    "Unity/Assets/Scripts/**/Generate/",
+    "Unity/Library/",
+    "Unity/Assets/Res/**",
+    "Share/Share.SourceGenerator/",
+    "Share/joltc/"
+  ],
+  "validation": {
+    "share_server": "dotnet build + ET analyzers",
+    "client_view": "unity_editor_compile",
+    "batch_entry": "Unity/scripts/unity.ps1"
+  },
+  "style_hard": ["tabs width 4", "no var", "project Log not Console"]
+}

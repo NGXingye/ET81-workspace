@@ -1,0 +1,64 @@
+{
+  "module_id": "timeline_wc",
+  "editor": "SkillEditor",
+  "load": "on_match",
+  "trust": "verified",
+  "keywords": [
+    "timeline svn",
+    "playable 提交",
+    "svn:externals",
+    "Assets/Resources/timeline"
+  ],
+  "routes": [
+    {
+      "keyword": "Timeline 工作副本",
+      "prefer": [
+        "Assets/Resources/timeline/skills"
+      ],
+      "avoid": [],
+      "trust": "verified",
+      "source_task": "t014"
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "timeline_commit_empty",
+      "signals": [
+        "tortoise_no_files_changed",
+        "revert_empty",
+        "playable_no_green_overlay"
+      ],
+      "check_first": "在 Assets/Resources/timeline（external）上 svn status；对比 SHA1 与 BASE",
+      "expected": "有本地未保存或未提交 diff 才列出；无 diff 则已是仓库内容",
+      "cause": "timeline 是 svn:externals→EditorAssetsComm/Resources/res/timeline，独立 WC。SkillEditor 根提交默认不带。2000178 六文件已在 r42273，磁盘=BASE 时提交/回退都空。无绿勾不是未纳入版本。Unity 未 Save 则磁盘不变。",
+      "resolution_kind": "config",
+      "owner_target": "SkillEditor",
+      "validation_target": "SkillEditor",
+      "entry_paths": [
+        "Assets/Resources/timeline/skills"
+      ],
+      "validation": [
+        "对该目录 Commit，或根提交勾选 include externals",
+        "无 M 时 Show log 即可，不必再交"
+      ],
+      "trust": "verified",
+      "source_task": "t014"
+    }
+  ],
+  "facts": [
+    {
+      "id": "timeline_is_external",
+      "note": "SkillEditor 根 svn:externals 把 EditorAssetsComm/.../timeline 映到 Assets/Resources/timeline。改 playable 必须在该层提交。",
+      "trust": "verified",
+      "source_task": "t014"
+    }
+  ],
+  "excluded_causes": [
+    {
+      "id": "files_not_in_svn",
+      "note": "2000178 三条 playable+meta 已版本化；空提交不是没 svn add",
+      "trust": "verified",
+      "source_task": "t014"
+    }
+  ]
+}

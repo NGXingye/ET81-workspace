@@ -1,0 +1,210 @@
+{
+  "module_id": "monster_ai",
+  "editor": "trunk",
+  "load": "on_match",
+  "trust": "verified",
+  "keywords": [
+    "怪物 AI",
+    "monster ai",
+    "AI 行为树",
+    "current 为空",
+    "DetectionRange",
+    "ChaseRange",
+    "attack_range",
+    "DistanceTrigger",
+    "MonsterSkillConfig"
+  ],
+  "routes": [
+    {
+      "keyword": "AI 基础设施",
+      "prefer": [
+        "Unity/Assets/Scripts/Hotfix/Share/Module/AI/",
+        "Unity/Assets/Scripts/Model/Share/Module/AI/",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/AIHandler.cs"
+      ],
+      "avoid": [],
+      "trust": "observed",
+      "source_task": "t003"
+    },
+    {
+      "keyword": "怪物客户端表现 AI",
+      "prefer": [
+        "Unity/Assets/Scripts/Hotfix/Client/Demo/Main/AI/"
+      ],
+      "avoid": [],
+      "trust": "observed",
+      "source_task": "t003"
+    },
+    {
+      "keyword": "怪物服务端 BT",
+      "prefer": [
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/AI/"
+      ],
+      "avoid": [],
+      "trust": "observed",
+      "source_task": "t003"
+    },
+    {
+      "keyword": "CharacterType / 怪物身份",
+      "prefer": [
+        "Unity/Assets/Scripts/Model/Share/Module/Unit/CharacterComponent.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/CharacterComponentSystem.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/UnitSystem.cs"
+      ],
+      "avoid": [],
+      "trust": "verified",
+      "source_task": "t003"
+    },
+    {
+      "keyword": "怪物表现组件",
+      "prefer": [
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/AfterUnitCreate_CreateUnitView.cs",
+        "Unity/Assets/Scripts/Model/Share/Module/LightShield/",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/LightShield/"
+      ],
+      "avoid": [],
+      "trust": "observed",
+      "source_task": "t003"
+    },
+    {
+      "keyword": "怪物缩放等级配置",
+      "prefer": [
+        "Unity/Assets/Config/Excel/MonsterScalingLevelConfig.xlsx",
+        "Config/Json/cs/MonsterScalingLevelConfig.txt"
+      ],
+      "avoid": [],
+      "trust": "verified",
+      "source_task": "t003"
+    },
+    {
+      "keyword": "距离触发选技能",
+      "prefer": [
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/AI/AI_MonsterAttackHandler.cs",
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/AI/AI_MonsterAttack.cs",
+        "Config/Json/cs/MonsterSkillConfig.txt",
+        "Unity/Assets/Config/AI/monster_c_100004_ai.asset"
+      ],
+      "avoid": [],
+      "trust": "verified",
+      "source_task": "t006"
+    },
+    {
+      "keyword": "侦测/追击圈",
+      "prefer": [
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/AI/AI_MonsterWarnHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/AI/AI_MonsterZhuiJiHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/AI/AI_MonsterReturnHandler.cs"
+      ],
+      "avoid": [],
+      "trust": "verified",
+      "source_task": "t006"
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "monster_not_reacting_character_type",
+      "signals": [
+        "ai_current_null",
+        "missing_light_shield",
+        "missing_bone_anim",
+        "monster_not_attacking"
+      ],
+      "check_first": "Unity/Assets/Config/Excel/MonsterScalingLevelConfig.xlsx CharacterType",
+      "expected": "3",
+      "cause": "CharacterType=0 → Unit.IsMonster=false → 怪物数值/敌我/MonsterUnits/动画与 AI 分支跳过",
+      "resolution_kind": "config",
+      "owner_target": "trunk",
+      "validation_target": "trunk",
+      "entry_paths": [
+        "Unity/Assets/Config/Excel/MonsterScalingLevelConfig.xlsx",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/CharacterComponentSystem.cs"
+      ],
+      "validation": [
+        "xlsx 中怪物行 CharacterType=3",
+        "Unit.IsMonster=true，LightShield/BoneAnimView 出现",
+        "玩家靠近后 Target、current、攻击动画与技能特效正常"
+      ],
+      "trust": "verified",
+      "source_task": "t003"
+    },
+    {
+      "id": "only_shortest_distance_skill_fires",
+      "signals": [
+        "only_2000010_casts",
+        "distance_trigger_condition_ignored",
+        "cannot_reach_far_skills"
+      ],
+      "check_first": "MonsterSkillConfig[SpellId].attack_distance；Scaling.DetectionRange/attack_range",
+      "expected": "DistanceTrigger 用表距离不是 Inspector 触发条件；够得着里选更小的 attack_distance",
+      "cause": "triggerCondition 对 Distance 已注释。100004 DetectionRange/attack_range≈5，进 Attack 时 2000010(5) 恒为最小。2011(6)/2024(7) 的窗口在侦测圈外",
+      "resolution_kind": "config",
+      "owner_target": "trunk",
+      "validation_target": "trunk",
+      "entry_paths": [
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/AI/AI_MonsterAttackHandler.cs",
+        "Config/Json/cs/MonsterSkillConfig.txt",
+        "Unity/Assets/Config/AI/monster_c_100004_ai.asset"
+      ],
+      "validation": [
+        "行为树临时只留 2011 或 2024 可稳定放出",
+        "要靠站位换技能须先加大 DetectionRange/ChaseRange/attack_range"
+      ],
+      "trust": "verified",
+      "source_task": "t006"
+    },
+    {
+      "id": "attack_band_misses_skill_window",
+      "signals": [
+        "chase_and_retreat_never_cast",
+        "2000178_no_spell",
+        "min_attack_range_gt_attack_distance"
+      ],
+      "check_first": "Scaling.min_attack_range/attack_range 与 MonsterSkillConfig.attack_distance 是否相交",
+      "expected": "0 ≤ min_attack_range < GetAttackDistance(attack_distance) ≤ attack_range ≤ DetectionRange ≤ ChaseRange",
+      "cause": "追击在 [min_attack_range, attack_range] 才跑 Attack；DistanceTrigger 要距离 < max(attack_distance,自身半径)+目标半径。100280 min=3、2000178 attack_distance=1.5 两带不相交。Inspector Distance 条件已注释。",
+      "resolution_kind": "config",
+      "owner_target": "trunk",
+      "validation_target": "trunk",
+      "entry_paths": [
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/AI/AI_MonsterZhuiJiHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/AI/AI_MonsterAttackHandler.cs",
+        "Config/Json/cs/MonsterScalingLevelConfig.txt",
+        "Config/Json/cs/MonsterSkillConfig.txt"
+      ],
+      "validation": [
+        "近战 min_attack_range 降到小于技能有效距离后能放出",
+        "离出生点超过 ChaseRange 仍回出生点属原逻辑"
+      ],
+      "trust": "verified",
+      "source_task": "t013"
+    }
+  ],
+  "facts": [
+    {
+      "id": "range_rings",
+      "note": "DetectionRange=相对自身看见；ChaseRange=相对出生点软拴绳（出窝且目标也不在侦测才脱战）；attack_range/min_attack_range=追击停步出手带。attack_range 不选技能。",
+      "trust": "verified",
+      "source_task": "t006"
+    },
+    {
+      "id": "get_attack_distance",
+      "note": "有效距离=max(表距离,自身半径)+目标半径。表距离改 0 仍是贴身，不能用来禁用近战技能。",
+      "trust": "verified",
+      "source_task": "t006"
+    },
+    {
+      "id": "range_design_order",
+      "note": "先定技能起手 attack_distance，再定 min_attack_range（近战 0~1），attack_range 对齐或略大于起手，然后 DetectionRange、ChaseRange。基线：0 ≤ min_attack_range < 技能有效距离 ≤ attack_range ≤ DetectionRange ≤ ChaseRange。",
+      "trust": "verified",
+      "source_task": "t013"
+    }
+  ],
+  "excluded_causes": [
+    {
+      "id": "unit_radius_entities",
+      "note": "unitRadiusEntities 数量差异为下游症状，不是 AI current 为空的根因",
+      "trust": "verified",
+      "source_task": "t003"
+    }
+  ]
+}

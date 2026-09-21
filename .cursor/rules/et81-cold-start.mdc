@@ -1,46 +1,40 @@
 ﻿---
-description: ET81-workspace 冷启动读序、单活契约与 trunk Markdown 门禁。改源码或权威文档时使用。
+description: 仅新对话且无本任务上下文时使用。已有上下文或用户发出 /implement /harvest 时不要使用。
 alwaysApply: false
 ---
 
-# ET81 冷启动与写序（Agent decides）
+# ET81 冷启动（Agent decides）
 
-根目录 AGENTS.md 只保留硬约束。章节布局见 global_rules/md_governance.md；键值预算见 global_rules/kv_budget.md；代码门禁见 global_rules/code_governance.md；工具写法见 global_rules/tools_code.md。
+已注入 AGENTS.md 则不必再读。本对话已有本 `task_id` 时结束本协议。
 
-# 1. 冷启动协议
+# 1. 口令短路
 
-每个新 Agent 或无历史上下文的任务按以下顺序读取：
+- `/implement`：只对活卡。`powershell -File runtime/etctl.ps1 begin-implement`；失败则停。只按 stdout 工作。禁止读编辑器 md。候选包须先 `etctl promote`。结束。
+- `/harvest`：不走 §2。`idle` 则拒绝。不必先 `/implement`。仅当 `phase` 为 `awaiting_verify`，或 `route=fast`，或用户点名只收分析：只读游标与 `current_scope.json`。事实写 `standards/`，门禁有变才写 `profiles/`，然后 idle。禁止读蓝图与 `global_rules/`。不 svn commit。结束。
 
-1. 工作区根 AGENTS.md（已注入则不必再读）
+# 2. 无上下文读序
+
+1. AGENTS.md（已注入则跳过）
 2. project_cursor.md
-3. 若 contract_ref 不是 none，读取该契约（通常为 contracts/current.md）
-4. 若 active_profile 不是 none，读取 profiles/<active_profile>.md
-5. standards/source_code_map.md 中与当前需求相关的路由节
-6. standards/framework_baseline.md 中仅与当前任务相关的节
+3. `contract_ref` 非 none：`contracts/current.md` 与 `contracts/current_scope.json`
+4. `phase` 为 `implement`：同 §1 `/implement`
+5. `active_profile` 非 none：`profiles/<id>.md`
+6. `target_id` 非 none：`targets/<id>.json`
+7. catalog 命中的 1–2 个 JSON
+8. 仍缺框架事实：`standards/<editor>/target.json`
 
-禁止在冷启动中读取 trunk 的 AGENTS.md、Documents 或其他 trunk Markdown。
+禁止读已登记编辑器 Markdown。无契约：只读；禁止改源码与新建权威 md。discovery：活卡 idle 才写 `current_scope.json`；活卡非 idle 且本对话不是该 `task_id` 则写入 `contracts/candidates/<task_id>.json`（最多 2），禁止改 current。未选模块不打开业务源码，除非用户给了 seed。
 
-无契约（contract_ref 为 none）时：允许只读；禁止改源码；禁止新建权威 Markdown。未选模块时不打开业务源码。
+# 3. 分析读序（仅 discovery）
 
-# 2. 实现任务协议（写）
+命中即停，禁止全树扫描：
 
-1. 确认 contracts/current.md 为开工形态，且契约 allowed_write（若有）不宽于模块配置。
-2. 默认 source_root 为现有 trunk。仅当用户明确要求时才使用第二工作副本。
-3. 先对白名单路径 svn update；失败则 blocked 并停止。
-4. 先更新本任务拥有的 workspace 文档（契约列出的 workspace_writes）。
-5. 按代码地图或模块配置打开源码；禁止全量扫描 source_root。
-6. 只在 source_root 与本单白名单内改源码。
-7. 工作区根执行 powershell -File tools/check-workspace.ps1。
-8. 需要时同步 source_code_map.md、模块配置或 tools/_index.md。
-9. 不自动 svn commit。用户本机验证并明确授权后，才可按 code_governance.md 提交说明格式提交白名单内改动。
-10. 任务结束：稳定知识回写标准或配置，current.md 恢复空闲，游标回到 idle。
+1. catalog 命中
+2. 仍缺：`editor_md_paths`（先写入 `current_scope.json`；结束登记 audit）
+3. 仍缺：`seed_paths` / 模块 `prefer`。运行行为以源码为准
 
-# 3. 混合隔离
+分析模型提炼：用户关键信息与代码观察写入 `evidence.note`；改法写入 `plan`（一行一项，指向 `write_paths`，不粘贴源码）。禁止让用户手填分析包。进入 `awaiting_scope` 或 `route=fast` 且 `write_paths` 非空时 `plan` 必填。
 
-- 默认：source_root 指向现有 trunk，白名单内直接修改。
-- 高风险（Core/Loader、协议或配置生成、跨模块批量等）：先 blocked，等用户确认后仍默认改同一份 trunk。
-- 第二工作副本：仅用户明确要求时才切换 isolated_source_root。
+# 4. 写（discovery）
 
-# 4. 文档操作
-
-受管理 Markdown 必须符合 global_rules/md_governance.md：先读该文件一级标题再读相关节。游标、配置、契约的键值项必须符合 global_rules/kv_budget.md。改代码必须符合 global_rules/code_governance.md。tools 下未登记脚本禁止存在。
+游标 `in_progress`；分析包从 `contracts/_template_scope.json` 复制。活卡非 idle 时改为写入 `contracts/candidates/<task_id>.json` 并加上 `goal`，不改游标与 current。默认禁止 svn update。`route=fast` 且用户明确同意时：对 `write_paths` scoped `svn update` 后按 `plan` 改，契约保持 discovery。需要用户看范围则 `awaiting_scope`。高风险（Core/Loader、协议生成、跨模块批量）先 `blocked`。第二工作副本仅用户点名。路径/阶段/证据只写 JSON。仅当本步改受管理 md、键值或 runtime 时才打开对应 `global_rules/` 文件。

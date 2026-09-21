@@ -1,0 +1,21 @@
+{
+  "target_id": "trunk",
+  "display_name": "trunk",
+  "workspace_path": "C:\\myProject\\trunk",
+  "vcs": "svn",
+  "editor": "unity",
+  "forbidden": [
+    "Unity/Library/",
+    "Unity/Assets/Res/",
+    "Unity/Bundles/",
+    "Bin/",
+    "obj/",
+    "*.log",
+    "Unity/Assets/Scripts/**/Generate/"
+  ],
+  "validation": {
+    "view": "unity_editor",
+    "share_server": "dotnet",
+    "batch_entry": "Unity/scripts/unity.ps1"
+  }
+}

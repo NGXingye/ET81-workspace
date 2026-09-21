@@ -1,5 +1,5 @@
-> 最新修改时间：2026-09-07 15:15 UTC+8
-> 版本号：1.0.0
+> 最新修改时间：2026-09-17 17:40 UTC+8
+> 版本号：1.7.0
 > 文档状态：草案
 > 读取等级：L2（重置 current.md 时对照）
 
@@ -12,7 +12,15 @@
 - `task_id`：`none`
 - `contract_status`：`idle`
 
-# 2. 开工形态（最小 6 项）
+# 2. 发现与开工
+
+发现形态（最小 3 项，允许无模块）：
+
+- `task_id`：`t001`
+- `contract_status`：`discovery`
+- `goal`：`（一句话）`
+
+开工形态（最小 6 项）：
 
 - `task_id`：`t001`
 - `contract_status`：`active`
@@ -23,10 +31,18 @@
 
 可选（有信息才写，计入上限 10）：`allowed_write`、`workspace_writes`、`out_of_scope`、`unblock`。
 
+分析包复制 [`_template_scope.json`](./_template_scope.json)，idle 时只保留 `task_id`/`phase`/`scope_revision`。`editor_md_paths` 仅 discovery 需要读编辑器 md 时填写。`write_paths` 非空进入 `awaiting_scope` 或 `route=fast` 时必须有 `plan`。`route=fast` 且用户明确同意时按 `plan` 改 `write_paths`，契约保持 discovery，不必 `/implement`。
+
+implement 不另存任务包；模型执行 `powershell -File runtime/etctl.ps1 begin-implement`。首次按 `plan` 改。测不过保持 implement：追加 `verify_feedback`，`implement_round+1`（1–3）；满 3 轮改为 `blocked`。`/harvest` 不必先 `/implement`。
+
 # 3. 结束
 
-稳定知识回写 `standards/` 或模块配置后，把 `current.md` 恢复为空闲形态。不要另存日期文件。
+稳定知识：行为事实回写 `standards/`；模块门禁回写 `profiles/`（无则新建，已有则仅白名单/禁区有变才改）。然后把 `current.md` 恢复为空闲形态，并把 `current_scope.json` 恢复为 `task_id=none`、`phase=idle`、`scope_revision=0`。不要另存日期文件。
 
 # 4. 版本历史
 
-- 1.0.0（2026-09-07）：建立空闲/开工两种最小形态。
+- 1.7.0（2026-09-17）：fast 用户授权即可改；harvest 不必先 implement。
+- 1.6.0（2026-09-16）：分析包 `plan` 必填才能开工。
+- 1.5.0（2026-09-16）：结束时分写 standards 事实与 profiles 门禁。
+- 1.4.0（2026-09-16）：implement 开工改走 `etctl begin-implement`。
+- 1.3.0（2026-09-14）：implement 用 `etctl packet`；测不过局部返工。

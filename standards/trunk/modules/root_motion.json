@@ -1,0 +1,183 @@
+{
+  "module_id": "root_motion",
+  "editor": "trunk",
+  "load": "on_match",
+  "trust": "verified",
+  "keywords": [
+    "根运动",
+    "RootMotion",
+    "BTSetRootMotion",
+    "IsRootMotion",
+    "attack_forma",
+    "启用根运动"
+  ],
+  "routes": [
+    {
+      "keyword": "技能根运动门控",
+      "prefer": [
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/BTSetRootMotionHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BuffVM/BuffVMSetRootMotionHandler.cs",
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/SpellConfig.cs"
+      ],
+      "avoid": [],
+      "trust": "verified",
+      "source_task": "t005"
+    },
+    {
+      "keyword": "查找键 / 烘焙 Id",
+      "prefer": [
+        "Unity/Assets/Scripts/Model/Share/Module/Move/RootMotionConfig.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/RootMotionComponentSystem.cs",
+        "Unity/Assets/Scripts/Editor/RootMotionExportEditor/RootMotionGenerator.cs",
+        "Unity/Assets/Config/RootMotion/"
+      ],
+      "avoid": [],
+      "trust": "verified",
+      "source_task": "t005"
+    },
+    {
+      "keyword": "客户端播攻击（无逻辑位移）",
+      "prefer": [
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/ActionHandleComponentSystem.cs"
+      ],
+      "avoid": [],
+      "trust": "verified",
+      "source_task": "t005"
+    },
+    {
+      "keyword": "180/90 转身根运动",
+      "prefer": [
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/AI/AILocomotionHelper.cs"
+      ],
+      "avoid": [],
+      "trust": "verified",
+      "source_task": "t005"
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "spell_is_root_motion_false",
+      "signals": [
+        "attack_anim_plays_no_logic_move",
+        "bt_set_root_motion_present",
+        "turn_180_still_works"
+      ],
+      "check_first": "SpellConfig.IsRootMotion",
+      "expected": "true，且 MotionType 与 BTSetRootMotion 一致",
+      "cause": "IsRootMotion=false 时 BTSetRootMotionHandler / BuffVMSetRootMotionHandler 直接 Succeed，不调用 SetRootMotion",
+      "resolution_kind": "config",
+      "owner_target": "trunk",
+      "validation_target": "trunk",
+      "entry_paths": [
+        "Unity/Assets/Config/Spell/",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/BTSetRootMotionHandler.cs"
+      ],
+      "validation": [
+        "SpellConfig.IsRootMotion=true",
+        "放技能时逻辑坐标随烘焙 TotalPosition 移动"
+      ],
+      "trust": "verified",
+      "source_task": "t005"
+    },
+    {
+      "id": "bake_id_not_forma_suffix",
+      "signals": [
+        "baked_as_attack_forma",
+        "set_root_motion_warning_missing_config",
+        "inspector_shows_forma_asset"
+      ],
+      "check_first": "Unity/Assets/Config/RootMotion/{bakerId}_{GetRootMotionName}.asset 的 Id 字段",
+      "expected": "Id = djb2(\"{bakerId}_{animName}\")；Attack 的 animName 是 attack 不是 attack_forma",
+      "cause": "SetRootMotion 只查 RootMotionConfig.Get(hash(bakerId+\"_\"+GetRootMotionName(MotionType)))。Attack 不在 RootMotionDict，名字是 attack。clip/Override 的 _forma 不进查找键。烘焙器手动指定 Attack 会另存 {id}_attack；不指定才写 {id}_attack_forma。两份可并存，运行时只吃 Id 对上的那份。",
+      "resolution_kind": "config",
+      "owner_target": "trunk",
+      "validation_target": "trunk",
+      "entry_paths": [
+        "Unity/Assets/Config/RootMotion/",
+        "Unity/Assets/Scripts/Model/Share/Module/Move/RootMotionConfig.cs",
+        "Unity/Assets/Scripts/Editor/RootMotionExportEditor/RootMotionGenerator.cs"
+      ],
+      "validation": [
+        "存在 {bakerId}_attack.asset 且 Id=hash(\"{bakerId}_attack\")",
+        "打开开关后不再出现「没有找到根运动配置」"
+      ],
+      "trust": "verified",
+      "source_task": "t005"
+    },
+    {
+      "id": "inspector_hides_is_root_motion",
+      "signals": [
+        "root_motion_group_empty",
+        "cannot_toggle_is_root_motion",
+        "showif_same_boxgroup"
+      ],
+      "check_first": "SpellConfig Inspector「启用根运动」独立勾选，不要 BoxGroup+ShowIf 同组",
+      "expected": "Title+ToggleLeft 画出开关；勾上才出现 MotionType",
+      "cause": "bool 与 ShowIf(IsRootMotion) 同 BoxGroup 时 Odin 把整组内容藏掉只留标题。ToggleGroup 当标题勾选也不够显眼。",
+      "resolution_kind": "code",
+      "owner_target": "trunk",
+      "validation_target": "trunk",
+      "entry_paths": [
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/SpellConfig.cs"
+      ],
+      "validation": [
+        "Inspector 技能信息下方可见「启用根运动」勾选",
+        "勾上后出现根运动动画类型"
+      ],
+      "trust": "verified",
+      "source_task": "t013"
+    }
+  ],
+  "facts": [
+    {
+      "id": "lookup_key",
+      "note": "bakerId 来自 PrefabName 最后一个 _ 后缀数字。GetRootMotionName：字典命中用字典值，否则枚举名 ToLower。配置表按 Id 字段索引，不按文件名。",
+      "trust": "verified",
+      "source_task": "t005"
+    },
+    {
+      "id": "animator_apply_root_motion_off",
+      "note": "运行时 Animator.applyRootMotion=false。Override 把 placeholder_attack 换成 monster_c_*_attack_forma 只播骨骼。逻辑位移只来自 RootMotionConfig 积分。",
+      "trust": "verified",
+      "source_task": "t005"
+    },
+    {
+      "id": "turn_bypasses_spell_flag",
+      "note": "AILocomotionHelper 转身直接 SetRootMotion(TurnLeft180 等)，不读 SpellConfig.IsRootMotion；键是 turnleft180，与技能 Attack 无关。",
+      "trust": "verified",
+      "source_task": "t005"
+    },
+    {
+      "id": "bt_set_on_variant_buff_before_shape",
+      "note": "带位移攻击：BTSetRootMotion 加在随机选出的动画 Buff（如 01/03/05），不要加在 master 00。同一 EffectServerBuffAdd 下排在 BTCastShape 前面。Motion Type 用 Attack/Attack1/Attack2 对齐烘焙。",
+      "trust": "verified",
+      "source_task": "t013"
+    },
+    {
+      "id": "spell_motion_type_is_ai_precheck",
+      "note": "SpellConfig.IsRootMotion 是节点积分门控。SpellConfig.MotionType 给 AI 施法前障碍/位移长度（AttackHandler/ETAIHostAdapter），实际积分用 BT 节点类型。两者应一致；不要从 Spell 删掉类型字段。",
+      "trust": "verified",
+      "source_task": "t013"
+    }
+  ],
+  "excluded_causes": [
+    {
+      "id": "baker_zero_yaw_means_no_root",
+      "note": "烘焙器 yaw≈0 红字对纯位移攻击是误报；100004 Attack 总位移 z≈-1.74、总旋转恒等仍有效",
+      "trust": "verified",
+      "source_task": "t005"
+    },
+    {
+      "id": "forma_hash_used_by_attack",
+      "note": "100004_attack_forma.Id=5281653=hash(100004_attack_forma)，Attack 不会查这个键",
+      "trust": "verified",
+      "source_task": "t005"
+    },
+    {
+      "id": "drop_spell_motion_type_safe",
+      "note": "Spell 上只留开关、去掉 MotionType 会让 AI 把技能当无位移、不探障碍；Buff 节点仍能积分。",
+      "trust": "verified",
+      "source_task": "t013"
+    }
+  ]
+}

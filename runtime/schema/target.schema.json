@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "target.schema.json",
+  "title": "ET81 editor target",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["target_id", "display_name", "workspace_path", "vcs", "editor"],
+  "properties": {
+    "target_id": { "type": "string", "minLength": 1 },
+    "display_name": { "type": "string", "minLength": 1 },
+    "workspace_path": { "type": "string", "minLength": 1 },
+    "vcs": { "type": "string", "enum": ["svn", "git"] },
+    "editor": { "type": "string", "enum": ["unity", "other"] },
+    "forbidden": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    }
+  }
+}

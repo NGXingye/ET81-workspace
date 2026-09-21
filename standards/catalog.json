@@ -1,0 +1,161 @@
+{
+  "catalog_version": 1,
+  "editors": [
+    {
+      "id": "trunk",
+      "workspace_path": "C:\\myProject\\trunk"
+    },
+    {
+      "id": "SkillEditor",
+      "workspace_path": "C:\\myProject\\SkillEditor"
+    },
+    {
+      "id": "BridgeEditor",
+      "workspace_path": "C:\\myProject\\BridgeEditor"
+    },
+    {
+      "id": "ActionEditor",
+      "workspace_path": "C:\\myProject\\ActionEditor"
+    }
+  ],
+  "entries": [
+    {
+      "match": [
+        "怪物",
+        "monster",
+        "AI current",
+        "不攻击",
+        "LightShield",
+        "BoneAnim",
+        "MonsterScalingLevelConfig",
+        "CharacterType",
+        "DetectionRange",
+        "ChaseRange",
+        "attack_range",
+        "DistanceTrigger",
+        "MonsterSkillConfig",
+        "AI_MonsterAttack"
+      ],
+      "editor": "trunk",
+      "load": ["standards/trunk/modules/monster_ai.json"]
+    },
+    {
+      "match": [
+        "框架",
+        "Core",
+        "Fiber",
+        "程序集",
+        "Loader",
+        "asmdef"
+      ],
+      "editor": "trunk",
+      "load": ["standards/trunk/target.json"]
+    },
+    {
+      "match": [
+        "根运动",
+        "RootMotion",
+        "BTSetRootMotion",
+        "IsRootMotion",
+        "attack_forma",
+        "技能没有位移",
+        "没有带位移"
+      ],
+      "editor": "trunk",
+      "load": ["standards/trunk/modules/root_motion.json"]
+    },
+    {
+      "match": [
+        "弹道",
+        "BallisticCopy",
+        "OffsetPositions",
+        "攻击时长",
+        "动画攻击距离",
+        "1202",
+        "1203",
+        "伤害物飞太快",
+        "50002",
+        "50005",
+        "海豹头球",
+        "Z轴",
+        "视觉贴附",
+        "拉扯"
+      ],
+      "editor": "trunk",
+      "load": ["standards/trunk/modules/ballistic.json"]
+    },
+    {
+      "match": [
+        "爬塔",
+        "ClimbingTower",
+        "TowerView",
+        "Item_Stage",
+        "Item_Stage1",
+        "关卡列表",
+        "FloorPage",
+        "Panel_Guanqia",
+        "Panel_Stage01",
+        "u_DataLayer",
+        "ClimbingTowerTaskTracing",
+        "任务栏",
+        "Panel_Task01",
+        "已击杀",
+        "TowerWinView",
+        "Text_Time",
+        "离开倒计时",
+        "打开爬塔胜利界面"
+      ],
+      "editor": "trunk",
+      "load": ["standards/trunk/modules/climbing_tower.json"]
+    },
+    {
+      "match": [
+        "弹道轨迹编辑器",
+        "BallisticConfig",
+        "DirectionalPathEval",
+        "directionalForwardDistance",
+        "绘制轨迹"
+      ],
+      "editor": "SkillEditor",
+      "load": ["standards/SkillEditor/modules/playeffect.json"]
+    },
+    {
+      "match": [
+        "导出碰撞体",
+        "colliderdata",
+        "variantColliderSets",
+        "csvdemo",
+        "无法生成角色模型"
+      ],
+      "editor": "SkillEditor",
+      "load": ["standards/SkillEditor/modules/skill_collider.json"]
+    },
+    {
+      "match": [
+        "timeline svn",
+        "playable 提交",
+        "svn:externals",
+        "Assets/Resources/timeline"
+      ],
+      "editor": "SkillEditor",
+      "load": ["standards/SkillEditor/modules/timeline_wc.json"]
+    },
+    {
+      "match": [
+        "技能管线",
+        "怪物页",
+        "一键导入",
+        "SkillPipeline",
+        "只读面板"
+      ],
+      "editor": "SkillEditor",
+      "load": ["standards/SkillEditor/modules/skill_pipeline.json"]
+    },
+    {
+      "match": ["UI", "Spell", "Combat", "Numeric", "背包", "Quest"],
+      "editor": "trunk",
+      "load": ["standards/source_code_map.md"],
+      "note": "legacy_routes_until_module_json"
+    }
+  ]
+}

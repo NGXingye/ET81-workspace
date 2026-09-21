@@ -1,0 +1,9 @@
+{
+  "target_id": "ActionEditor",
+  "display_name": "ActionEditor",
+  "workspace_path": "C:\\myProject\\ActionEditor",
+  "vcs": "svn",
+  "editor": "unity",
+  "forbidden": ["Library/", "Logs/", "Temp/"],
+  "validation": {}
+}

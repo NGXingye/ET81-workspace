@@ -1,0 +1,248 @@
+{
+  "module_id": "ballistic",
+  "editor": "trunk",
+  "load": "on_match",
+  "trust": "verified",
+  "keywords": [
+    "弹道",
+    "BallisticCopy",
+    "OffsetPositions",
+    "攻击时长",
+    "动画攻击距离",
+    "1202",
+    "1203",
+    "50002",
+    "50005",
+    "海豹头球",
+    "视觉贴附",
+    "拉扯"
+  ],
+  "routes": [
+    {
+      "keyword": "怪物飞行时钟",
+      "prefer": [
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/SpellUnitHelper.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BuffVM/BuffVMCreateBuffUnitHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/SpellUnit/SpellUnitTrackMoveComponentSystem.cs"
+      ],
+      "avoid": [],
+      "trust": "verified",
+      "source_task": "t006"
+    },
+    {
+      "keyword": "2000010 四发",
+      "prefer": [
+        "Unity/Assets/Config/Spell/2000010-火箭蜘蛛-抛物延迟雷/",
+        "Unity/Assets/Config/Spell/Ballistics/BallisticCopy1202.asset",
+        "Unity/Assets/Config/Spell/Ballistics/BallisticCopy1203.asset",
+        "Unity/Assets/Config/SpellUnit/89_vfx_monster_100004_skill01_0002send01_big.asset"
+      ],
+      "avoid": [],
+      "trust": "verified",
+      "source_task": "t006"
+    },
+    {
+      "keyword": "Directional Z 转换",
+      "prefer": [
+        "BridgeEditor/Assets/Scripts/Editor/SpellConversion/SpellConversionEngine.ConfigWriter.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/SpellUnit/SpellUnitTrackMoveComponentSystem.cs"
+      ],
+      "avoid": [
+        "Unity/Assets/Config/Spell/Ballistics/BallisticCopy1202.asset",
+        "Unity/Assets/Config/Spell/Ballistics/BallisticCopy1203.asset"
+      ],
+      "trust": "verified",
+      "source_task": "t004"
+    },
+    {
+      "keyword": "视觉贴附",
+      "prefer": [
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Spell/SpellUnitVisualAttachInvokeHandler.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/SpellUnitVisualAttachComponentSystem.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/SpellUnit/SpellUnitTrackMoveComponentSystem.cs"
+      ],
+      "avoid": [],
+      "trust": "verified",
+      "source_task": "t011"
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "monster_ignores_copy_time",
+      "signals": [
+        "ballistic_copy_time_is_skill_length",
+        "missile_flies_buff_duration",
+        "inspector_preview_uses_distance"
+      ],
+      "check_first": "SpellUnitHelper.CreateSpellUnit 非玩家分支：duration=Buff秒，speed=节点 speed",
+      "expected": "L=Duration×speed；BallisticCopy.Time/Distance 仅当 duration 与 speed 都为 0",
+      "cause": "转换把 SkillData 总时长写入 Copy.Time；怪物 TrackMove 不读这两项。预览 worldZ=rate×Distance+Z 不是怪物公式",
+      "resolution_kind": "config",
+      "owner_target": "trunk",
+      "validation_target": "trunk",
+      "entry_paths": [
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/SpellUnitHelper.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/SpellUnit/SpellUnitTrackMoveComponentSystem.cs"
+      ],
+      "validation": [
+        "200001004 Duration=2000、speed=2 时前进约 4m",
+        "勾选使用动画距离仍不影响怪物"
+      ],
+      "trust": "verified",
+      "source_task": "t006"
+    },
+    {
+      "id": "first_shot_uses_1203",
+      "signals": [
+        "first_missile_deflects",
+        "later_shots_straighter"
+      ],
+      "check_first": "200001001 TimeWait 顺序与各弹 ballisticId",
+      "expected": "004→1203；后三发 005/006→1202",
+      "cause": "不是技能 3.4s 拉歪；第一发绑 1203（X 弧），其余绑 1202（X=0）",
+      "resolution_kind": "config",
+      "owner_target": "trunk",
+      "validation_target": "trunk",
+      "entry_paths": [
+        "Unity/Assets/Config/Spell/2000010-火箭蜘蛛-抛物延迟雷/200001001.asset"
+      ],
+      "validation": [
+        "四发同 Copy 则侧向一致；每发曲线从自己的 0 重播"
+      ],
+      "trust": "verified",
+      "source_task": "t006"
+    },
+    {
+      "id": "directional_z_meters_times_L",
+      "signals": [
+        "editor_ok_trunk_middle_wrong",
+        "landing_similar",
+        "heading_ball_pulled_back"
+      ],
+      "check_first": "BallisticCopy OffsetPositions 中段 Z 是否像米（约 0.3~0.5）而 animDistance 为数米",
+      "expected": "Z_copy=Z米/D；中段 Z 约 0.1 量级；落点仍在 D 圆",
+      "cause": "转换曾把 SkillEditor 的 Z（米）原样写入 Copy，ET 再 ×L。50005 L=5 时中段多向前约 2.5m，末点 Z=0 被拉回。",
+      "resolution_kind": "code",
+      "owner_target": "BridgeEditor",
+      "validation_target": "trunk",
+      "entry_paths": [
+        "BridgeEditor/Assets/Scripts/Editor/SpellConversion/SpellConversionEngine.ConfigWriter.cs",
+        "Unity/Assets/Config/Spell/Ballistics/BallisticCopy50005.asset",
+        "Unity/Assets/Config/Spell/2000173-海豹头球/200017304.asset"
+      ],
+      "validation": [
+        "Copy 中段 Z÷animDistance 后顶球中段与预览一致",
+        "Bridge 重转 50002/50005 后勿对已÷过的资产再转一次"
+      ],
+      "trust": "verified",
+      "source_task": "t004"
+    },
+    {
+      "id": "directional_visual_attach_tug",
+      "signals": [
+        "editor_smooth_trunk_tug",
+        "heading_ball_airborne_pull",
+        "gizmo_y_still_up"
+      ],
+      "check_first": "客户端怪物弹体是否挂了 SpellUnitVisualAttach；Copy 是否 animDistance>0 且 useAnimDistance=false",
+      "expected": "Directional 不贴挂点，画面=逻辑弹道；TrackMove forward 压到 XZ",
+      "cause": "视觉从真实挂点在 0.3s/1m 内收到逻辑点，和相对发射点的 Directional 曲线抢位置。factor.Forward 朝下俯仰会拌 Y，但压平后仍扯则是贴附。",
+      "resolution_kind": "code",
+      "owner_target": "trunk",
+      "validation_target": "trunk",
+      "entry_paths": [
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Spell/SpellUnitVisualAttachInvokeHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/SpellUnit/SpellUnitTrackMoveComponentSystem.cs",
+        "Unity/Assets/Config/Spell/Ballistics/BallisticCopy50005.asset"
+      ],
+      "validation": [
+        "关 50005 贴附后空中不拉扯",
+        "1202/1203 useAnimDistance 仍贴枪口"
+      ],
+      "trust": "verified",
+      "source_task": "t011"
+    }
+  ],
+  "facts": [
+    {
+      "id": "curve_time_zero_is_spawn",
+      "note": "源曲线与 Copy 采样 0～1 是这一发从出生到结束的进度。567/800/1233/1466ms 只决定何时新建 SpellUnit。同一 BallisticCopy Id 无全局播放头。源曲线最后时间应对齐 Buff 飞行秒（2s）不是技能 3.4s。XYZ=0 是挂点原点附加偏移。",
+      "trust": "verified",
+      "source_task": "t006"
+    },
+    {
+      "id": "sample_count",
+      "note": "采样点数=OffsetPositions.Count。转换默认 100；animDistance>0 时改成 X 曲线 key 数。ET 在相邻点直线插值。直线 2 点够，有弧需多点。",
+      "trust": "verified",
+      "source_task": "t006"
+    },
+    {
+      "id": "et_pose",
+      "note": "pos=挂点 + rate×L×fwd + right×X + up×Y + L×Z×fwd。旧引擎 Z 是米；ET 的 Z 乘在 L 上。怪物不走 ClampThrowPosAboveGround。SpellUnit 89 盒 halfExtents=(0.3,0.3,0.5)，Y 终点需扣半高否则提前 OnHitGround。",
+      "trust": "verified",
+      "source_task": "t006"
+    },
+    {
+      "id": "converter_z_div_d",
+      "note": "SkillEditor Directional：X/Y/Z 都是米。SampleBallisticCurves 在 UseBallisticZ 且 D>0 时写入 Z_copy=Z米/D；X/Y 仍是米。不要改 TrackMove 的 Z×L。useAnimDistance=true 的动画烘焙 Copy（1202/1203）不要再÷D。Bridge r41957。",
+      "trust": "verified",
+      "source_task": "t004"
+    },
+    {
+      "id": "trackmove_flatten_directional",
+      "note": "SkillEditor Y 走世界 up、前进水平。factor.Forward 是 min(0,y)，朝下保留。Directional（animDistance>0 且 useAnimDistance=false）TrackMove Awake 把 forward 压到 XZ。弹体 Transform 绿轴可以仍歪。",
+      "trust": "verified",
+      "source_task": "t011"
+    },
+    {
+      "id": "skip_visual_attach_directional",
+      "note": "逻辑弹道=两端 TrackMove。视觉贴附只改客户端模型：先贴真挂点，0.3s 或前 1m 收到逻辑点。Directional 曲线相对发射点，再贴会拉扯。useAnimDistance 动画烘焙仍要贴（枪口叙事）。仅怪物客户端 Current。",
+      "trust": "verified",
+      "source_task": "t011"
+    },
+    {
+      "id": "copy_50005_source_keys",
+      "note": "ballistics_m100279_50005 在 Bridge Resources；曲线时间 0~1、48 key、UseVelocityCurve=0。Copy 与源 Y 一致、Z=米/D。t=0~0.17 头顶回收；Y 峰后单调到 -1，无回升。不是 useAnimDistance。Inspector 轨迹预览用 Distance=0 会缩成竖线。",
+      "trust": "verified",
+      "source_task": "t011"
+    }
+  ],
+  "excluded_causes": [
+    {
+      "id": "copy_time_drives_monster_flight",
+      "note": "攻击时长 3.466 不是子弹 clip 时长，也不驱动怪物 totalTime",
+      "trust": "verified",
+      "source_task": "t006"
+    },
+    {
+      "id": "change_trackmove_z_to_meters",
+      "note": "不能把 TrackMove 改成 Z 当米；会毁掉 useAnimDistance 动画烘焙弹道",
+      "trust": "verified",
+      "source_task": "t004"
+    },
+    {
+      "id": "collision_is_root_of_heading_mismatch",
+      "note": "海豹顶球中间乱再拉回，根因是 Copy.Z 米被 ×L，不是碰撞；碰撞只是球扎进身体后的放大器",
+      "trust": "verified",
+      "source_task": "t004"
+    },
+    {
+      "id": "airborne_tug_is_z_sample_or_30fps",
+      "note": "Z 已÷D 后空中拉扯不是 30 帧采样、也不是后半段 Y 有回收；关贴附后消失",
+      "trust": "verified",
+      "source_task": "t011"
+    },
+    {
+      "id": "flatten_alone_fixes_heading_tug",
+      "note": "压平 forward 后 fyAfter=0 仍拉扯；主因是视觉贴附不是俯仰",
+      "trust": "verified",
+      "source_task": "t011"
+    },
+    {
+      "id": "collision_is_root_of_airborne_tug",
+      "note": "102 改 Trigger 后 50005 仍回拉；改回投射后关贴附就不扯",
+      "trust": "verified",
+      "source_task": "t011"
+    }
+  ]
+}

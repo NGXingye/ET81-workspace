@@ -1,0 +1,19 @@
+{
+  "task_id": "t000",
+  "phase": "discovery",
+  "scope_revision": 1,
+  "intent": "unknown",
+  "size": "unknown",
+  "route": "unset",
+  "target_id": "trunk",
+  "profile_id": "none",
+  "seed_paths": [],
+  "read_paths": [],
+  "write_paths": [],
+  "editor_md_paths": [],
+  "evidence": [],
+  "risks": [],
+  "uncertain": [],
+  "validation": [],
+  "plan": []
+}

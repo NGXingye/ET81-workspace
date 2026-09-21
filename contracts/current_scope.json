@@ -1,0 +1,62 @@
+{
+  "task_id": "t015",
+  "phase": "discovery",
+  "scope_revision": 2,
+  "intent": "feature",
+  "size": "medium",
+  "route": "unset",
+  "target_id": "SkillEditor",
+  "profile_id": "skill_pipeline",
+  "seed_paths": [
+    "C:\\myProject\\SkillEditor\\Assets\\Scripts\\App\\Comm\\EditorTools\\BallisticPathEditorWindow.cs",
+    "C:\\myProject\\SkillEditor\\Assets\\Editor\\SkillEditor\\SkillEditor2.cs",
+    "C:\\myProject\\SkillEditor\\Assets\\Editor\\SkillEditor\\csvdemo"
+  ],
+  "read_paths": [
+    "C:\\myProject\\SkillEditor\\Assets\\Scripts\\App\\Comm\\EditorTools\\BallisticPathEditorWindow.cs",
+    "C:\\myProject\\SkillEditor\\Assets\\Editor\\SkillEditor\\SkillEditor2.cs",
+    "C:\\myProject\\SkillEditor\\Assets\\Editor\\SkillEditor\\csvdemo\\MonsterSkillConfig.bytes",
+    "C:\\myProject\\SkillEditor\\Assets\\Editor\\SkillEditor\\csvdemo\\MonsterScalingLevelConfig.bytes"
+  ],
+  "write_paths": [],
+  "editor_md_paths": [],
+  "evidence": [
+    {
+      "path": "C:\\myProject\\SkillEditor\\Assets\\Editor\\SkillEditor\\csvdemo",
+      "note": "源表 MonsterScalingLevelConfig / MonsterSkillConfig；工具只存本机、不上 SVN。优先 Unique+Directional。",
+      "status": "observed"
+    },
+    {
+      "path": "C:\\myProject\\SkillEditor\\Assets\\Scripts\\App\\Comm\\EditorTools\\BallisticPathEditorWindow.cs",
+      "note": "IMGUI EditorWindow 约 1965 行；PrefabFolders=monster_c/pet_c。白名单只读纳入，禁止续写管线、禁止改成 Odin。",
+      "status": "observed"
+    },
+    {
+      "path": "C:\\myProject\\SkillEditor\\Assets\\Editor\\SkillEditor\\SkillEditor2.cs",
+      "note": "SkillEditor3 已是 OdinMenuEditorWindow 且约 3200 行。新面板必须独立窗口，禁止往此文件加页。",
+      "status": "observed"
+    }
+  ],
+  "risks": [
+    "svn:ignore 未设就建目录，容易被 add/commit 进 SkillEditor 库",
+    "ignore 写法覆盖父目录原有 svn:ignore",
+    "把代码写进 BallisticPathEditorWindow 或 SkillEditor2 导致文件继续膨胀且误提交",
+    "L5 一键进 Trunk 跨编辑器，本切片不做"
+  ],
+  "uncertain": [
+    "csvdemo 现有 Parse API 能否直接给 L0 下拉，还是只复用 bytes 入口",
+    "EditorTools 当前 svn:ignore 已有哪些条目，合并前要 propget"
+  ],
+  "validation": [
+    "workspace 冷启动能靠「技能管线/怪物页/SkillPipeline」命中本模块",
+    "白名单：写集仅 SkillPipeline/；弹道窗口与 SkillEditor2 只读",
+    "本切片不改任何 SkillEditor 文件；L0+L1 实现另等 /implement"
+  ],
+  "plan": [
+    "切片锁死：只设计 L0 怪物页 + L1 动作页只读面板；write_paths 保持空",
+    "SVN 隔离：新代码只放 EditorTools/SkillPipeline/；开工时对父目录合并 svn:ignore SkillPipeline；禁止 svn add/commit；回退不影响忽略目录",
+    "白名单：allowed_write=SkillPipeline/；allowed_read 含 BallisticPathEditorWindow.cs 与 csvdemo；forbidden 含弹道窗、SkillEditor2、csvdemo、timeline、svn commit",
+    "结构：OdinEditorWindow + TabGroup，四文件 Window/TableView/MotionView/SessionPrefs；80–500 行、顶 600；不改弹道窗布局",
+    "非法 IO：路径必须在 SkillPipeline/；禁写表/Timeline/Library/Res/Generate；非法则禁用按钮+红字"
+  ]
+}

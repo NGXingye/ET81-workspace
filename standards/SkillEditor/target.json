@@ -1,0 +1,10 @@
+{
+  "target_id": "SkillEditor",
+  "runtime_config": "targets/SkillEditor.json",
+  "load": "on_match",
+  "trust": "verified",
+  "workspace_path": "C:\\myProject\\SkillEditor",
+  "vcs": "svn",
+  "editor": "unity",
+  "note": "目录存在已核验；Directional 见 playeffect.json；碰撞导出见 skill_collider.json；timeline 是 svn external 见 timeline_wc.json"
+}

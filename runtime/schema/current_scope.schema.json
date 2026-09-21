@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "current_scope.schema.json",
+  "title": "ET81 current task scope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["task_id", "phase", "scope_revision"],
+  "properties": {
+    "task_id": { "type": "string", "minLength": 1 },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "idle",
+        "discovery",
+        "awaiting_scope",
+        "implement",
+        "awaiting_verify",
+        "harvest",
+        "blocked"
+      ]
+    },
+    "scope_revision": { "type": "integer", "minimum": 0 },
+    "intent": {
+      "type": "string",
+      "enum": ["unknown", "bug", "feature", "refactor", "mixed"]
+    },
+    "size": {
+      "type": "string",
+      "enum": ["unknown", "trivial", "small", "medium", "large"]
+    },
+    "route": {
+      "type": "string",
+      "enum": ["unset", "fast", "normal"]
+    },
+    "edit_ops": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["in_place", "add_file", "delete", "move"]
+      }
+    },
+    "target_id": { "type": "string" },
+    "profile_id": { "type": "string" },
+    "seed_paths": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "read_paths": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "write_paths": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "editor_md_paths": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "note", "status"],
+        "properties": {
+          "path": { "type": "string" },
+          "note": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["candidate", "observed", "verified", "stale"]
+          }
+        }
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "uncertain": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "validation": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "plan": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "goal": { "type": "string" },
+    "implement_round": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3
+    },
+    "verify_feedback": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}
