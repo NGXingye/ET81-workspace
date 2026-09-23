@@ -64,29 +64,50 @@ if ([string]$contract['contract_status'] -ne 'idle' -or [string]$scope.phase -ne
 $cand = Get-Content -LiteralPath $candPath -Raw -Encoding UTF8 | ConvertFrom-Json
 if ([string]$cand.task_id -ne $TaskId) { Write-PromoteError 'candidate task_id mismatch file' }
 $phase = [string]$cand.phase
-if (@('discovery', 'awaiting_scope') -notcontains $phase) { Write-PromoteError ('candidate phase cannot promote: ' + $phase) }
+$isParked = ($cand.PSObject.Properties.Name -contains 'parked' -and [bool]$cand.parked)
+$okPhase = @('discovery', 'awaiting_scope')
+if ($isParked) { $okPhase = @('discovery', 'awaiting_scope', 'implement', 'awaiting_verify') }
+if ($okPhase -notcontains $phase) { Write-PromoteError ('candidate phase cannot promote: ' + $phase) }
 $goal = [string]$cand.goal
 if (-not $goal) { Write-PromoteError 'candidate goal required' }
 
 $stamp = Get-Stamp
+if ($cand.PSObject.Properties.Name -contains 'parent_task_id' -and [string]$cand.parent_task_id) {
+    Write-PromoteError 'candidate with parent_task_id requires etctl interrupt'
+}
 $scopeOut = [ordered]@{}
 foreach ($p in $cand.PSObject.Properties) {
-    if ($p.Name -eq 'goal') { continue }
+    if (@('goal', 'parked', 'parked_by') -contains $p.Name) { continue }
     $scopeOut[$p.Name] = $p.Value
 }
 $scopeJson = $scopeOut | ConvertTo-Json -Compress:$false -Depth 8
 $scopeJson = [regex]::Replace($scopeJson, '\\u([0-9a-fA-F]{4})', { param($m) [char][int]('0x' + $m.Groups[1].Value) })
 Write-Utf8 (Join-Path $WorkspaceRoot 'contracts/current_scope.json') ($scopeJson.TrimEnd() + "`n")
 
+$cStatus = 'discovery'
+if (@('implement', 'awaiting_verify') -contains $phase) { $cStatus = 'active' }
 $contractText = Read-Utf8 (Join-Path $WorkspaceRoot 'contracts/current.md')
 $contractText = Set-MdField $contractText 'task_id' $TaskId
-$contractText = Set-MdField $contractText 'contract_status' 'discovery'
+$contractText = Set-MdField $contractText 'contract_status' $cStatus
 $contractText = Set-MdField $contractText 'goal' $goal
+if ($cStatus -eq 'active') {
+    $pid = 'none'
+    if ($cand.profile_id) { $pid = [string]$cand.profile_id }
+    if (-not $pid -or $pid -eq 'none') { Write-PromoteError 'parked implement needs profile_id' }
+    $accept = ''
+    if ($cand.PSObject.Properties.Name -contains 'validation' -and $null -ne $cand.validation) {
+        $accept = (@($cand.validation) -join '; ')
+    }
+    if (-not $accept) { $accept = $goal }
+    $contractText = Set-MdField $contractText 'profile_ref' ('profiles/' + $pid + '.md')
+    $contractText = Set-MdField $contractText 'source_root_mode' 'normal'
+    $contractText = Set-MdField $contractText 'acceptance' $accept
+}
 $contractText = Set-HeaderTime $contractText $stamp
 Write-Utf8 (Join-Path $WorkspaceRoot 'contracts/current.md') $contractText
 
 $cursorStatus = 'in_progress'
-if ($phase -eq 'awaiting_scope') { $cursorStatus = 'awaiting_approval' }
+if (@('awaiting_scope', 'awaiting_verify') -contains $phase) { $cursorStatus = 'awaiting_approval' }
 $profileId = 'none'
 if ($cand.profile_id) { $profileId = [string]$cand.profile_id }
 $cursorText = Read-Utf8 (Join-Path $WorkspaceRoot 'project_cursor.md')
@@ -95,6 +116,13 @@ $cursorText = Set-MdField $cursorText 'task_status' $cursorStatus
 $cursorText = Set-MdField $cursorText 'active_profile' $profileId
 $cursorText = Set-MdField $cursorText 'contract_ref' 'contracts/current.md'
 $cursorText = Set-MdField $cursorText 'blocked' 'false'
+$tid = 'trunk'
+if ($cand.target_id) { $tid = [string]$cand.target_id }
+$targetPath = Join-Path $WorkspaceRoot ('targets/' + $tid + '.json')
+if (Test-Path -LiteralPath $targetPath) {
+    $tgt = Get-Content -LiteralPath $targetPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ([string]$tgt.workspace_path) { $cursorText = Set-MdField $cursorText 'source_root' ([string]$tgt.workspace_path) }
+}
 $cursorText = Set-HeaderTime $cursorText $stamp
 Write-Utf8 (Join-Path $WorkspaceRoot 'project_cursor.md') $cursorText
 

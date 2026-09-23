@@ -1,5 +1,5 @@
-> 最新修改时间：2026-09-17 10:20 UTC+8
-> 版本号：1.6.0
+> 最新修改时间：2026-09-23 11:20 UTC+8
+> 版本号：1.8.0
 > 文档状态：生效
 > 读取等级：L1（查找开工契约时读取）
 
@@ -15,6 +15,9 @@
 - [`_template_scope.json`](./_template_scope.json)  
   职责：分析阶段数据包模板（intent/size/route/路径/证据/`plan`）。  
   读取时机：进入 discovery 或填写 `current_scope.json` 前。
+- [`_template_interrupt.json`](./_template_interrupt.json)  
+  职责：热插队分析包模板（新号 + `parent_task_id` + trivial/fast）。  
+  读取时机：活卡占用时写插队候选，再 `etctl interrupt`。
 - [`current.md`](./current.md)  
   职责：唯一活契约（目标、验收、本单 workspace 写集）。空闲时仅 2 个最小字段。  
   读取时机：`project_cursor.md` 的 `contract_ref` 指向本文件时。
@@ -22,13 +25,13 @@
   职责：机读范围（phase、路径、证据、`plan`、`editor_md_paths`）。implement 工作令由 `etctl begin-implement` / `packet` 从此导出。  
   读取时机：与 `current.md` 同时；`/implement` 只消费命令 stdout，不要为开工手改本文件。
 - [`candidates/_index.md`](./candidates/_index.md)  
-  职责：未开工分析包（最多 2）。活卡 idle 后用户点名 `etctl promote <task_id>`。  
+  职责：未开工分析包（最多 2）。活卡 idle 后用户点名 `etctl promote <task_id>`。热插队由 `etctl interrupt` 把活卡勾进本目录（可含 implement）。  
   读取时机：活卡占用时新开分析窗口。
 
 # 2. 版本历史
 
+- 1.8.0（2026-09-23）：parked 可含 implement；promote 原阶段提回。
+- 1.7.0（2026-09-23）：登记热插队模板；interrupt 勾住活卡。
 - 1.6.0（2026-09-17）：登记 `candidates/`；最多 2 个未开工分析包。
 - 1.5.0（2026-09-16）：分析包增加 `plan`。
 - 1.4.0（2026-09-16）：implement 开工改走 `etctl begin-implement`。
-- 1.3.0（2026-09-14）：`etctl packet` 从 current_scope 导出 implement 工作令。
-- 1.2.0（2026-09-12）：登记分析包模板；discovery 可无模块。

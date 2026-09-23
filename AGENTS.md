@@ -1,5 +1,5 @@
-> 最新修改时间：2026-09-17 17:40 UTC+8
-> 版本号：1.14.0
+> 最新修改时间：2026-09-23 11:20 UTC+8
+> 版本号：1.16.0
 > 文档状态：生效
 > 读取等级：L0（每次冷启动必读；正文只保留硬约束）
 
@@ -7,7 +7,7 @@
 
 本文件是 ET81-workspace 的最高规范权威。Cursor 会把它作为 Always Apply 注入每一轮，因此只保留不可违反的短约束。
 
-本对话已有本 `task_id` 时：禁止再打开冷启动、蓝图、`global_rules/`、模板、schema、runtime 源码；同窗口换阶段只跑口令。无本任务上下文时按 `.cursor/rules/et81-cold-start.mdc`。`/implement` 只对活卡跑 `etctl begin-implement`。`route=fast` 且用户明确同意改时，按 `plan` 改活卡 `write_paths`，不必 `/implement`。活卡非 idle 时新分析写入 `contracts/candidates/<task_id>.json`（最多 2），禁止改 current。idle 后用户点名候选则 `etctl promote <task_id>`。`/harvest` 不走冷启动、不必先 `/implement`；事实写 `standards/`，门禁有变才写 `profiles/`，然后 idle。
+本对话已有本 `task_id` 时：禁止再打开冷启动、蓝图、`global_rules/`、模板、schema、runtime 源码；同窗口换阶段只跑口令。无本任务上下文时按 `.cursor/rules/et81-cold-start.mdc`。`/implement` 只对活卡跑 `etctl begin-implement`。`route=fast` 且用户明确同意改时，按 `plan` 改活卡 `write_paths`，不必 `/implement`。活卡非 idle 时新分析写入 `contracts/candidates/<task_id>.json`（最多 2），禁止改 current。idle 后用户点名候选则 `etctl promote <task_id>`。热插队：新号候选 + `etctl interrupt <id>`；禁止复用 parent 号；可勾住 implement/awaiting_verify（用户确认主力窗口已停）；插队模型不读活卡，只凭号；禁止 blocked/harvest 中插队；热 harvest 后 promote `resume_task_id` 原阶段。`/harvest` 不走冷启动、不必先 `/implement`；事实写 `standards/`，门禁有变才写 `profiles/`，然后 idle。
 
 # 1. 工作区
 
@@ -34,8 +34,8 @@
 
 # 4. 版本历史
 
+- 1.16.0（2026-09-23）：implement 中可插队；回来原阶段；插队不读活卡。
+- 1.15.0（2026-09-23）：热插队新号；harvest 后 promote resume。
 - 1.14.0（2026-09-17）：fast 小改用户授权即可改；harvest 不必先 implement。
 - 1.13.0（2026-09-17）：候选分析包最多 2；`/implement` 只对活卡。
 - 1.12.0（2026-09-16）：分析包写 plan；首次 implement 按 plan 改，不重开分析。
-- 1.11.0（2026-09-16）：`/harvest` 不走冷启动；事实/门禁分写。
-- 1.10.0（2026-09-16）：暖会话禁止重读管线；冷启动仅无上下文。

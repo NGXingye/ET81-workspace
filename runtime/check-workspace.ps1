@@ -9,6 +9,7 @@ $RequiredFiles = @(
     'global_rules/_index.md', 'global_rules/md_governance.md', 'global_rules/kv_budget.md',
     'global_rules/code_governance.md', 'global_rules/runtime_code.md',
     'contracts/_index.md', 'contracts/_template.md', 'contracts/_template_scope.json',
+    'contracts/_template_interrupt.json',
     'contracts/current.md', 'contracts/current_scope.json', 'contracts/candidates/_index.md',
     'profiles/_index.md', 'profiles/_template.md', 'profiles/control.md',
     'standards/_index.md', 'standards/catalog.json', 'standards/framework_baseline.md',
@@ -20,6 +21,7 @@ $RequiredFiles = @(
     'standards/records/task_outcomes.jsonl',
     'runtime/_index.md', 'runtime/etctl.ps1', 'runtime/check-helpers.ps1',
     'runtime/check-workspace.ps1', 'runtime/begin-implement.ps1', 'runtime/promote.ps1',
+    'runtime/interrupt.ps1',
     'runtime/schema/current_scope.schema.json',
     'runtime/schema/target.schema.json', 'runtime/schema/map_entry.schema.json',
     'targets/_index.md', 'targets/trunk.json', 'targets/SkillEditor.json',
@@ -58,6 +60,8 @@ if (Test-Path -LiteralPath $CursorPath) {
     elseif (-not (Test-Path -LiteralPath $sourceRoot)) { Add-CheckError $State 'SOURCE_ROOT' $sourceRoot }
     else {
         $versionFile = Join-Path $sourceRoot 'Unity/ProjectSettings/ProjectVersion.txt'
+        $flatVersion = Join-Path $sourceRoot 'ProjectSettings/ProjectVersion.txt'
+        if (-not (Test-Path -LiteralPath $versionFile) -and (Test-Path -LiteralPath $flatVersion)) { $versionFile = $flatVersion }
         $expect = Get-BaselineUnityVersion $WorkspaceRoot
         if (-not (Test-Path -LiteralPath $versionFile)) { Add-CheckError $State 'UNITY_VERSION' $versionFile }
         elseif (-not $expect) { Add-CheckWarning $State 'UNITY_VERSION' 'baseline has no Unity version' }
@@ -130,6 +134,15 @@ if (Test-Path -LiteralPath $ContractPath) {
         if ($expectStatus -and $cursorFields['task_status'] -ne $expectStatus) {
             Add-CheckError $State 'PHASE' ('task_status=' + $cursorFields['task_status'] + ' mismatches phase=' + $scopeObj.phase)
         }
+        $tid = [string]$scopeObj.target_id
+        if ([string]$cursorFields['source_root_mode'] -ne 'isolated' -and $tid -and $tid -ne 'none' -and [string]$scopeObj.phase -ne 'idle') {
+            $tObj = Get-JsonObject (Join-Path $WorkspaceRoot ('targets/' + $tid + '.json'))
+            if ($tObj -and [string]$tObj.workspace_path) {
+                $want = [IO.Path]::GetFullPath([string]$tObj.workspace_path).TrimEnd('\')
+                $have = [IO.Path]::GetFullPath([string]$cursorFields['source_root']).TrimEnd('\')
+                if ($want -ne $have) { Add-CheckError $State 'SOURCE_ROOT' ('must equal targets/' + $tid + '.json workspace_path') }
+            }
+        }
     }
 }
 
@@ -140,16 +153,22 @@ if (Test-Path -LiteralPath $candDir) {
     $candFiles = @(Get-ChildItem -LiteralPath $candDir -Filter '*.json' -File)
     if ($candFiles.Count -gt 2) { Add-CheckError $State 'CANDIDATE' ('max 2 files, got ' + $candFiles.Count) }
     $liveTid = 'none'
+    $liveObj = $null
     $livePath = Join-Path $WorkspaceRoot 'contracts/current_scope.json'
     if (Test-Path -LiteralPath $livePath) {
         $liveObj = Get-JsonObject $livePath
         if ($liveObj) { $liveTid = [string]$liveObj.task_id }
     }
+    $parentHits = 0
+    if ($liveObj -and $liveObj.PSObject.Properties.Name -contains 'parent_task_id' -and [string]$liveObj.parent_task_id) { $parentHits++ }
     foreach ($f in $candFiles) {
         $rel = 'contracts/candidates/' + $f.Name
         $stem = [System.IO.Path]::GetFileNameWithoutExtension($f.Name)
-        Test-CandidateJson $State $rel (Get-JsonObject $f.FullName) $stem $liveTid $WorkspaceRoot
+        $candObj = Get-JsonObject $f.FullName
+        Test-CandidateJson $State $rel $candObj $stem $liveTid $WorkspaceRoot
+        if ($candObj -and $candObj.PSObject.Properties.Name -contains 'parent_task_id' -and [string]$candObj.parent_task_id) { $parentHits++ }
     }
+    if ($parentHits -gt 1) { Add-CheckError $State 'CANDIDATE' 'at most one interrupt packet' }
 }
 
 $targetsDir = Join-Path $WorkspaceRoot 'targets'

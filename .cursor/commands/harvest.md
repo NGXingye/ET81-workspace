@@ -1,5 +1,5 @@
-> 最新修改时间：2026-09-17 17:40 UTC+8
-> 版本号：1.3.0
+> 最新修改时间：2026-09-23 11:20 UTC+8
+> 版本号：1.5.0
 > 文档状态：生效
 > 读取等级：L2（用户发出 /harvest 时由 Cursor 注入）
 
@@ -18,10 +18,12 @@
 - `standards/`：本单模块 JSON、`records/task_outcomes.jsonl`、必要时 catalog 命中行。
 - `profiles/`：无则从 `_template.md` 复制并登记 `_index.md`；已有则仅当 `allowed_write`/禁区变了才改。不把行为事实写入 profile。
 - 契约与 scope 收回 idle；游标 `task_id=none`。不 `svn commit`。
+- 若本轮 scope 有 `resume_task_id`：idle 前记下该号；idle 后立刻 `powershell -File runtime/etctl.ps1 promote <resume_task_id>`。失败则停并报告候选仍在。idle scope 禁止留下 `parent_task_id` / `resume_task_id`。promote 按勾住时的原阶段提回（含 implement）。
 
 # 1. 版本历史
 
+- 1.5.0（2026-09-23）：resume promote 恢复原阶段。
+- 1.4.0（2026-09-23）：热插队收口后 promote `resume_task_id`。
 - 1.3.0（2026-09-17）：不必先 `/implement`；fast 验证后可收口。
 - 1.2.0（2026-09-16）：不走冷启动；事实写 standards，门禁有变才写 profiles。
 - 1.1.0（2026-09-16）：暖会话禁止重读管线。
-- 1.0.0（2026-09-15）：阶段升级口令 `/harvest`。

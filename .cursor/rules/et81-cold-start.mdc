@@ -1,5 +1,5 @@
 ﻿---
-description: 仅新对话且无本任务上下文时使用。已有上下文或用户发出 /implement /harvest 时不要使用。
+description: 仅新对话且无本任务上下文时使用。已有上下文或用户发出 /implement /harvest /interrupt 时不要使用。
 alwaysApply: false
 ---
 
@@ -10,7 +10,8 @@ alwaysApply: false
 # 1. 口令短路
 
 - `/implement`：只对活卡。`powershell -File runtime/etctl.ps1 begin-implement`；失败则停。只按 stdout 工作。禁止读编辑器 md。候选包须先 `etctl promote`。结束。
-- `/harvest`：不走 §2。`idle` 则拒绝。不必先 `/implement`。仅当 `phase` 为 `awaiting_verify`，或 `route=fast`，或用户点名只收分析：只读游标与 `current_scope.json`。事实写 `standards/`，门禁有变才写 `profiles/`，然后 idle。禁止读蓝图与 `global_rules/`。不 svn commit。结束。
+- `/harvest`：不走 §2。`idle` 则拒绝。不必先 `/implement`。仅当 `phase` 为 `awaiting_verify`，或 `route=fast`，或用户点名只收分析：只读游标与 `current_scope.json`。事实写 `standards/`，门禁有变才写 `profiles/`，然后 idle。有 `resume_task_id` 则 idle 后 `etctl promote` 该号。禁止读蓝图与 `global_rules/`。不 svn commit。结束。
+- `/interrupt`：活卡占用。禁止读活卡。新号候选后 `powershell -File runtime/etctl.ps1 interrupt <task_id>`。可勾住 implement/awaiting_verify。禁止复用 parent 号。用户确认主力窗口已停。结束。
 
 # 2. 无上下文读序
 

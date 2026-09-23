@@ -98,6 +98,10 @@
     "verify_feedback": {
       "type": "array",
       "items": { "type": "string" }
-    }
+    },
+    "parent_task_id": { "type": "string" },
+    "resume_task_id": { "type": "string" },
+    "parked": { "type": "boolean" },
+    "parked_by": { "type": "string" }
   }
 }

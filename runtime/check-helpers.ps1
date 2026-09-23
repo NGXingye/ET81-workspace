@@ -126,7 +126,7 @@ function Test-RequiredJsonProps([hashtable]$State, [string]$Code, [string]$Rel, 
 
 function Test-CurrentScopeJson([hashtable]$State, [string]$Rel, $Obj, $ContractFields, [string]$WorkspaceRoot) {
     if (-not (Test-RequiredJsonProps $State 'SCOPE_JSON' $Rel $Obj @('task_id', 'phase', 'scope_revision'))) { return }
-    $allowed = @('task_id', 'phase', 'scope_revision', 'intent', 'size', 'route', 'edit_ops', 'target_id', 'profile_id', 'seed_paths', 'read_paths', 'write_paths', 'editor_md_paths', 'evidence', 'risks', 'uncertain', 'validation', 'plan', 'goal', 'implement_round', 'verify_feedback')
+    $allowed = @('task_id', 'phase', 'scope_revision', 'intent', 'size', 'route', 'edit_ops', 'target_id', 'profile_id', 'seed_paths', 'read_paths', 'write_paths', 'editor_md_paths', 'evidence', 'risks', 'uncertain', 'validation', 'plan', 'goal', 'implement_round', 'verify_feedback', 'parent_task_id', 'resume_task_id', 'parked', 'parked_by')
     foreach ($p in $Obj.PSObject.Properties.Name) {
         if ($allowed -notcontains $p) { Add-CheckError $State 'SCOPE_JSON' ($Rel + ' unknown field ' + $p) }
     }
@@ -144,7 +144,7 @@ function Test-CurrentScopeJson([hashtable]$State, [string]$Rel, $Obj, $ContractF
     }
     if ($phase -eq 'idle') {
         if ([int]$Obj.scope_revision -ne 0) { Add-CheckError $State 'SCOPE_JSON' ($Rel + ' idle scope_revision must be 0') }
-        foreach ($extra in @('intent', 'size', 'route', 'edit_ops', 'seed_paths', 'read_paths', 'write_paths', 'editor_md_paths', 'evidence', 'risks', 'uncertain', 'validation', 'plan', 'goal', 'implement_round', 'verify_feedback')) {
+        foreach ($extra in @('intent', 'size', 'route', 'edit_ops', 'seed_paths', 'read_paths', 'write_paths', 'editor_md_paths', 'evidence', 'risks', 'uncertain', 'validation', 'plan', 'goal', 'implement_round', 'verify_feedback', 'parent_task_id', 'resume_task_id', 'parked', 'parked_by')) {
             if ($Obj.PSObject.Properties.Name -contains $extra) { Add-CheckError $State 'SCOPE_JSON' ($Rel + ' idle must omit ' + $extra) }
         }
         return
@@ -184,17 +184,45 @@ function Test-CurrentScopeJson([hashtable]$State, [string]$Rel, $Obj, $ContractF
         if ($r -lt 1 -or $r -gt 3) { Add-CheckError $State 'SCOPE_JSON' ($Rel + ' implement_round must be 1..3') }
         if (@('implement', 'awaiting_verify', 'blocked', 'harvest') -notcontains $phase) { Add-CheckError $State 'SCOPE_JSON' ($Rel + ' implement_round only after implement') }
     }
+    $hasParent = ($Obj.PSObject.Properties.Name -contains 'parent_task_id' -and [string]$Obj.parent_task_id)
+    $hasResume = ($Obj.PSObject.Properties.Name -contains 'resume_task_id' -and [string]$Obj.resume_task_id)
+    if ($hasParent) {
+        if ([string]$Obj.parent_task_id -eq [string]$Obj.task_id) { Add-CheckError $State 'SCOPE_JSON' ($Rel + ' must not reuse parent_task_id') }
+        if ([string]$Obj.size -ne 'trivial' -or [string]$Obj.route -ne 'fast') { Add-CheckError $State 'SCOPE_JSON' ($Rel + ' interrupt must be trivial fast') }
+        $wn = @($Obj.write_paths).Count
+        if ($wn -lt 1 -or $wn -gt 2) { Add-CheckError $State 'SCOPE_JSON' ($Rel + ' interrupt write_paths must be 1..2') }
+        if ($ContractFields) {
+            if (-not $hasResume) { Add-CheckError $State 'SCOPE_JSON' ($Rel + ' live interrupt needs resume_task_id') }
+            elseif ([string]$Obj.resume_task_id -eq [string]$Obj.task_id) { Add-CheckError $State 'SCOPE_JSON' ($Rel + ' resume_task_id must not be self') }
+        } elseif ($hasResume) {
+            Add-CheckError $State 'SCOPE_JSON' ($Rel + ' candidate must not have resume_task_id')
+        }
+    } elseif ($hasResume) {
+        Add-CheckError $State 'SCOPE_JSON' ($Rel + ' resume_task_id requires parent_task_id')
+    }
+    if ($ContractFields -and $Obj.PSObject.Properties.Name -contains 'parked') {
+        Add-CheckError $State 'SCOPE_JSON' ($Rel + ' parked not on live card')
+    }
 }
 
 function Test-CandidateJson([hashtable]$State, [string]$Rel, $Obj, [string]$ExpectId, [string]$LiveTaskId, [string]$WorkspaceRoot) {
     if (-not (Test-RequiredJsonProps $State 'CANDIDATE' $Rel $Obj @('task_id', 'phase', 'scope_revision', 'goal'))) { return }
     if (-not [string]$Obj.goal) { Add-CheckError $State 'CANDIDATE' ($Rel + ' goal required') }
     if ([string]$Obj.task_id -ne $ExpectId) { Add-CheckError $State 'CANDIDATE' ($Rel + ' task_id must match file stem') }
-    if (@('discovery', 'awaiting_scope') -notcontains [string]$Obj.phase) { Add-CheckError $State 'CANDIDATE' ($Rel + ' phase must be discovery or awaiting_scope') }
+    $parked = ($Obj.PSObject.Properties.Name -contains 'parked' -and [bool]$Obj.parked)
+    $okPh = @('discovery', 'awaiting_scope')
+    if ($parked) { $okPh = @('discovery', 'awaiting_scope', 'implement', 'awaiting_verify') }
+    if ($okPh -notcontains [string]$Obj.phase) { Add-CheckError $State 'CANDIDATE' ($Rel + ' invalid candidate phase') }
     if ($LiveTaskId -and $LiveTaskId -ne 'none' -and [string]$Obj.task_id -eq $LiveTaskId) {
         Add-CheckError $State 'CANDIDATE' ($Rel + ' task_id duplicates live card')
     }
-    if ($Obj.PSObject.Properties.Name -contains 'implement_round') { Add-CheckError $State 'CANDIDATE' ($Rel + ' must not have implement_round') }
+    if (-not $parked -and $Obj.PSObject.Properties.Name -contains 'implement_round') {
+        Add-CheckError $State 'CANDIDATE' ($Rel + ' must not have implement_round')
+    }
+    if ($parked) {
+        if (-not [string]$Obj.parked_by) { Add-CheckError $State 'CANDIDATE' ($Rel + ' parked requires parked_by') }
+        if ($Obj.PSObject.Properties.Name -contains 'parent_task_id') { Add-CheckError $State 'CANDIDATE' ($Rel + ' parked must not have parent_task_id') }
+    }
     Test-CurrentScopeJson $State $Rel $Obj $null $WorkspaceRoot
 }
 

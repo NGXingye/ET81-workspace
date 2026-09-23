@@ -1,0 +1,22 @@
+{
+  "task_id": "t000",
+  "phase": "discovery",
+  "scope_revision": 1,
+  "goal": "（一句话）",
+  "parent_task_id": "t000",
+  "intent": "bug",
+  "size": "trivial",
+  "route": "fast",
+  "edit_ops": ["in_place"],
+  "target_id": "trunk",
+  "profile_id": "none",
+  "seed_paths": [],
+  "read_paths": [],
+  "write_paths": [],
+  "editor_md_paths": [],
+  "evidence": [],
+  "risks": [],
+  "uncertain": [],
+  "validation": [],
+  "plan": []
+}

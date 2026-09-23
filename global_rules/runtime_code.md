@@ -1,5 +1,5 @@
-> 最新修改时间：2026-09-17 17:40 UTC+8
-> 版本号：2.7.0
+> 最新修改时间：2026-09-23 11:20 UTC+8
+> 版本号：2.9.0
 > 文档状态：生效
 > 读取等级：L1（新增或修改 `runtime/` 脚本或 schema 前必读）
 
@@ -62,8 +62,8 @@
 
 # 5. 版本历史
 
+- 2.9.0（2026-09-23）：interrupt 可勾住 implement；promote 按原阶段提回。
+- 2.8.0（2026-09-23）：`etctl interrupt` 热插队；带 parent 的包不能 promote。
 - 2.7.0（2026-09-17）：fast 跳过 /implement，不跳过分析包与用户授权。
 - 2.6.0（2026-09-17）：候选分析包最多 2；`etctl promote`；implement 只对活卡。
 - 2.5.1（2026-09-17）：plan 由分析模型提炼，禁止用户手填。
-- 2.5.0（2026-09-16）：分析包 `plan`；首次 implement 不通读 read_paths。
-- 2.4.0（2026-09-16）：`etctl begin-implement`；packet 导出 vcs/forbidden/acceptance。

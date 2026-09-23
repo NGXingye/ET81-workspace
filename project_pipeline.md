@@ -1,5 +1,5 @@
-> 最新修改时间：2026-09-17 17:40 UTC+8
-> 版本号：1.8.0
+> 最新修改时间：2026-09-23 11:20 UTC+8
+> 版本号：1.10.0
 > 文档状态：生效
 > 读取等级：L2（仅用户了解流程；Agent 禁止为开工或收口打开）
 
@@ -29,7 +29,7 @@
         └─ 继续提问 ──► 留在 discovery
 ```
 
-继续提问默认留在 discovery。normal 改码必须 `/implement`；口语不够。`route=fast` 且你明确同意时，「改吧」即可改活卡 `write_paths`。`/harvest` 不必先 `/implement`。活卡占用时新分析写入 `contracts/candidates/`（最多 2），不能改 trunk；idle 后点名 `etctl promote <task_id>`。`/harvest` 回写 `standards/`（模型事实）与 `profiles/`（门禁有变才改）。未授权不 `svn commit`。
+继续提问默认留在 discovery。normal 改码必须 `/implement`；口语不够。`route=fast` 且你明确同意时，「改吧」即可改活卡 `write_paths`。`/harvest` 不必先 `/implement`。活卡占用时新分析写入 `contracts/candidates/`（最多 2），不能改 trunk；idle 后点名 `etctl promote <task_id>`。热插队用新号 + `etctl interrupt`，可勾住 implement；harvest 后按原阶段 promote 主力。`/harvest` 回写 `standards/`（模型事实）与 `profiles/`（门禁有变才改）。未授权不 `svn commit`。
 
 # 2. 分析怎么读事实
 
@@ -57,8 +57,8 @@ normal：同意后你打 `/implement`。模型先跑：
 
 # 4. 版本历史
 
+- 1.10.0（2026-09-23）：插队可勾住 implement；回来原阶段。
+- 1.9.0（2026-09-23）：热插队新号；harvest 后 promote 被勾住的主力。
 - 1.8.0（2026-09-17）：fast 小改你同意即可改；harvest 不必先 implement。
 - 1.7.0（2026-09-17）：候选分析包最多 2；implement 只对活卡。
 - 1.6.1（2026-09-17）：标明 plan 由分析模型提炼，用户不手填。
-- 1.6.0（2026-09-16）：分析包写 plan；首次 implement 按 plan 改。
-- 1.5.0（2026-09-16）：harvest 分写 standards 事实与 profiles 门禁。
