@@ -9,7 +9,10 @@
     "colliderdata",
     "csvdemo",
     "MonsterScalingLevelConfig.bytes",
-    "无法生成角色模型"
+    "无法生成角色模型",
+    "挂点总帧数",
+    "launchPointsDict",
+    "placeholder_attack"
   ],
   "routes": [
     {
@@ -89,6 +92,18 @@
       "note": "ResolveCollidersForExport：N≥2 无 launchPoint≠None 则回退变体1列表并 DisplayDialog。发射点用当前 Timeline，不复用变体1轨迹。角色/怪物/召唤物三条导出共用。一次按钮只导当前 Timeline。",
       "trust": "verified",
       "source_task": "t012"
+    },
+    {
+      "id": "pipeline_monster_export",
+      "note": "管线不写 {prefab}_colliderdata 当技能发射。构建后反射 ColliderControl.ExportAllColliderData_Monster（不改 SkillEditor2）。产物 Assets/collider/skill_{id}_colliderdata，含 launchPointsDict。SkillBaseInfo.colliders 须 launchPoint≠None 才走怪物烘焙，否则会掉进 ExportViewPointData。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "launch_table_frames_from_clip",
+      "note": "launchPointsDict 按动画名和变体分组，管线导出写这里，且只在片段有该挂点自己的曲线时重写。没有曲线则不把预制体变换写入。同资产的 launchPoints 是不分组的平表，海豹 skill_2000173 这张是空的。Bridge GetLaunchPointsForAnimation 按 common（attack）和 Default 从 Dict 取出列表，ConvertToBuffConfigWithLaunchPoints 原样抄进 Buff.LaunchPointConfig，不把 Dict 填回 launchPoints。平表仍空不影响这条链路。主干运行时只读 buff，不再打开 collider。旧窗口 EffectColliderDataConverter 只读 launchPoints，技能管线转化不走它。帧数仍是 floor(clip.frameRate × clip.length)，不按 Timeline 重采样。管线读的片段在 SkillEditor 的 Assets/Resources/animations。",
+      "trust": "verified",
+      "source_task": "t029"
     }
   ],
   "excluded_causes": [
@@ -103,6 +118,12 @@
       "note": "ParseCsvToDictionary 每次读盘；主表才按文件指纹缓存。旧 Prefab 是 csvdemo 文件旧，不是技能表内存钉死",
       "trust": "verified",
       "source_task": "t012"
+    },
+    {
+      "id": "hang_suffix_on_collider_name",
+      "note": "同一技能第二挂点不要写成 skill_{id}_hang_{挂点名}_colliderdata。用户指定第二个为 skill_{id}_2_colliderdata。",
+      "trust": "verified",
+      "source_task": "none"
     }
   ]
 }

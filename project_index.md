@@ -1,5 +1,5 @@
-> 最新修改时间：2026-09-23 10:40 UTC+8
-> 版本号：1.9.0
+> 最新修改时间：2026-10-13 14:20 UTC+8
+> 版本号：1.12.0
 > 文档状态：生效
 > 读取等级：L1（路径发现或登记变更时读取）
 
@@ -19,11 +19,13 @@
 
 - [`AGENTS.md`](./AGENTS.md) — L0；最高规范权威。
 - `.cursor/rules/et81-cold-start.mdc` — 无本任务上下文时的冷启动读序。
-- `.cursor/commands/implement.md`、`.cursor/commands/harvest.md`、`.cursor/commands/interrupt.md` — 阶段升级口令。
+- `.cursor/commands/implement.md`、`.cursor/commands/harvest.md`、`.cursor/commands/harvests.md`、`.cursor/commands/interrupt.md` — 阶段升级口令。
 - [`project_pipeline.md`](./project_pipeline.md) — L2；用户管线蓝图；Agent 暖会话不读。
 - [`project_cursor.md`](./project_cursor.md) — L0；任务游标。
 - [`project_index.md`](./project_index.md) — L1；本文档。
 - [`active.code-workspace`](./active.code-workspace) — 多根工作区入口。
+- [`commit.cmd`](./commit.cmd) — 双击打开提交窗口。逻辑在 `runtime/commit-units.py`。
+- `.cursor/hooks.json` — 写源码前调用 `runtime/guard.ps1`。
 
 # 3. 受管理目录
 
@@ -40,8 +42,8 @@
 
 # 5. 版本历史
 
+- 1.12.0（2026-10-13）：登记 `.cursor/hooks.json` 源码写入拦截。
+- 1.11.0（2026-10-13）：根目录 `commit.cmd` 为提交窗口入口。
+- 1.10.0（2026-10-09）：登记 `/harvests`；`/harvest` 改为中途。
 - 1.9.0（2026-09-23）：登记 `/interrupt`。
 - 1.8.0（2026-09-17）：登记候选分析包。
-- 1.7.0（2026-09-16）：profiles 标为门禁；事实在 standards。
-- 1.6.0（2026-09-16）：冷启动仅无上下文；蓝图标明给人看。
-- 1.5.0（2026-09-15）：登记 `/implement`、`/harvest` 命令文件。

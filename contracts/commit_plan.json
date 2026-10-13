@@ -1,0 +1,137 @@
+{
+  "task_id": "t034",
+  "summary": "正步炸弹鸟下蛋、孵化、二阶段自爆，并替换挂点常驻特效的技能实现",
+  "units": [
+    {
+      "id": "u1",
+      "title": "AI 树攻击条件增加二阶段，追击中可强制进入，血量到 0 时先按住死亡",
+      "hook_task": "15",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/AI/AI_MonsterAttack.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/AI/AI_MonsterAttackHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/AI/AI_MonsterZhuiJiHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/DamageHelper.cs"
+      ],
+      "status": "committed"
+    },
+    {
+      "id": "u2",
+      "title": "召唤物节点可脱离母体，并记下母体身份",
+      "hook_task": "15",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Action/BTCreateMinion.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BuffVM/BuffVMCreateMinionHandler.cs",
+        "Unity/Assets/Scripts/Model/Share/Module/Unit/PetComponent.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/PetComponentSystem.cs"
+      ],
+      "status": "committed"
+    },
+    {
+      "id": "u3",
+      "title": "增加孵化中的逻辑状态，藏起碰撞和血条",
+      "hook_task": "15",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Scripts/Model/Share/Module/Unit/UStateComponent.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/UState/UStateHatchInShellHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/UState/UStateHatchInShellHandler.cs.meta",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/UState/UStateHatchInShellHandler.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/UState/UStateHatchInShellHandler.cs.meta",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/JoltPhysicsUnity/PhysicsCharacterComponentSystem.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/AfterUnitCreate_CreateUnitView.cs"
+      ],
+      "status": "committed"
+    },
+    {
+      "id": "u4",
+      "title": "技能树孵出新母体节点，Buff 结束再移除蛋并挂上 AI",
+      "hook_task": "15",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/AI/AI_PetHatch.cs",
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/AI/AI_PetHatch.cs.meta",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/AI/AI_PetHatchHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/AI/AI_PetHatchHandler.cs.meta",
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Action/BTCreateMother.cs",
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Action/BTCreateMother.cs.meta",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BuffVM/BuffVMCreateMotherHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BuffVM/BuffVMCreateMotherHandler.cs.meta",
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Action/BTRemoveUnit.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BuffVM/BuffVMRemoveUnitHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Unit/UnitFactory.cs"
+      ],
+      "status": "committed"
+    },
+    {
+      "id": "u5",
+      "title": "技能静态碰撞盒子使用形状上的单帧偏移",
+      "hook_task": "15",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/SpellUnit/BuffSensorSystem.Setup.cs"
+      ],
+      "status": "committed"
+    },
+    {
+      "id": "u6",
+      "title": "新加技能图提前播死亡节点，死亡时播死亡动画，当前 Buff 结束再移除",
+      "hook_task": "15",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Action/BTPassiveDeath.cs",
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Action/BTPassiveDeath.cs.meta",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BuffVM/BuffVMPassiveDeathHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BuffVM/BuffVMPassiveDeathHandler.cs.meta",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/BTPassiveDeathHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/BTPassiveDeathHandler.cs.meta",
+        "Unity/Assets/Scripts/Model/Client/Demo/Main/Unit/EarlyDeathMotionComponent.cs",
+        "Unity/Assets/Scripts/Model/Client/Demo/Main/Unit/EarlyDeathMotionComponent.cs.meta",
+        "Unity/Assets/Scripts/Hotfix/Client/Demo/Main/Unit/M2C_PlayUnitMotionHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Client/Demo/Main/Unit/UState/UStateDeathHandler.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/UState/UStateDeathHandler.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/UnitAnimatorComponentSystem.cs"
+      ],
+      "status": "committed"
+    },
+    {
+      "id": "u7",
+      "title": "创建 Buff 特效节点时可替换挂点上的常驻特效，并增加 vfxpoint 挂点",
+      "hook_task": "15",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Action/BTCreateBuffEffect.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Spell/BT/BTCreateBuffEffectHandler.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/GameObjectComponentSystem.cs",
+        "Unity/Assets/Scripts/ModelView/Client/Demo/Unit/ResidentVfxHideComponent.cs",
+        "Unity/Assets/Scripts/ModelView/Client/Demo/Unit/ResidentVfxHideComponent.cs.meta",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/ResidentVfxHideComponentSystem.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/ResidentVfxHideComponentSystem.cs.meta",
+        "Unity/Assets/Scripts/Model/Share/Module/Unit/BindPoint.cs"
+      ],
+      "status": "committed"
+    },
+    {
+      "id": "u8",
+      "title": "技能，炸弹鸟 AI 与三套技能配置",
+      "hook_task": "32",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Config/AI/monster_c_100282_ai.asset",
+        "Unity/Assets/Config/AI/monster_c_100282_ai.asset.meta",
+        "Unity/Assets/Config/AI/70006_ai_pet.asset",
+        "Unity/Assets/Config/AI/70006_ai_pet.asset.meta",
+        "Unity/Assets/Config/SpellShape/56_vfx_monster_100282_skill01_0001ground01.asset",
+        "Unity/Assets/Config/SpellShape/56_vfx_monster_100282_skill01_0001ground01.asset.meta",
+        "Unity/Assets/Config/Spell/2000176-正步炸弹鸟变种-孵蛋传承",
+        "Unity/Assets/Config/Spell/2000176-正步炸弹鸟变种-孵蛋传承.meta",
+        "Unity/Assets/Config/Spell/2000177-正步炸弹鸟变种-正步冲锋",
+        "Unity/Assets/Config/Spell/2000177-正步炸弹鸟变种-正步冲锋.meta",
+        "Unity/Assets/Config/Spell/2000196-正步炸弹鸟变种(孵化母体)",
+        "Unity/Assets/Config/Spell/2000196-正步炸弹鸟变种(孵化母体).meta"
+      ],
+      "status": "committed"
+    }
+  ]
+}

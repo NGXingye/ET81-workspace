@@ -9,7 +9,9 @@
     "BTSetRootMotion",
     "IsRootMotion",
     "attack_forma",
-    "启用根运动"
+    "启用根运动",
+    "AttackPoseFollowsBuff",
+    "姿态维持"
   ],
   "routes": [
     {
@@ -158,6 +160,12 @@
       "note": "SpellConfig.IsRootMotion 是节点积分门控。SpellConfig.MotionType 给 AI 施法前障碍/位移长度（AttackHandler/ETAIHostAdapter），实际积分用 BT 节点类型。两者应一致；不要从 Spell 删掉类型字段。",
       "trust": "verified",
       "source_task": "t013"
+    },
+    {
+      "id": "attack_pose_follows_master_buff",
+      "note": "出手姿态维持到主 Buff 结束写在 SpellConfig.AttackPoseFollowsBuff，不在 BuffConfig。只有 2000182 为 true。SpellHelper 施法成功后不再用配置 Duration 做一次性 UState.Attack 窗口，而是等到主 Buff 的 EntityRef 失效再清 Attack。离圈尾段由 Repeat 按 OnExit 计算，不再用 00 的 Duration。00 的 Duration 只盖进重复之前的前摇；OnExit 没有添加 Buff 时才退回它。尾段若短于后摇，06 实体还在，姿态会先掉。",
+      "trust": "verified",
+      "source_task": "t029"
     }
   ],
   "excluded_causes": [
@@ -178,6 +186,12 @@
       "note": "Spell 上只留开关、去掉 MotionType 会让 AI 把技能当无位移、不探障碍；Buff 节点仍能积分。",
       "trust": "verified",
       "source_task": "t013"
+    },
+    {
+      "id": "empty_attack_root_still_rotates_in_clip",
+      "note": "100283_attack 总位移 0、总旋转恒等、关键帧 Yaw/速度全 0。SetRootMotion(Attack) 不会转单位。转圈在 attack_rollloop 骨骼上，子弹朝向靠枪口表×未转的 caster.Rotation。",
+      "trust": "verified",
+      "source_task": "t029"
     }
   ]
 }

@@ -1,0 +1,75 @@
+{
+  "module_id": "skill_sync",
+  "editor": "SkillEditor",
+  "load": "on_match",
+  "trust": "observed",
+  "keywords": [
+    "SkillSync",
+    "输出",
+    "转化到本地",
+    "预检叠入",
+    "资源对照"
+  ],
+  "routes": [
+    {
+      "keyword": "管线输出格",
+      "prefer": [
+        "Assets/Scripts/App/Comm/EditorTools/SkillSync/SkillSyncPaths.cs",
+        "Assets/Scripts/App/Comm/EditorTools/SkillSync/SkillSyncOrchestrator.cs",
+        "Assets/Scripts/App/Comm/EditorTools/SkillSync/SkillSyncTimelineWrite.cs",
+        "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineWindow.cs"
+      ],
+      "avoid": [
+        "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineTableView.cs",
+        "Assets/Scripts/App/Comm/EditorTools/BallisticPathEditorWindow.cs",
+        "Assets/Editor/SkillEditor/SkillEditor2.cs"
+      ],
+      "trust": "observed",
+      "source_task": "t016"
+    }
+  ],
+  "facts": [
+    {
+      "id": "file_map",
+      "note": "SkillSync/（svn:ignore）：Paths、Orchestrator、TimelineWrite。Window 只画输出三行。单文件硬顶 600。App.Comm 拼 playable 路径，禁止引用 Editor 程序集 SkillTimelineVariantUtil。",
+      "trust": "observed",
+      "source_task": "t027"
+    },
+    {
+      "id": "buttons",
+      "note": "输出：构建 Timeline（替换）|调整 Timeline（Unity Timeline 窗）；预检叠入|转化到本地|只转轨迹|取消等待|更新转化工具（默认不勾）；提交配置。只转轨迹只写 BallisticCopy，不写 Spell/Buff。预检叠入提交原料（含磁盘已删的旧变体 svn delete）并只 svn update 该技能在 EditorAssetsComm skills 与 Bridge collider 的文件。Bridge res 是指向 EditorAssetsComm 的链接。只有一条动画时转化读 skill_{id}.playable。转化须预检成功。配置钮在原料仍有 diff 时禁用。",
+      "trust": "observed",
+      "source_task": "t027"
+    },
+    {
+      "id": "resource_grid",
+      "note": "资源对照：源资源较窄，Playable|Colliderdata 左右；转化产物更宽，最左技能Buff(Spell\\实际目录)，有轨迹则中间 Spell\\Ballistics，最右伤害物碰撞（SpellShape|Directional，括号跟类型不写死）。格子固定高度，超出格内滚动。源资源热更；转化产物只在预检叠入/转化完成刷新。禁止 OnImGUI 扫 YAML。",
+      "trust": "observed",
+      "source_task": "t019"
+    },
+    {
+      "id": "commit_log",
+      "note": "pre-commit 要 task:数字。原料 task:15 特效相关，{怪物ID}，技能{技能ID}，Timeline和碰撞体提交。配置 task:32 特效相关，{怪物ID}，技能{技能ID}，配置提交。成功提示「已提交原料/配置：」后接同一句。无此前缀会 E165001。",
+      "trust": "verified",
+      "source_task": "t019"
+    },
+    {
+      "id": "convert_no_bridge_ui",
+      "note": "转化不切 Bridge、不点确定。有带窗口的 Bridge Unity 则 Headless Tick 自动 RunJob；无则 -batchmode -nographics -quit -executeMethod SkillSyncHeadless.RunJob。取消等待 Kill 该进程。仅有过期 UnityLockfile 当未开。禁止 SkillSyncJobWindow。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "hit_vfx_does_not_abort_convert",
+      "note": "Directional 角色受击槽有特效时转化继续。两条发射物按预制体名分开。读 Unity 对象名必须先做 Unity 空判断。细节在 integrations/skill_sync.json 的 unity_name_not_conditional。",
+      "trust": "verified",
+      "source_task": "none"
+    },
+    {
+      "id": "build_all_motion_rows",
+      "note": "构建按动画行写全部 playable；无轨迹省略 PlayEffect。已有 playable 先放开 Timeline 窗口再删文件重建，类型跟 Table.LaunchType。Headless 导入 skill_{id} 与 skill_{id}_N（精确后缀，避免长 ID 前缀误伤）。",
+      "trust": "verified",
+      "source_task": "t027"
+    }
+  ]
+}

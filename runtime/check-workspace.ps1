@@ -1,4 +1,4 @@
-﻿param([switch]$Strict)
+param([switch]$Strict)
 $ErrorActionPreference = 'Stop'
 $WorkspaceRoot = Split-Path -Parent $PSScriptRoot
 . (Join-Path $PSScriptRoot 'check-helpers.ps1')
@@ -9,7 +9,7 @@ $RequiredFiles = @(
     'global_rules/_index.md', 'global_rules/md_governance.md', 'global_rules/kv_budget.md',
     'global_rules/code_governance.md', 'global_rules/runtime_code.md',
     'contracts/_index.md', 'contracts/_template.md', 'contracts/_template_scope.json',
-    'contracts/_template_interrupt.json',
+    'contracts/_template_interrupt.json', 'contracts/_template_commit_plan.json',
     'contracts/current.md', 'contracts/current_scope.json', 'contracts/candidates/_index.md',
     'profiles/_index.md', 'profiles/_template.md', 'profiles/control.md',
     'standards/_index.md', 'standards/catalog.json', 'standards/framework_baseline.md',
@@ -21,12 +21,12 @@ $RequiredFiles = @(
     'standards/records/task_outcomes.jsonl',
     'runtime/_index.md', 'runtime/etctl.ps1', 'runtime/check-helpers.ps1',
     'runtime/check-workspace.ps1', 'runtime/begin-implement.ps1', 'runtime/promote.ps1',
-    'runtime/interrupt.ps1',
-    'runtime/schema/current_scope.schema.json',
+    'runtime/interrupt.ps1', 'runtime/commit-units.py', 'runtime/check-commit-plan.py',
+    'runtime/schema/current_scope.schema.json', 'runtime/schema/commit_plan.schema.json',
     'runtime/schema/target.schema.json', 'runtime/schema/map_entry.schema.json',
     'targets/_index.md', 'targets/trunk.json', 'targets/SkillEditor.json',
     'targets/BridgeEditor.json', 'targets/ActionEditor.json',
-    'active.code-workspace', '.cursor/rules/et81-cold-start.mdc'
+    'active.code-workspace', '.cursor/rules/et81-cold-start.mdc', 'commit.cmd'
 )
 foreach ($rel in $RequiredFiles) {
     if (-not (Test-Path -LiteralPath (Join-Path $WorkspaceRoot $rel))) {

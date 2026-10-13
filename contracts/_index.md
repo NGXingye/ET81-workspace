@@ -1,5 +1,5 @@
-> 最新修改时间：2026-09-23 11:20 UTC+8
-> 版本号：1.8.0
+> 最新修改时间：2026-10-13 11:50 UTC+8
+> 版本号：1.11.0
 > 文档状态：生效
 > 读取等级：L1（查找开工契约时读取）
 
@@ -18,6 +18,9 @@
 - [`_template_interrupt.json`](./_template_interrupt.json)  
   职责：热插队分析包模板（新号 + `parent_task_id` + trivial/fast）。  
   读取时机：活卡占用时写插队候选，再 `etctl interrupt`。
+- [`_template_commit_plan.json`](./_template_commit_plan.json)  
+  职责：全量收口时的提交计划模板。笔数以 10 为参考；一笔最多 8 个 `.cs`。  
+  读取时机：`/harvests` 写 `commit_plan.json` 前。
 - [`current.md`](./current.md)  
   职责：唯一活契约（目标、验收、本单 workspace 写集）。空闲时仅 2 个最小字段。  
   读取时机：`project_cursor.md` 的 `contract_ref` 指向本文件时。
@@ -30,8 +33,8 @@
 
 # 2. 版本历史
 
+- 1.11.0（2026-10-13）：笔数为软参考；一笔最多 8 个 `.cs`。
+- 1.10.0（2026-10-13）：提交计划上限改为 10 笔。
+- 1.9.0（2026-10-13）：登记提交计划模板。
 - 1.8.0（2026-09-23）：parked 可含 implement；promote 原阶段提回。
 - 1.7.0（2026-09-23）：登记热插队模板；interrupt 勾住活卡。
-- 1.6.0（2026-09-17）：登记 `candidates/`；最多 2 个未开工分析包。
-- 1.5.0（2026-09-16）：分析包增加 `plan`。
-- 1.4.0（2026-09-16）：implement 开工改走 `etctl begin-implement`。

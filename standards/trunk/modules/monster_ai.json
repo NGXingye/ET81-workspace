@@ -12,7 +12,23 @@
     "ChaseRange",
     "attack_range",
     "DistanceTrigger",
-    "MonsterSkillConfig"
+    "MonsterSkillConfig",
+    "转圈电磁",
+    "2000182",
+    "攻击层权重",
+    "BTRepeat",
+    "OnExit",
+    "BuffVM",
+    "预测",
+    "孵化",
+    "脱离母体",
+    "召唤母体",
+    "100282",
+    "advanceAttackPhase",
+    "vfxpoint",
+    "延迟唤醒AI",
+    "被动死亡",
+    "替换挂点常驻特效"
   ],
   "routes": [
     {
@@ -98,6 +114,21 @@
       "avoid": [],
       "trust": "verified",
       "source_task": "t006"
+    },
+    {
+      "keyword": "孵化母体 / 脱离母体",
+      "prefer": [
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/AI/AI_PetHatchHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BuffVM/BuffVMCreateMotherHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BuffVM/BuffVMRemoveUnitHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BuffVM/BuffVMCreateMinionHandler.cs",
+        "Unity/Assets/Scripts/Model/Share/Module/Unit/PetComponent.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/PetComponentSystem.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/AI/AI_MonsterAttackHandler.cs"
+      ],
+      "avoid": [],
+      "trust": "verified",
+      "source_task": "t034"
     }
   ],
   "diagnostics": [
@@ -177,6 +208,30 @@
       ],
       "trust": "verified",
       "source_task": "t013"
+    },
+    {
+      "id": "egg_dies_with_chicken",
+      "signals": [
+        "detach_checked_egg_still_gone",
+        "owner_removed_pet_disposed"
+      ],
+      "check_first": "PetComponentSystem.HLSUpdate 是否只在服务器执行",
+      "expected": "脱离母体后蛋不随母体死亡或拴绳消失；玩家自己的召唤物仍由服务器死亡带走",
+      "cause": "DisposeWhenOnwerDispose 不同步，客户端默认 true。母体单位从客户端移除时，客户端 HLSUpdate 会把蛋拆掉。",
+      "resolution_kind": "code",
+      "owner_target": "trunk",
+      "validation_target": "trunk",
+      "entry_paths": [
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/PetComponentSystem.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BuffVM/BuffVMCreateMinionHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/DamageHelper.cs"
+      ],
+      "validation": [
+        "勾选脱离母体后鸡死亡，蛋还在",
+        "玩家死亡仍清掉自己的召唤物"
+      ],
+      "trust": "verified",
+      "source_task": "t034"
     }
   ],
   "facts": [
@@ -197,6 +252,90 @@
       "note": "先定技能起手 attack_distance，再定 min_attack_range（近战 0~1），attack_range 对齐或略大于起手，然后 DetectionRange、ChaseRange。基线：0 ≤ min_attack_range < 技能有效距离 ≤ attack_range ≤ DetectionRange ≤ ChaseRange。",
       "trust": "verified",
       "source_task": "t013"
+    },
+    {
+      "id": "attack_ring_session_2000182",
+      "note": "2000182：进带播 05(attack1) 再 Loop 播 01(attack 循环)；留带不重播片头；离带不打断当前 01，等逻辑 Idle 再加 06(attack2)。Loop 内不要 AI TurnToTarget（会播站立转身）；不要禁 TurnToUnit（技能树要对脸才能放）。100283_attack 根运动 2s 位移/Yaw 全 0，转圈只在骨骼动画。",
+      "trust": "verified",
+      "source_task": "t029"
+    },
+    {
+      "id": "loop_graph_200018200",
+      "note": "00 只有 EffectServerBuffAdd 且 NPBehaveTreeId=0，创建时 GetExecutionBackend 固定 LegacyBuffVM。顺序：加 05，等 1500，其 Children 先加 01 再进重复。重复 MaxRepeatCount=0、条件 BTInAttackBand 滞回 0.2，体内先等 2000 再加 07。06 只挂重复 OnExit，条件 false 或次数用尽后才加，不要挂条件 Out，也不要当根的下一个子节点。01/07 四段开火点不挪进这段等待。",
+      "trust": "verified",
+      "source_task": "t029"
+    },
+    {
+      "id": "client_view_wait_not_server_clock",
+      "note": "BTTimeWaitViewAsync 只排客户端表现，不写 AlreadyRate，不改变服务端等待。四段表现等待从对应服务端开火等待原样抄。07 客户端进重复时要真正播放一次攻击，不要用一段 2000 的表现等待代替循环间隔。",
+      "trust": "verified",
+      "source_task": "t029"
+    },
+    {
+      "id": "child_inherits_already_rate",
+      "note": "CreateChildBuff 把父 Buff 的 AlreadyRate 抄给子 Buff。烘焙枪口按这个相位采样。00 上用来排队 05/01/07 的等待若推进相位，01/07 会从动画中段取枪口。异步等待的「仅攻击动作推进相位」默认关闭，不勾则仍按原逻辑推进；勾上后只有带根运动的 Buff 才推进。",
+      "trust": "verified",
+      "source_task": "t029"
+    },
+    {
+      "id": "loop_attack_layer_weight_drops",
+      "note": "未解决，与循环衔接耦合。攻击在状态机第 2、3 层，靠权重露出。循环放攻击期间攻击层权重会掉成 0，权威回到基础层，怪物立刻站立回待机；一两帧后攻击层权重恢复，又回到地上旋转。不是离圈 06。2000182 进游戏时 attack2 闪一下已另案收口，见 client_monster_addbuff_is_not_input_predict。",
+      "trust": "verified",
+      "source_task": "t029"
+    },
+    {
+      "id": "chicken_egg_cycle_100282",
+      "note": "100282 正步炸弹鸟主循环已跑通。A 2000176 召唤宠物蛋 70006（有血有 AI，不是弹道）。阶段 2 从 A 的主 Buff 200017600 结束才开始，时长 1900 毫秒，不从施放成功当帧计，也不读蛋的孵化钟，且不回阶段 1。advanceAttackPhase 才启用，其它怪不变。这段主 Buff 没结束前不重复放 A。B 2000177 在靠近、秒数或血量比满足时只放一次。放完不由 AI 等主 Buff 再死，死亡交给技能图的被动死亡节点，不是把血打成 0。阶段≥3 不再放 B。阶段键 MonsterAttackPhase、MonsterAttackPhaseStartMs 用 long 写入 env；AddStruct/GetStruct<int> 存不回去。生命起点写成主 Buff 结束的时间戳。",
+      "trust": "verified",
+      "source_task": "t034"
+    },
+    {
+      "id": "detach_one_way",
+      "note": "脱离母体只切死亡连带和拴绳：PetComponent.DisposeWhenOnwerDispose=false，OwnerId 留着，阵营不变。不套到孵出的新母体。该字段不同步。客户端 HLSUpdate 只在服务器执行，否则母体单位一移除就会按默认 true 把蛋拆掉。玩家自己的召唤物仍由服务器 HandleTargetDead 带走。清召唤登记时会先丢掉 MinionIds，脱离的 id 不再留在登记里。",
+      "trust": "verified",
+      "source_task": "t034"
+    },
+    {
+      "id": "egg_hatch_mother",
+      "note": "蛋出生由 AI_PetHatch 放一次 2000196。Check 在蛋活着时保持真，避免选择器落到 AI_PetAttack 把施法取消。创建母体只生成怪物，不拆蛋、不在节点里等。延迟唤醒AI 默认关闭，创建后立即挂 AI；勾上则等当前这段 Buff 结束再挂，Buff 被提前拆掉也算结束。母体是怪物，不是蛋的宠物：召唤时若施法者是怪物，把 Character.ConfigId 和等级记到 PetComponent.MotherProfileId、MotherLevel（仅服务器）。AI 用 MonsterConfigHelper.TryGet 的 AIConfigId，不写死 100282。位置按这段 Buff 的挂点轨道采样，BindPoint.None 就是 Root；没有轨道就用施法者自己的姿态。已在场上、召唤时没记下母体的旧蛋不会孵化。",
+      "trust": "verified",
+      "source_task": "t034"
+    },
+    {
+      "id": "egg_two_deaths",
+      "note": "两条路分开。召唤母体前被打死走 HandleTargetDead：先拆光 Buff 再置死亡，等待的子节点不会跑，新母体不出。移除单位默认下一帧静默拆掉，不播死亡。等Buff结束再移除默认关闭；勾上则等当前这段 Buff 结束再拆，单位已经在死亡里则不再拆一次。创建失败时顺序停下，后面的移除不会跑。200019601 是等 2767 毫秒创建母体并勾延迟唤醒，接着移除单位勾等 Buff 结束。不再手算剩余毫秒。",
+      "trust": "verified",
+      "source_task": "t034"
+    },
+    {
+      "id": "bindpoint_is_skeleton_name",
+      "note": "BindPoint 是单位主骨架上的挂点名。创建 Buff 特效用枚举名字找同名骨骼。100282 角上的挂点是 vfxpoint，加在枚举末尾，并写入 BindPointDic。旧资源里已存的序号不变。",
+      "trust": "verified",
+      "source_task": "t034"
+    },
+    {
+      "id": "passive_death_on_effect_buff",
+      "note": "被动死亡是服务端节点，放在特效 Buff 图里、异步等待后面。等待把前面的动作播完，上层回到空状态后再通知播 Base 层死亡。不读主 Buff 时长，也不关 UState.Attack。播死亡时 ClearTurn，EnterPerformFreeze，并置 AIMonsterPerform，钉住当时的位置和朝向。当前这段 Buff 结束再 HandleTargetDead。二阶段放成功只把阶段写成 3、DeathDefer 写成 1，AI 不再自己等 Buff 去死。血量到 0 时这笔还在就先不拆 Buff。客户端提前收到死亡动作就挂空的 EarlyDeathMotionComponent，正式死亡时不再多等 3000 或 4000 毫秒。不要挂在客户端图或表现异步等待下面。",
+      "trust": "verified",
+      "source_task": "t034"
+    },
+    {
+      "id": "hatch_in_shell",
+      "note": "延迟唤醒期间给新单位挂 UState.HatchInShell：先不参与角色碰撞，也不显示血条，状态结束再补上。旁边的单位要下一帧才拆，所以 Buff 结束后先空两帧，再关掉这个状态并 StartMonsterAI，避免同一物理步叠在一起被推开。",
+      "trust": "verified",
+      "source_task": "t034"
+    },
+    {
+      "id": "static_shape_uses_offset",
+      "note": "挂点 None 的静态盒子不跟骨骼。落到命中点之后仍调用 ApplyPhysicsShapeAnimation，单帧偏移写在形状局部坐标，不读关键帧时间。管线尺寸除以 2 是 trunk 半长。位置 Y 的取反留在转化工具，运行时不再翻一次。",
+      "trust": "verified",
+      "source_task": "t034"
+    },
+    {
+      "id": "replace_resident_vfx",
+      "note": "创建Buff特效的「替换挂点常驻特效」默认关闭。勾上后，先把该挂点上已经显示的子物体失活，再挂本节点指定的特效。本节点随后挂上的特效记入 Spawned，不再被这次失活收进去。只改这只单位的运行时实例。GameObjectComponent 回收或销毁视图前重新打开，对象池里的下一只仍带着预制体上的常驻特效。",
+      "trust": "verified",
+      "source_task": "t034"
     }
   ],
   "excluded_causes": [
@@ -205,6 +344,102 @@
       "note": "unitRadiusEntities 数量差异为下游症状，不是 AI current 为空的根因",
       "trust": "verified",
       "source_task": "t003"
+    },
+    {
+      "id": "btbuffsyncrandom_distance_mode_as_intro_loop",
+      "note": "BTBuffSyncRandom 按米选 01/05/06 不能表达第一次进圈和离圈一次；00 只在 Cast 时跑。已从节点撤回 Mode。进圈/留圈/离圈用 Scaling 出手带会话，不要用 Animator InAttackRing。",
+      "trust": "verified",
+      "source_task": "t028"
+    },
+    {
+      "id": "loop_wait_from_mid_cursor_remain",
+      "note": "同一次攻击根运动不重开时，按游标剩余时间做重复等待会一轮比一轮短，下一发 07 越加越早，动画打断变密。不能当循环间隔。",
+      "trust": "verified",
+      "source_task": "t029"
+    },
+    {
+      "id": "cached_anim_end_as_only_loop_clock",
+      "note": "只按动画结束缓存加下一发 07 时，上一发 01/07 的开火等待还没走完，子弹会叠射，而且不稳定。循环间隔不能只看动画时钟。",
+      "trust": "verified",
+      "source_task": "t029"
+    },
+    {
+      "id": "repeat_onexit_not_condition_out",
+      "note": "技能树重复走 BuffVMRepeatHandler，不走 AI 的 BTRepeatHandler。圈内 Success(true)，圈外或没目标 Success(false)，不返回 Fail。未勾取反时 false 结束循环并执行 OnExit。无限次一开始把主 Buff 时长钉成 -1，退出时按配置 Duration 留尾段。BTBreak 没有 BuffVM 处理器，不能用来跳出这颗重复。一次 false 就整段退出，不会下一帧再试。",
+      "trust": "verified",
+      "source_task": "t029"
+    },
+    {
+      "id": "client_monster_addbuff_is_not_input_predict",
+      "note": "BuffVM 是 IHLSData+IHLSUpdate，客户端必须按同一份进度再执行这颗树，这不是怪物提前出手。玩家和宠物的预测是 HLSPredict 里本地 Cast，CreateChildBuff 在客户端先建子 Buff，这条要留。怪物 AI 只在服务器施放。客户端那份 VM 若再 BTAddBuff，Start 会立刻播子 Buff 的客户端动画；Animator.Play 不随回滚撤销。IHLSData 注释里的重复 Buff 清理没有接到 BuffComponent。攻击圈若先读本端 TargetComponent，客户端会判出圈并加上 06，服务器仍在圈里加 07。出圈只读 Buff 上同步的 SpellTarget。怪物主人上的客户端 BTAddBuff 直接成功、不创建；VM 仍往下走。表现只认服务器创建后的 M2C_BuffAdd。",
+      "trust": "verified",
+      "source_task": "t029"
+    },
+    {
+      "id": "attack2_flash_was_client_exit_buff",
+      "note": "2000182 的 attack2 闪一下是客户端退出循环后本地加上的 06，不是 attack 状态自己滑进 attack2。删掉 06 节点毛刺消失。06 挂 OnExit 且怪物客户端不再创建子 Buff 后，圈内是 05→01→07，离圈才一次 06。",
+      "trust": "verified",
+      "source_task": "t029"
+    },
+    {
+      "id": "skill_table_reverse_to_mother",
+      "note": "MonsterSkillConfig.SummonPetsJson 是技能到宠物，MonsterPetConfig 没有母体 id，不能从宠物技能表反查 100282。母体身份在召唤当时从施法怪物抄下来。",
+      "trust": "verified",
+      "source_task": "t034"
+    },
+    {
+      "id": "ai_petattack_as_hatch_trigger",
+      "note": "AI_PetAttack 不能当孵化触发。怪物宠物忽略节点上的技能表，只放 MonsterPetConfig.SelfSkillId，并且要主人还活着、目标在主人侦测里。",
+      "trust": "verified",
+      "source_task": "t034"
+    },
+    {
+      "id": "struct_int_phase_env",
+      "note": "攻击阶段不要用 AddStruct/GetStruct<int>。Trait<int> 写成 Int，TryToStruct 只收 Struct，阶段会写不回去。用 long，再用 TryToLosslessInt 读。",
+      "trust": "verified",
+      "source_task": "t034"
+    },
+    {
+      "id": "entityref_reused_across_await",
+      "note": "ET0035：实体局部变量不能跨 await。EntityRef 若在 await 之后还被读到（循环条件或下一轮），仍然报在 await 那一行。计时器只作为这一次 WaitAsync 的接收者，方法在 await 后不再碰它。",
+      "trust": "verified",
+      "source_task": "t034"
+    },
+    {
+      "id": "phase2_clock_from_cast_success",
+      "note": "阶段 2 不要从 A 施放成功的当帧起算。200017600 还在播，后面的秒数会叠进下蛋动作。生命起点是这段主 Buff 的结束时刻。",
+      "trust": "verified",
+      "source_task": "t034"
+    },
+    {
+      "id": "create_mother_also_removes_egg",
+      "note": "创建母体不要顺便等时、唤醒和拆蛋。那会变成只服务这只鸡的节点。等待用已有异步等待，延迟挂 AI 用创建母体上的开关，拆蛋用移除单位上的开关。",
+      "trust": "verified",
+      "source_task": "t034"
+    },
+    {
+      "id": "ai_checkbox_for_early_death",
+      "note": "不要在怪物攻击的触发上加死亡时机开关。提前播死亡属于这只技能的服务端图，不和追击阶段耦在一起。",
+      "trust": "verified",
+      "source_task": "t034"
+    },
+    {
+      "id": "passive_death_on_client_wait",
+      "note": "被动死亡不是客户端节点。挂在客户端 Buff 添加或表现异步等待下面，运行时不会清 Buff，也不会移除单位。",
+      "trust": "verified",
+      "source_task": "t034"
+    },
+    {
+      "id": "clear_attack_to_show_base_death",
+      "note": "不要为了露出 Base 层死亡去清 UState.Attack 或停步。这只技能的攻击姿势不跟随 Buff，清攻击会放开朝向锁，追击会把尸体和挂点特效转过去。等上层回到空状态再播死亡。",
+      "trust": "verified",
+      "source_task": "t034"
+    },
+    {
+      "id": "hand_edit_buff_odin_yaml",
+      "note": "不要手改 Buff 资源的 Odin YAML 来塞节点。反序列化失败时编辑器会把 Effects 收成空节点并覆盖文件。200017701 曾因此被写空。节点在编辑器里接。",
+      "trust": "verified",
+      "source_task": "t034"
     }
   ]
 }

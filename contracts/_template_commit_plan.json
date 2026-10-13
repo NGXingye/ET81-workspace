@@ -1,0 +1,14 @@
+{
+  "task_id": "t000",
+  "summary": "（本单总任务）",
+  "units": [
+    {
+      "id": "u1",
+      "title": "（这一笔的功能）",
+      "hook_task": "",
+      "workspace_path": "",
+      "paths": [],
+      "status": "pending"
+    }
+  ]
+}

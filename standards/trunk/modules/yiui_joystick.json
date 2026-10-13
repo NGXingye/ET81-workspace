@@ -1,0 +1,63 @@
+{
+  "module_id": "yiui_joystick",
+  "editor": "trunk",
+  "load": "on_match",
+  "trust": "verified",
+  "keywords": [
+    "左摇杆",
+    "右摇杆",
+    "Panel_LeftJoy",
+    "扇形",
+    "LeftJoystickHitArea",
+    "IsDraging",
+    "Gizmos"
+  ],
+  "routes": [
+    {
+      "keyword": "摇杆扇形 / IsDraging",
+      "prefer": [
+        "Unity/Assets/Scripts/ModelView/Client/YIUIComponent/Main/LeftJoystickHitArea.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/Main/Panel_JoystickComponentSystem.cs",
+        "Unity/Assets/3party/Comm/Joystick/Runtime/Joystick.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/Main/MainPanelComponentSystem.cs"
+      ],
+      "avoid": [
+        "Unity/Assets/Plugins/YIUIFramework/"
+      ],
+      "trust": "verified",
+      "source_task": "t026"
+    }
+  ],
+  "facts": [
+    {
+      "id": "sectors_replace_range_and_red",
+      "note": "t025 的 Panel_Range 绿区动态跟手、铺满 Panel_LeftJoy 的红区已废。左右摇杆 IsDynamic=false，底座不跟手。响应区是画布左右下角两个 90 度扇形，半径=画布高度*RadiusOverHeight（默认 0.7）。尖角钉在对齐过的 (-1200,-539) 与 (1202,-542)，不要用 parent.rect 当窗口角。",
+      "trust": "verified",
+      "source_task": "t026"
+    },
+    {
+      "id": "sector_drive_isdraging",
+      "note": "扇形按下必须 ExecuteEvents.pointerDown 到 Joystick，抬起同样 pointerUp。IsDraging=fingerId!=MinValue。主界面 TryClearCombatLockWhenNoEnemyInDetectionRange 在无目标时若右摇杆 IsDraging 为假会清 Aiming。只 Invoke 事件不设 fingerId，离本体拖就会瞄准开关抖动。不改 MainPanel、不改 WASD。离本体方向=当前点减按下点，约 140 像素拉满 maxRadius。",
+      "trust": "verified",
+      "source_task": "t026"
+    },
+    {
+      "id": "split_left_move_right_aim",
+      "note": "左右监听未改。只滑左或编辑器 WASD：SetJoystick，无右摇杆时朝向跟移动。左右一起或 WASD+右：左/键负责移动，右 SetTurnDirection 并 Aiming。",
+      "trust": "verified",
+      "source_task": "t026"
+    },
+    {
+      "id": "hit_area_not_in_hotfix",
+      "note": "命中组件在 ModelView。Hotfix 不能声明实例字段。静态字段要 [StaticField]。",
+      "trust": "verified",
+      "source_task": "t025"
+    },
+    {
+      "id": "gm_gizmos_sector_tint",
+      "note": "EGMType.Gizmos 的「摇杆扇形范围」：显示开关 + 半径系数。打开只涂两个绿扇形，不改响应。不画 Scene Gizmos。",
+      "trust": "verified",
+      "source_task": "t026"
+    }
+  ]
+}

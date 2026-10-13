@@ -1,5 +1,5 @@
-> 最新修改时间：2026-09-23 11:20 UTC+8
-> 版本号：2.9.0
+> 最新修改时间：2026-10-13 16:40 UTC+8
+> 版本号：2.15.0
 > 文档状态：生效
 > 读取等级：L1（新增或修改 `runtime/` 脚本或 schema 前必读）
 
@@ -25,9 +25,11 @@
 
 # 2. 架构
 
-- **调度**：`etctl.ps1` 只解析子命令并调用已登记入口，不内嵌机检政策或 SVN 步骤。`packet` 只读导出工作令，不写文件、不做 `svn update`。`begin-implement` 把活卡升到 implement 后打印 packet，无 SVN。`promote` 仅当活卡 idle 时把候选包写入活卡，无 SVN。
+- **调度**：`etctl.ps1` 只解析子命令并调用已登记入口，不内嵌机检政策或 SVN 步骤。`packet` 只读导出工作令，不写文件、不做 `svn update`。`begin-implement` 把活卡升到 implement 后打印 packet，无 SVN。`promote` 仅当活卡 idle 时把候选包写入活卡，无 SVN。提交计划还有未交笔则拒绝；每笔都已提交则先把计划重置为空。`guard` 只读判定，不写文件。
+- **收回空闲**：`etctl idle`。把 scope、游标任务段、契约收成空闲最小形态；游标不改 `source_root`。已是空闲则不写文件。不写版本历史，不升版本号。不删 `commit_plan.json`、不删候选、不 svn、不 promote。scope 里的 `resume_task_id` 打印后清掉。任何非空闲阶段都可调用。
+- **源码拦截**：`etctl guard <path>`。路径不在游标 `source_root` 与任一 `targets/*.json` 的 `workspace_path` 之下则放行。在其下必须同时满足：`phase` 与 `task_status` 都不是 `idle`，且 `task_status` 为 `in_progress`；`phase=implement` 且契约 `active`，或 `phase=discovery` 且 `route=fast`；路径与 `write_paths` 某一项是同一文件（相对路径相对该目标 `workspace_path`，无目标则相对 `source_root`）；活动 profile 的 `allowed_write` 不是 `workspace_only`。否则退出码 2。`.cursor/hooks.json` 在写文件工具和会改文件的 shell 之前调用它。
 - **一事一入口**：机检与将来的 SVN 预检不得写进同一脚本。
-- **数据位置**：活卡范围 → `contracts/current_scope.json`；未开工分析 → `contracts/candidates/<task_id>.json`（最多 2）；编辑目标 → `targets/<id>.json`；长期知识 → `standards/`；schema → `runtime/schema/`。
+- **数据位置**：活卡范围 → `contracts/current_scope.json`；未开工分析 → `contracts/candidates/<task_id>.json`（最多 2）；提交计划 → `contracts/commit_plan.json`；编辑目标 → `targets/<id>.json`；长期知识 → `standards/`；schema → `runtime/schema/`。
 - **共享解析**：仅当两个入口都要用时，才允许已登记的非入口文件。禁止为尚未存在的命令先建空框架。
 - 入口只编排：参数 → 调用检查/读写 JSON → 退出码。
 
@@ -45,8 +47,7 @@
 - `allowed_write` 为 `workspace_only` 时禁止改编辑器源码。
 - `editor_md_paths`：discovery 允许读的目标编辑器 Markdown，必须是已点名路径。implement 忽略该字段。
 - `plan`：分析模型提炼的改法，一行一项，指向 `write_paths`，不粘贴源码。`evidence.note` 写用户关键信息与观察结论。禁止让用户手填。进入 `awaiting_scope` 或 `route=fast` 且 `write_paths` 非空时 `plan` 必填。
-- implement 必须先跑 `etctl begin-implement`；失败则不得改源码。已是 implement 时该命令幂等，只导出 packet。`route=fast` 且用户明确授权时不跑 begin-implement，按 `plan` 改 `write_paths`。首次只按 `plan` 改 `write_paths`，禁止通读 `read_paths`。缺 `read_paths` 时等于 `write_paths`；缺 `implement_round` 时视为 1。从 `awaiting_verify` 再进入时 `implement_round+1`。禁止为开工手改契约/游标/scope，禁止读 runtime 脚本源码。
-- 用户测失败：保持 implement，追加 `verify_feedback`，`implement_round+1`。此时才读 `read_paths` 并思考。可追加与现有 `write_paths` 同目录或被其直接引用的路径。禁止改 `goal`/`target_id`/`scope_revision`。满 3 轮仍失败则 `blocked`，不自动 discovery。
+- `implement` 的执行步骤见 [`.cursor/commands/implement.md`](../.cursor/commands/implement.md)。缺 `read_paths` 时等于 `write_paths`；缺 `implement_round` 时视为 1。
 
 # 4. 体积与处置
 
@@ -62,8 +63,8 @@
 
 # 5. 版本历史
 
-- 2.9.0（2026-09-23）：interrupt 可勾住 implement；promote 按原阶段提回。
-- 2.8.0（2026-09-23）：`etctl interrupt` 热插队；带 parent 的包不能 promote。
-- 2.7.0（2026-09-17）：fast 跳过 /implement，不跳过分析包与用户授权。
-- 2.6.0（2026-09-17）：候选分析包最多 2；`etctl promote`；implement 只对活卡。
-- 2.5.1（2026-09-17）：plan 由分析模型提炼，禁止用户手填。
+- 2.15.0（2026-10-13）：提新活卡时未交完的提交计划拒绝，交完则重置。
+- 2.14.0（2026-10-13）：`etctl idle` 不再给契约写版本历史。
+- 2.13.0（2026-10-13）：implement 执行步骤改链到 `/implement`。
+- 2.12.0（2026-10-13）：`etctl idle` 一次收回空闲；不手改游标、契约、scope。
+- 2.11.0（2026-10-13）：`etctl guard` 拦截源码树写入；不在 `write_paths` 或阶段不许写则拒绝。

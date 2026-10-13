@@ -1,0 +1,161 @@
+{
+  "module_id": "spell_unit_phase",
+  "editor": "trunk",
+  "load": "on_match",
+  "trust": "verified",
+  "keywords": [
+    "定点延迟技能体",
+    "BTDelaySpellUnitAtPos",
+    "轨迹进度",
+    "二阶段",
+    "2000175",
+    "炸弹鸟",
+    "100281",
+    "等待弹体寿命结束",
+    "delayAtProgress"
+  ],
+  "routes": [
+    {
+      "keyword": "按进度摘下同一发",
+      "prefer": [
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Action/BTDelaySpellUnitAtPos.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/SpellUnitHelper.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BuffVM/BuffVMDelaySpellUnitAtPosHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/SpellUnit/SpellUnitTrackMoveComponentSystem.cs"
+      ],
+      "avoid": [
+        "Unity/Assets/Config/AI/50_ai.asset"
+      ],
+      "trust": "verified",
+      "source_task": "t032"
+    },
+    {
+      "keyword": "寿命结束客端特效",
+      "prefer": [
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/SpellUnitHelper.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/SpellUnit/SpellUnitComponentSystem.cs"
+      ],
+      "avoid": [
+        "Unity/Assets/Config/AI/50_ai.asset"
+      ],
+      "trust": "verified",
+      "source_task": "t032"
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "progress_one_destroys_at_track_end",
+      "signals": [
+        "progress_0_9_enters_phase2",
+        "progress_1_dies_when_track_ends"
+      ],
+      "check_first": "结束分支是否在 DelayDispose 前 TryFireDelayAtProgress(unit, true)，盖章时是否已把创建 Buff 延长剩余飞行加二阶段时长",
+      "expected": "进度 1 飞完弹道后同一发进入 AI，不在终点销毁",
+      "cause": "非玩家弹飞行时长等于创建 Buff 时长，进度 1 与 Buff 到期同一帧。正常帧 rate 始终小于 1。结束帧找不到节点就会 DelayDispose。fired 若在找到节点前就置真，不能再试。",
+      "resolution_kind": "code",
+      "owner_target": "trunk",
+      "validation_target": "trunk",
+      "entry_paths": [
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/SpellUnitHelper.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/SpellUnit/SpellUnitTrackMoveComponentSystem.cs"
+      ],
+      "validation": [
+        "2000175 进度 0.9：先沿 50027 飞再进二阶段",
+        "进度 1：第一段飞完进入追击，不在终点销毁"
+      ],
+      "trust": "verified",
+      "source_task": "t032"
+    },
+    {
+      "id": "birth_frame_enters_phase2",
+      "signals": [
+        "phase2_at_spawn",
+        "no_track_visual"
+      ],
+      "check_first": "TryReadTrackProgress 在轨迹未 Awake 时是否返回 false",
+      "expected": "发射当帧只盖章，飞到 delayTrackProgress 再摘",
+      "cause": "OnEachLaunch 早于轨迹 Awake。把没有轨迹或 startTimeStamp 为 0 读成进度 1，会当帧摘下。",
+      "resolution_kind": "code",
+      "owner_target": "trunk",
+      "validation_target": "trunk",
+      "entry_paths": [
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/SpellUnitHelper.cs"
+      ],
+      "validation": [
+        "进度 0.9 出生后先飞弹道"
+      ],
+      "trust": "verified",
+      "source_task": "t032"
+    }
+  ],
+  "facts": [
+    {
+      "id": "delay_keeps_same_unit",
+      "note": "定点延迟技能体不新建技能体。挂在 OnEachLaunchChildren，前面不要再挂等待轨迹结束。命中节点当帧只盖章并返回成功，子节点等进度到了才跑。摘下时去掉 TrackMove，改成 AI 移动，寿命、速度、命中槽和行为写在同一发上。Pos 不吸附，停在曲线当前位置。Trunk 与 BridgeEditor ScriptsET 成对改。",
+      "trust": "verified",
+      "source_task": "t032"
+    },
+    {
+      "id": "unread_track_is_not_progress_one",
+      "note": "轨迹组件不在、startTimeStamp 仍为 0、或 totalTime 无效时，进度不可读，只盖章。不要当成已经走完。",
+      "trust": "verified",
+      "source_task": "t032"
+    },
+    {
+      "id": "progress_one_shares_buff_end",
+      "note": "怪物弹飞行时长等于创建 Buff 时长，见 ballistic 的怪物飞行时钟。进度 1 只在 currentTime 超过 totalTime 的结束分支成立，且必须先于 DelayDispose。阈值约等于 1 时 trackEnded 即到达。先找到节点再置 delayAtProgressFired。盖章时按剩余飞行加 LifeTimeMs 延长创建 Buff 和根 Buff。",
+      "trust": "verified",
+      "source_task": "t032"
+    },
+    {
+      "id": "client_life_expire_on_remove",
+      "note": "轨迹弹不查寿命，AI 弹才查。服务端跳过客端节点后销毁，客端副本会被移除消息先摘掉。lifeExpireAtMs、lifeExpireBuffUnitId、lifeExpireBuffId 追加在 SpellUnitComponent 末尾并参与同步。客端移除和预测超时在到期窗口内补放寿命结束子节点。提前命中不炸。同一配置、节点、约 0.5 米内 500ms 只放一次客端特效。特效名用预制体，不用材质名。",
+      "trust": "verified",
+      "source_task": "t032"
+    },
+    {
+      "id": "life_expire_skips_shared_ai_ground_hit",
+      "note": "已盖寿命结束章时，无目标超时的落地自爆直接返回。不改 50_ai，其它 AI 仍共用这份超时。寿命结束下面只挂位置创建特效，不要再挂 505。",
+      "trust": "verified",
+      "source_task": "t032"
+    },
+    {
+      "id": "phase2_anim_on_same_view",
+      "note": "二阶段沿用出生时的 Animator。播放弹体动画是客端节点：没有 AI 动画组件时拆掉轨迹动画组件再挂上，交叉淡化一次。弹体控制器没有 run，attack1 才是覆写后的跑动。不走 AnimatorParamHelper，不调用 Animator.Update(0)。",
+      "trust": "verified",
+      "source_task": "t032"
+    },
+    {
+      "id": "bomb_bird_2000175",
+      "note": "2000175 / 怪物 100281：04 的每次发射子节点挂定点延迟，弹道 50027，AI 50。进度 0.9 与 1 都先飞再进二阶段。二阶段存活 3000ms、速度 2。寿命结束创建 vfx_monster_100281_skill01_0001ground01。碰撞特效已单独确认。",
+      "trust": "verified",
+      "source_task": "t032"
+    }
+  ],
+  "excluded_causes": [
+    {
+      "id": "spawn_second_unit_for_phase2",
+      "note": "再创建一发 109 会让动画重开，出现一帧停顿。",
+      "trust": "verified",
+      "source_task": "t032"
+    },
+    {
+      "id": "wait_track_complete_before_delay",
+      "note": "等待轨迹结束挡在前面时，进度字段要等轨迹走完才执行，中途摘不下来。",
+      "trust": "verified",
+      "source_task": "t032"
+    },
+    {
+      "id": "edit_shared_ai_timeout",
+      "note": "把 50_ai 无目标超时改成 0 会波及其它 AI。",
+      "trust": "verified",
+      "source_task": "t032"
+    },
+    {
+      "id": "four_vfx_means_four_children",
+      "note": "叠在一起的地面特效是同一次创建跑了多遍（超时落地、预测、权威），不是预制体里四个根。",
+      "trust": "verified",
+      "source_task": "t032"
+    }
+  ]
+}

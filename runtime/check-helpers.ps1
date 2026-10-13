@@ -68,24 +68,21 @@ function Test-MarkdownShape([hashtable]$State, [string]$Rel, [string]$Content) {
     foreach ($line in $lines) {
         if ($line.StartsWith('# ')) { $h1 += $line.Substring(2).Trim() }
     }
+    $stateMd = $Rel -eq 'project_cursor.md' -or $Rel -eq 'contracts/current.md' -or $Rel -eq 'contracts/candidates/_index.md'
     if ($h1.Count -eq 0) {
         Add-CheckError $State 'MD_H1' ($Rel + ' no H1')
     } else {
+        $hasHist = $h1[-1] -match [regex]::Escape($script:HHist)
         if ($h1[0] -notlike ($script:H0Duty + '*')) { Add-CheckError $State 'MD_H0' ($Rel + ' first H1 must be duty section') }
-        if ($h1[-1] -notmatch [regex]::Escape($script:HHist)) { Add-CheckError $State 'MD_HIST' ($Rel + ' last H1 must be history') }
-        if ($h1.Count -lt 2) { Add-CheckError $State 'MD_H1_MIN' ($Rel + ' need duty and history H1') }
-        if ($h1.Count -gt 8) { Add-CheckError $State 'MD_H1_MAX' ($Rel + ' H1 count ' + $h1.Count + ' > 8; follow md_governance.md section 2 remedy, do not raise cap') }
+        if ($stateMd -and $hasHist) { Add-CheckError $State 'MD_HIST' ($Rel + ' state file must not have history') }
+        if (-not $stateMd -and -not $hasHist) { Add-CheckError $State 'MD_HIST' ($Rel + ' last H1 must be history') }
+        if (-not $stateMd -and $h1.Count -lt 2) { Add-CheckError $State 'MD_H1_MIN' ($Rel + ' need duty and history H1') }
+        if ($h1.Count -gt 8) { Add-CheckError $State 'MD_H1_MAX' ($Rel + ' H1 count ' + $h1.Count + ' > 8') }
     }
 
-    $histCount = 0
-    $inHist = $false
-    $histH1 = '^# .+' + [regex]::Escape($script:HHist)
-    foreach ($line in $lines) {
-        if ($line -match $histH1) { $inHist = $true; continue }
-        if ($inHist -and $line -match '^# ') { $inHist = $false }
-        if ($inHist -and $line -match '^- \d+\.\d+\.\d+') { $histCount++ }
+    if (-not $stateMd -and ([regex]::Matches($Content, '(?m)^- \d+\.\d+\.\d+')).Count -gt 5) {
+        Add-CheckError $State 'MD_HIST_CAP' ($Rel + ' version history > 5')
     }
-    if ($histCount -gt 5) { Add-CheckError $State 'MD_HIST_CAP' ($Rel + ' version history > 5: ' + $histCount) }
 
     $level = 'L1'
     if ($lines[3] -match '(L[0-2])') { $level = $Matches[1] }
@@ -230,6 +227,11 @@ function Test-TargetJson([hashtable]$State, [string]$Rel, $Obj, [string]$ExpectI
     if (-not (Test-RequiredJsonProps $State 'TARGET_JSON' $Rel $Obj @('target_id', 'display_name', 'workspace_path', 'vcs', 'editor'))) { return }
     if ([string]$Obj.target_id -ne $ExpectId) { Add-CheckError $State 'TARGET_JSON' ($Rel + ' target_id must match file stem') }
     if (@('svn', 'git') -notcontains [string]$Obj.vcs -or @('unity', 'other') -notcontains [string]$Obj.editor) { Add-CheckError $State 'TARGET_JSON' ($Rel + ' invalid vcs/editor') }
+    if ($Obj.PSObject.Properties.Name -contains 'hook_tasks') {
+        foreach ($h in @($Obj.hook_tasks)) {
+            if ([string]$h.id -notmatch '^\d+$' -or -not [string]$h.for) { Add-CheckError $State 'TARGET_JSON' ($Rel + ' hook_tasks need digit id and for') }
+        }
+    }
     if (-not (Test-Path -LiteralPath ([string]$Obj.workspace_path))) { Add-CheckError $State 'TARGET_JSON' ($Rel + ' workspace_path missing') }
 }
 

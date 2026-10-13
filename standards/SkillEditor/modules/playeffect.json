@@ -57,6 +57,18 @@
       "note": "SkillEditor Directional 的 Z 是米（相对 D×progress 的前后余量）。ET Copy.Z 会被 ×L。对齐在 Bridge SampleBallisticCurves：Z_copy=Z米/D。不要在 SkillEditor 里改成分数。",
       "trust": "verified",
       "source_task": "t004"
+    },
+    {
+      "id": "ballistic_folder_no_s",
+      "note": "权威读写目录 Assets/Resources/config/globalconfig/ballistic（无 s）。资产名仍 ballistics_m{怪}_{Key}。转化走 GlobalConfig.ballisticConfigs 索引，不扫文件夹。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "find_globalconfig_asset",
+      "note": "编辑器 FindGlobalConfig 只 Load globalconfig.asset，禁止 GlobalConfig.instance。",
+      "trust": "verified",
+      "source_task": "t027"
     }
   ],
   "excluded_causes": [

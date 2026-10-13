@@ -6,5 +6,5 @@
   "workspace_path": "C:\\myProject\\BridgeEditor",
   "vcs": "svn",
   "editor": "unity",
-  "note": "目录存在已核验；模块知识尚未 harvest"
+  "note": "目录存在已核验；ConfigET/ScriptsET 为 trunk 外链；转化引擎见 SpellConversion；输出同步见 integrations/skill_sync.json"
 }

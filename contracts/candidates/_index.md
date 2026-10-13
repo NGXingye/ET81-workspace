@@ -1,5 +1,5 @@
-> 最新修改时间：2026-09-23 11:20 UTC+8
-> 版本号：1.6.0
+> 最新修改时间：2026-10-13 15:46 UTC+8
+> 版本号：1.6.24
 > 文档状态：生效
 > 读取等级：L1（活卡占用时停放分析包前读取）
 
@@ -9,14 +9,6 @@
 
 # 1. 文件索引
 
-当前 1 个候选：[`t019.json`](./t019.json)（提交日志补 `task:15`/`task:32`）。活卡 idle，可 promote。
+当前 1 个候选：[`t035.json`](./t035.json)（中转工具碰撞偏移 Y 取反，静态盒子运行时已能用偏移）。活卡 t034。
 
-分析模型在活卡非 idle 时写入 `<task_id>.json`（复制 `../_template_scope.json` 加 `goal`；热插队复制 `../_template_interrupt.json`）。未 park 的 `phase` 仅为 `discovery` 或 `awaiting_scope`。最多 2 个。
-
-# 2. 版本历史
-
-- 1.6.0（2026-09-23）：parked 可含 implement；回来原阶段。
-- 1.5.0（2026-09-23）：热插队 park；模板 `_template_interrupt.json`。
-- 1.4.7（2026-09-22）：停放 t019（svn 提交日志过 pre-commit hook）。
-- 1.4.6（2026-09-22）：t016 harvest，候选仍空。
-- 1.4.5（2026-09-22）：t016 已 promote，候选清空。
+分析模型在活卡非 idle 时写入 `<task_id>.json`（复制 `../_template_scope.json` 加 `goal`；热插队复制 `../_template_interrupt.json`）。未 park 的 `phase` 仅为 `discovery` 或 `awaiting_scope`。最多 2 个。不写版本历史。进度不写在本文件。

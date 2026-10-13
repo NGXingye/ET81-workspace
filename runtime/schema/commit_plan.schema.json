@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "commit_plan.schema.json",
+  "title": "ET81 commit plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["task_id", "summary", "units"],
+  "properties": {
+    "task_id": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string" },
+    "omitted": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "note"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "units": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "hook_task", "workspace_path", "paths", "status"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "title": { "type": "string", "minLength": 1 },
+          "hook_task": { "type": "string" },
+          "workspace_path": { "type": "string" },
+          "paths": { "type": "array", "items": { "type": "string" } },
+          "status": { "type": "string", "enum": ["pending", "committed"] },
+          "committed_rev": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -75,6 +75,24 @@ $stamp = Get-Stamp
 if ($cand.PSObject.Properties.Name -contains 'parent_task_id' -and [string]$cand.parent_task_id) {
     Write-PromoteError 'candidate with parent_task_id requires etctl interrupt'
 }
+$planPath = Join-Path $WorkspaceRoot 'contracts/commit_plan.json'
+if (Test-Path -LiteralPath $planPath) {
+    $plan = Get-Content -LiteralPath $planPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $units = @()
+    if ($plan.PSObject.Properties.Name -contains 'units' -and $null -ne $plan.units) { $units = @($plan.units) }
+    $pending = @()
+    foreach ($u in $units) {
+        if ([string]$u.status -ne 'committed') {
+            $uid = [string]$u.id
+            if (-not $uid) { $uid = '?' }
+            $pending += $uid
+        }
+    }
+    if ($pending.Count -gt 0) { Write-PromoteError ('commit plan pending: ' + ($pending -join ', ')) }
+    if (-not ([string]$plan.task_id -eq 'none' -and $units.Count -eq 0)) {
+        Write-Utf8 $planPath "{`n  `"task_id`": `"none`",`n  `"summary`": `"`",`n  `"units`": []`n}`n"
+    }
+}
 $scopeOut = [ordered]@{}
 foreach ($p in $cand.PSObject.Properties) {
     if (@('goal', 'parked', 'parked_by') -contains $p.Name) { continue }

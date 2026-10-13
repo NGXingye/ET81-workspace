@@ -18,6 +18,18 @@
     "validation": {
       "type": "object",
       "additionalProperties": { "type": "string" }
+    },
+    "hook_tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "for"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[0-9]+$" },
+          "for": { "type": "string", "minLength": 1 }
+        }
+      }
     }
   }
 }

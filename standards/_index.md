@@ -1,5 +1,5 @@
-> 最新修改时间：2026-09-21 18:45 UTC+8
-> 版本号：3.11.0
+> 最新修改时间：2026-10-13 15:46 UTC+8
+> 版本号：3.34.0
 > 文档状态：生效
 > 读取等级：L1（知识 harvest 或路由变更前读取）
 
@@ -25,8 +25,17 @@
   职责：怪物弹道时钟、Copy 采样、2000010 四发映射。  
   读取时机：catalog 命中弹道/BallisticCopy。
 - [`trunk/modules/climbing_tower.json`](./trunk/modules/climbing_tower.json)  
-  职责：爬塔 Item_Stage1 五槽页、任务栏已击杀/总数、TowerWinView 离开倒计时与 GM 预览。  
-  读取时机：catalog 命中爬塔/TowerView/任务栏/TowerWinView。
+  职责：爬塔 Item_Stage1 五槽页（组距 1080）、自由滑两端卡死、仅 Image_Bg 跟滑、任务栏已击杀/总数、TowerWinView 离开倒计时与奖励 tip、层解锁三闸（层/主线/任务）、爬塔 GM 进度。  
+  读取时机：catalog 命中爬塔/TowerView/任务栏/TowerWinView/PreQuestID。
+- [`trunk/modules/spell_hit_vfx.json`](./trunk/modules/spell_hit_vfx.json)  
+  职责：CastShape 受击加 Buff 四槽、角色 CreateBuffEffect 与地面 OnPos、近战自机环与 launchpoint。  
+  读取时机：catalog 命中受击特效 / SpellHitActionAddBuff / 2000178。
+- [`trunk/modules/spell_unit_phase.json`](./trunk/modules/spell_unit_phase.json)  
+  职责：定点延迟按轨迹进度摘下同一发、进度 1 与 Buff 到期、客端寿命结束特效。  
+  读取时机：catalog 命中定点延迟 / 轨迹进度 / 2000175 / 炸弹鸟。
+- [`trunk/modules/yiui_joystick.json`](./trunk/modules/yiui_joystick.json)  
+  职责：左右摇杆固定不跟手，画布下角扇形响应；扇形按下须让 Joystick.IsDraging 为真；GM Gizmos 涂扇形。  
+  读取时机：catalog 命中左摇杆 / 扇形 / IsDraging / LeftJoystickHitArea。
 - [`SkillEditor/target.json`](./SkillEditor/target.json)  
   职责：`C:\myProject\SkillEditor` 存在事实。
 - [`SkillEditor/modules/playeffect.json`](./SkillEditor/modules/playeffect.json)  
@@ -39,17 +48,23 @@
   职责：Resources/timeline 为 svn external；playable 须在该层提交。  
   读取时机：catalog 命中 timeline svn / playable 提交。
 - [`SkillEditor/modules/skill_pipeline.json`](./SkillEditor/modules/skill_pipeline.json)  
-  职责：SkillEditor 本地管线 L0/L1、SVN 隔离与文件预算。  
-  读取时机：catalog 命中技能管线 / 怪物页。
+  职责：本地管线（输入→技能→动画→特效→碰撞体→输出）、轨迹页、替换 playable、skill_{id}_colliderdata。  
+  读取时机：catalog 命中技能管线 / 技能构建管线 / 弹道轨迹页。
+- [`SkillEditor/modules/skill_sync.json`](./SkillEditor/modules/skill_sync.json)  
+  职责：管线输出三行钮、资源对照格、SkillSync 文件地图与提交日志。  
+  读取时机：catalog 命中 SkillSync / 转化到本地 / 预检叠入。
 - [`BridgeEditor/target.json`](./BridgeEditor/target.json)  
-  职责：`C:\myProject\BridgeEditor` 存在事实。尚无模块。
+  职责：`C:\myProject\BridgeEditor` 存在事实。ConfigET 为 trunk Config 外链；同步见 skill_sync。
 - [`ActionEditor/target.json`](./ActionEditor/target.json)  
   职责：`C:\myProject\ActionEditor` 存在事实。尚无模块。
 - [`integrations/_index.md`](./integrations/_index.md)  
-  职责：跨编辑器数据流（当前空）。  
+  职责：跨编辑器数据流。  
   读取时机：出现已验证跨编辑器传递时。
+- [`integrations/skill_sync.json`](./integrations/skill_sync.json)  
+  职责：SkillEditor→Bridge 引擎→本地 trunk；提交先原料后配置；Spell/Buff/SpellShape/SpellUnit 落盘。  
+  读取时机：catalog 命中资源同步 / 提交配置。
 - [`records/task_outcomes.jsonl`](./records/task_outcomes.jsonl)  
-  职责：已结束任务指针。非冷启动默认。
+  职责：收口账。一个 `task_id` 一行。非冷启动默认。
 - [`framework_baseline.md`](./framework_baseline.md)  
   职责：trunk 框架 L2 备份；Agent 优先 `trunk/target.json`。
 - [`source_code_map.md`](./source_code_map.md)  
@@ -59,8 +74,8 @@
 
 # 2. 版本历史
 
-- 3.11.0（2026-09-21）：t015：SkillEditor 本地管线 L0+L1 设计（未改源码）。
-- 3.10.0（2026-09-21）：t014 harvest：SkillEditor timeline 为 svn external。
-- 3.9.0（2026-09-21）：t013 harvest：攻击圈不相交与 Spell 启用根运动 GUI。
-- 3.8.0（2026-09-21）：t012 harvest：SkillEditor `skill_collider.json`（碰撞导出与 csvdemo 主表）。
-- 3.7.0（2026-09-20）：t003 harvest：SkillEditor `playeffect.json`（弹道轨迹编辑器）。
+- 3.34.0（2026-10-13）：收口账改为一个任务号一行。
+- 3.33.0（2026-10-09）：t032 harvest：定点延迟按进度摘下同一发；进度 1 在终点前进二阶段。活卡 idle。
+- 3.32.0（2026-10-02）：t029 harvest：退出尾段含 OnExit 等待；BuffVM 等待认动画结束；枪口轨道跟当前根运动。活卡 idle。
+- 3.31.0（2026-10-02）：t029 中途 harvest：重复 OnExit、怪物客户端不加子 Buff、枪口表跟开火相位、姿态维持到主 Buff。活卡不 idle。
+- 3.30.0（2026-09-30）：t029 中途 harvest：枪口表帧=映射动画；等待层 Duration 应对齐表时长；animDistance 是定向开关。活卡不 idle。

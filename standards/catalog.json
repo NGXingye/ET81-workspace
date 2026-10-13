@@ -34,7 +34,25 @@
         "attack_range",
         "DistanceTrigger",
         "MonsterSkillConfig",
-        "AI_MonsterAttack"
+        "AI_MonsterAttack",
+        "转圈电磁",
+        "2000182",
+        "InAttackRing",
+        "BTRepeat",
+        "OnExit",
+        "尾段",
+        "BuffVM",
+        "预测",
+        "孵化",
+        "脱离母体",
+        "召唤母体",
+        "100282",
+        "正步炸弹鸟",
+        "advanceAttackPhase",
+        "vfxpoint",
+        "延迟唤醒AI",
+        "被动死亡",
+        "替换挂点常驻特效"
       ],
       "editor": "trunk",
       "load": ["standards/trunk/modules/monster_ai.json"]
@@ -59,7 +77,9 @@
         "IsRootMotion",
         "attack_forma",
         "技能没有位移",
-        "没有带位移"
+        "没有带位移",
+        "AttackPoseFollowsBuff",
+        "姿态维持"
       ],
       "editor": "trunk",
       "load": ["standards/trunk/modules/root_motion.json"]
@@ -79,7 +99,12 @@
         "海豹头球",
         "Z轴",
         "视觉贴附",
-        "拉扯"
+        "拉扯",
+        "animDistance",
+        "诡弹",
+        "50030",
+        "枪口表",
+        "LaunchPoint"
       ],
       "editor": "trunk",
       "load": ["standards/trunk/modules/ballistic.json"]
@@ -96,6 +121,8 @@
         "Panel_Guanqia",
         "Panel_Stage01",
         "u_DataLayer",
+        "Image_Bg",
+        "ImageBg02",
         "ClimbingTowerTaskTracing",
         "任务栏",
         "Panel_Task01",
@@ -103,7 +130,14 @@
         "TowerWinView",
         "Text_Time",
         "离开倒计时",
-        "打开爬塔胜利界面"
+        "打开爬塔胜利界面",
+        "Comm_Btn02",
+        "Comm_Tip_BaseItem",
+        "PreQuestID",
+        "PreStoryRaidID",
+        "前置任务",
+        "MaxStoryRaidId",
+        "爬塔GM"
       ],
       "editor": "trunk",
       "load": ["standards/trunk/modules/climbing_tower.json"]
@@ -125,7 +159,10 @@
         "colliderdata",
         "variantColliderSets",
         "csvdemo",
-        "无法生成角色模型"
+        "无法生成角色模型",
+        "挂点总帧数",
+        "launchPointsDict",
+        "placeholder_attack"
       ],
       "editor": "SkillEditor",
       "load": ["standards/SkillEditor/modules/skill_collider.json"]
@@ -143,13 +180,81 @@
     {
       "match": [
         "技能管线",
-        "怪物页",
-        "一键导入",
+        "技能构建管线",
+        "当前表",
+        "一页管线",
         "SkillPipeline",
-        "只读面板"
+        "只读面板",
+        "弹道轨迹页",
+        "构建 Timeline",
+        "召唤物",
+        "近战",
+        "发射物动画",
+        "显示碰撞体"
       ],
       "editor": "SkillEditor",
       "load": ["standards/SkillEditor/modules/skill_pipeline.json"]
+    },
+    {
+      "match": [
+        "资源同步",
+        "SkillSync",
+        "转化到本地",
+        "提交原料",
+        "提交配置",
+        "ConfigET",
+        "预检叠入",
+        "资源对照",
+        "构建 Timeline"
+      ],
+      "editor": "SkillEditor",
+      "load": [
+        "standards/integrations/skill_sync.json",
+        "standards/SkillEditor/modules/skill_sync.json"
+      ]
+    },
+    {
+      "match": [
+        "受击特效",
+        "SpellHitActionAddBuff",
+        "BTCreateBuffEffect",
+        "BTCreateEffectOnPos",
+        "行为树ID_不命中",
+        "HitPoint",
+        "2000178",
+        "链球小子"
+      ],
+      "editor": "trunk",
+      "load": ["standards/trunk/modules/spell_hit_vfx.json"]
+    },
+    {
+      "match": [
+        "定点延迟技能体",
+        "BTDelaySpellUnitAtPos",
+        "轨迹进度",
+        "二阶段",
+        "2000175",
+        "炸弹鸟",
+        "100281",
+        "等待弹体寿命结束",
+        "delayAtProgress"
+      ],
+      "editor": "trunk",
+      "load": ["standards/trunk/modules/spell_unit_phase.json"]
+    },
+    {
+      "match": [
+        "左摇杆",
+        "Panel_LeftJoy",
+        "Panel_Range",
+        "LeftJoystickHitArea",
+        "KnobFather",
+        "摇杆范围",
+        "扇形",
+        "IsDraging"
+      ],
+      "editor": "trunk",
+      "load": ["standards/trunk/modules/yiui_joystick.json"]
     },
     {
       "match": ["UI", "Spell", "Combat", "Numeric", "背包", "Quest"],

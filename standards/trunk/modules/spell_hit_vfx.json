@@ -1,0 +1,109 @@
+{
+  "module_id": "spell_hit_vfx",
+  "editor": "trunk",
+  "load": "on_match",
+  "trust": "verified",
+  "keywords": [
+    "受击特效",
+    "SpellHitActionAddBuff",
+    "BTCreateBuffEffect",
+    "BTCreateEffectOnPos",
+    "行为树ID_不命中",
+    "HitPoint",
+    "2000178",
+    "链球小子",
+    "ztx",
+    "impactpoint2"
+  ],
+  "routes": [
+    {
+      "keyword": "近战 CastShape 受击加 Buff",
+      "prefer": [
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/SpellHitActionAddBuffHelper.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BuffSensorSystem.cs",
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Action/BTCreateBuffUnit.cs"
+      ],
+      "avoid": [],
+      "trust": "verified",
+      "source_task": "t017"
+    },
+    {
+      "keyword": "角色受击 / 地面落点树",
+      "prefer": [
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Spell/BT/BTCreateBuffEffectHandler.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Spell/BT/BTCreateEffectOnPosHandler.cs"
+      ],
+      "avoid": [],
+      "trust": "verified",
+      "source_task": "t017"
+    }
+  ],
+  "diagnostics": [
+    {
+      "id": "ground_slot_reuses_character_hit_buff",
+      "signals": [
+        "hit01_on_caster_first_frame",
+        "no_shield_shatter_on_that_vfx",
+        "buffid_2_equals_buffid_1"
+      ],
+      "check_first": "BTCastShape SpellHitActionAddBuff BuffId_2/4 是否等于角色 02 的 CreateBuffEffect",
+      "expected": "无地面受击时 BuffId_2 与 BuffId_4 为 0；02 只加在被击角色",
+      "cause": "Inspector「不命中」=打到地面不是打空。ApplyOnGround 把 2/4 加在施法者。上游无 OnPos 落地树时转换器仍 id2=id1、id4=id3。Delay 到期第一帧盒子扫地就会在怪物身上 new 02。",
+      "resolution_kind": "config",
+      "owner_target": "trunk",
+      "validation_target": "trunk",
+      "entry_paths": [
+        "Unity/Assets/Config/Spell/2000178-链球小子-重物旋转/200017801.asset",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/SpellHitActionAddBuffHelper.cs",
+        "BridgeEditor/Assets/Scripts/Editor/SpellConversion/SpellConversionEngine.EffectTree.cs"
+      ],
+      "validation": [
+        "801/803/805 的 BuffId_2/4=0 后第一帧怪物身边无 hit01",
+        "打中有盾主角仍有盾碎与主角 hit01",
+        "前摇 Delay 内无结算"
+      ],
+      "trust": "verified",
+      "source_task": "t017"
+    }
+  ],
+  "facts": [
+    {
+      "id": "addbuff_four_slots",
+      "note": "BuffId_1 命中=角色持续加在目标；BuffId_2 不命中=地面持续加在施法者；BuffId_3 命中_不持续=角色一次性；BuffId_4 不命中_不持续=地面一次性。Enermy 只在 SpellHitActionDamage。AddBuff 角色路径跳过 Self。Resolve(0) 则地面不加 Buff。",
+      "trust": "verified",
+      "source_task": "t017"
+    },
+    {
+      "id": "melee_chain_00_to_06",
+      "note": "2000178：00 master 给自己加 01/03/05（CastShape+自机特效）。02/04/06 是运行时 new 的角色受击树（CreateBuffEffect HitPoint），不是 01 再跑一遍。无 BTCreateEffectOnPos。Delay 与 WaitTime 对齐；Delay 内盒子跟着 launchpoint 动但不 Collide。",
+      "trust": "verified",
+      "source_task": "t017"
+    },
+    {
+      "id": "converter_fills_ground_from_body",
+      "note": "AddHitBuff 无地面特效时仍 id2=id1、id4=id3。只改 trunk 的 2/4=0，再转会填回。步行炮路径已写 2/4=0。",
+      "trust": "verified",
+      "source_task": "t017"
+    },
+    {
+      "id": "ring_center_vs_bucket_yaw",
+      "note": "环挂 impactpoint2（Spine 中心）。碰撞与挖斗在 launchpoint（右手链下）。黄亮 zts/ztx 钉在特效本地 X。不要拆怪物预制体、不要两骨合并、不要整份 vfx 挂 launchpoint。黄亮单独绕世界 Y 朝向 launchpoint-impactpoint2；不要程序拧 launchpoint 旋转。",
+      "trust": "verified",
+      "source_task": "t017"
+    }
+  ],
+  "excluded_causes": [
+    {
+      "id": "ground_query_is_create_effect_on_pos",
+      "note": "地面查询与 CreateEffectOnPos 不是同一层。无 OnPos 树时触地仍可能跑角色 CreateBuffEffect，若 2/4 填了 02。",
+      "trust": "verified",
+      "source_task": "t017"
+    },
+    {
+      "id": "windup_box_settles_hits",
+      "note": "进技能就有盒子，但 nextCastTime=Delay，前摇 Collide 不结算。",
+      "trust": "verified",
+      "source_task": "t017"
+    }
+  ]
+}

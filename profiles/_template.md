@@ -1,11 +1,11 @@
-> 最新修改时间：2026-09-16 23:10 UTC+8
-> 版本号：1.1.2
+> 最新修改时间：2026-10-13 15:20 UTC+8
+> 版本号：1.2.0
 > 文档状态：草案
 > 读取等级：L2（复制为本模块配置后读取）
 
 # 0. 职责定位
 
-本文件是模块配置模板。只填门禁键，不写行为事实。无模块时 discovery 不创建；harvest 时才复制为 `profiles/<module_id>.md`。预算见 `global_rules/kv_budget.md` §3。
+本文件是模块配置模板。只填门禁键。预算见 [`../global_rules/kv_budget.md`](../global_rules/kv_budget.md) §3。何时新建见 [`.cursor/commands/harvest.md`](../.cursor/commands/harvest.md)。
 
 # 1. 最小必要（必须 4 项）
 
@@ -27,6 +27,7 @@
 
 # 3. 版本历史
 
+- 1.2.0（2026-10-13）：收口说明改链到 `/harvest`。
 - 1.1.2（2026-09-16）：只填门禁键；事实写 standards。
 - 1.1.1（2026-09-12）：discovery 不建配置；harvest 时才复制。
 - 1.1.0（2026-09-07）：改为最小 4 字段 + 可选省略，上限 10。

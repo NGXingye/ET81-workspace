@@ -1,6 +1,6 @@
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('check', 'status', 'packet', 'begin-implement', 'promote', 'interrupt')]
+    [ValidateSet('check', 'status', 'packet', 'begin-implement', 'promote', 'interrupt', 'guard', 'idle')]
     [string]$Command = 'check',
     [Parameter(Position = 1)]
     [string]$TaskId,
@@ -142,6 +142,18 @@ switch ($Command) {
             exit 1
         }
         & (Join-Path $RuntimeRoot 'interrupt.ps1') -TaskId $TaskId
+        exit $LASTEXITCODE
+    }
+    'guard' {
+        if (-not $TaskId) {
+            [ordered]@{ ok = $false; error = 'path required' } | ConvertTo-Json -Compress
+            exit 1
+        }
+        & (Join-Path $RuntimeRoot 'guard.ps1') -Path $TaskId
+        exit $LASTEXITCODE
+    }
+    'idle' {
+        & (Join-Path $RuntimeRoot 'idle.ps1')
         exit $LASTEXITCODE
     }
 }

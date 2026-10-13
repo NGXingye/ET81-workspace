@@ -3,4 +3,5 @@
 .tmp/
 *.tmp
 runtime/check-output/
+runtime/__pycache__/
 local/

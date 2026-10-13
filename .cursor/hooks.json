@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "command": "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .cursor/hooks/guard-source.ps1",
+        "matcher": "^(Write|StrReplace|Edit|Delete|EditNotebook|ApplyPatch)$",
+        "failClosed": true,
+        "timeout": 20
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .cursor/hooks/guard-source.ps1",
+        "failClosed": true,
+        "timeout": 20
+      }
+    ]
+  }
+}

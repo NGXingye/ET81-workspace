@@ -5,16 +5,29 @@
   "trust": "observed",
   "keywords": [
     "技能管线",
-    "怪物页",
-    "一键导入",
+    "技能构建管线",
+    "当前表",
+    "一页管线",
     "SkillPipeline",
-    "只读面板"
+    "只读面板",
+    "弹道轨迹页",
+    "发射槽",
+    "构建 Timeline",
+    "动画1",
+    "无轨迹",
+    "召唤物",
+    "近战",
+    "发射物动画",
+    "显示碰撞体"
   ],
   "routes": [
     {
       "keyword": "本地管线面板",
       "prefer": [
-        "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/",
+        "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineWindow.cs",
+        "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineTableView.cs",
+        "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineMotionView.cs",
+        "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineSessionPrefs.cs",
         "Assets/Scripts/App/Comm/EditorTools/BallisticPathEditorWindow.cs",
         "Assets/Editor/SkillEditor/csvdemo/MonsterSkillConfig.bytes",
         "Assets/Editor/SkillEditor/csvdemo/MonsterScalingLevelConfig.bytes"
@@ -26,58 +39,314 @@
       ],
       "trust": "observed",
       "source_task": "t015"
+    },
+    {
+      "keyword": "弹道轨迹页",
+      "prefer": [
+        "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineTrajectoryPage.cs",
+        "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineTrajectoryPreview.cs",
+        "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineBallisticAssets.cs",
+        "Assets/Scripts/App/Comm/EditorTools/BallisticPathBake.cs",
+        "Assets/Scripts/App/Comm/EditorTools/BallisticPathEditorWindow.cs"
+      ],
+      "avoid": [
+        "Assets/Editor/SkillEditor/SkillEditor2.cs",
+        "Assets/Scripts/App/Comm/EditorTools/BallisticBakeService.cs"
+      ],
+      "trust": "verified",
+      "source_task": "t027"
     }
   ],
   "facts": [
     {
-      "id": "slice_l0_l1_readonly",
-      "note": "第一期只做 L0 怪物页 + L1 动作页只读。不写 Timeline、不写 csvdemo、不转 Bridge/Trunk。优先 Unique+Directional。特效/脚手架/导入 Tab 占位禁用。",
+      "id": "one_page_pipeline",
+      "note": "一页竖排，禁止 TabGroup 五页平铺。顺序：输入 → 技能 → 动画 → 特效 → 碰撞体 → 输出。输出格接 SkillSync（t016），不再当永久壳。碰撞体在特效之后、输出之前。",
       "trust": "observed",
       "source_task": "t015"
     },
     {
-      "id": "host_new_window",
-      "note": "新窗口 OdinEditorWindow，菜单 Tools/Skill Pipeline (local)。禁止塞进 SkillEditor3（SkillEditor2.cs 已约 3200 行）或 BallisticPathEditorWindow（IMGUI EditorWindow，约 1965 行）。弹道窗口只读纳入：PrefabFolders=monster_c/pet_c，动画同名文件夹；本切片不改它、不转 Odin。",
-      "trust": "observed",
-      "source_task": "t015"
-    },
-    {
-      "id": "svn_isolation",
-      "note": "目录 C:/myProject/SkillEditor/Assets/Scripts/App/Comm/EditorTools/SkillPipeline/。开工前对父目录 EditorTools 把 SkillPipeline 写入 svn:ignore（与现有 ignore 合并，勿覆盖）。禁止 svn add / svn commit 该目录与 .meta。误 revert 只应碰到已跟踪文件；忽略目录本就不在 BASE。白名单写集仅此目录。",
-      "trust": "observed",
-      "source_task": "t015"
+      "id": "file_map",
+      "note": "SkillPipeline/（svn:ignore）#if UNITY_EDITOR、SkillPipelineNS。Window 壳；Table/Motion/Fx/SessionPrefs；轨迹页 TrajectoryPage+Preview+BallisticAssets。曲线烘焙在 EditorTools/BallisticPathBake.cs（与旧弹道窗共用）。禁止改 SkillEditor2。单文件硬顶 600。",
+      "trust": "verified",
+      "source_task": "t027"
     },
     {
       "id": "file_budget",
-      "note": "只允许 4 个 cs：SkillPipelineWindow（壳/Tab/菜单）、SkillPipelineTableView（L0）、SkillPipelineMotionView（L1）、SkillPipelineSessionPrefs（EditorPrefs，键前缀 SkillPipeline.）。单文件 80–500 行，硬顶 600。超限拆方法不拆职责到弹道窗或 SkillEditor3。禁止拷贝 Unity 源码进 workspace。",
+      "note": "单文件软下限 80、软上限 500、硬顶 600 行。超限只拆私有方法，不拆职责到其它目录。类型/字段 PascalCase，私有 _camel；Pref 键常量；禁止拷贝 Unity 源码进 workspace。",
       "trust": "observed",
       "source_task": "t015"
     },
     {
       "id": "odin_layout",
-      "note": "Sirenix 已在 SkillEditor2 引用，新窗用同一套。TabGroup「页」：怪物 | 动作 | 特效 | 脚手架 | 导入；后三页 EnableIf false。L0：怪物 Id 下拉、PrefabName/CharacterType 只读 Label、技能表（id/CD/类型）只读。L1：主动作 skill_{id}、变体 skill_{id}_{N} 列表、动画名过滤只读。禁止 BoxGroup 把控制开关藏进组；禁用 ToggleGroup 包住开关本身。会话：LastMonsterId/LastSkillId 进 EditorPrefs，表数据内存缓存、关窗可丢。",
+      "note": "顶栏两页：技能构建管线|弹道轨迹。管线页 TitleGroup 输入|技能|动画|特效|碰撞体|输出。输出：构建 Timeline（替换已有 playable）|调整 Timeline（Unity Timeline 弹出窗，无第三页）；预检叠入（提交原料并同步两处 SVN）|转化到本地|取消等待|更新转化工具；提交配置。",
+      "trust": "observed",
+      "source_task": "t027"
+    },
+    {
+      "id": "data_persist",
+      "note": "EditorPrefs：LastMonsterId/LastSkillId；每技能 TrackCache（Slots 按 common 存发射、Rows 存动画行）。空发射不删整份缓存。构建替换 skill_{id}[_N].playable。禁止写 csvdemo .bytes。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "method_boundaries",
+      "note": "Window 只编排。Table 解析 csvdemo；Motion 多行 动画/动画1（clip+状态+时长），添加变体，状态不可重复；common 写入 PlayAnimation。特效一行对一行动画。轨迹页钉发射/黄点/烘焙。FindGlobalConfig 只 Load globalconfig.asset。App.Comm 禁止引用 SkillTimelineVariantUtil；playable 本地拼 skill_{id}[_N]。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "svn_isolation",
+      "note": "父目录 C:/myProject/SkillEditor/Assets/Scripts/App/Comm/EditorTools。svn:ignore 须同时含 SkillPipeline 与 SkillSync（及 .meta）。禁止 svn add/commit 这两目录。",
       "trust": "observed",
       "source_task": "t015"
     },
     {
       "id": "illegal_io",
-      "note": "路径必须落在 SkillPipeline/ 下，拒绝 .. 与盘符跳转。禁止写 csvdemo .bytes、playable、Library、Res、Generate、Model/Generate。禁止全树 Glob/Grep。表只读走现有 csvdemo Parse，不手写解密。非法路径：按钮 Disable + 状态栏红字，不抛到编辑器外。本切片 write_paths 空，禁止改任何 SkillEditor 文件。",
+      "note": "禁止写 csvdemo .bytes、Library、Res、Generate。构建 Timeline 落盘 Assets/Resources/timeline/skills/skill_{id}[_N].playable，已有则替换。禁止全树 Glob/Grep。",
       "trust": "observed",
-      "source_task": "t015"
+      "source_task": "t027"
+    },
+    {
+      "id": "host_new_window",
+      "note": "独立 OdinEditorWindow，顶栏切页。旧弹道窗保留菜单与 gizmos，禁止整窗 Odin。禁止往 SkillEditor2 加页。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "mill_fx_row",
+      "note": "特效一行对一动画行：发射槽/发射槽1。无 Key/预制体/钉点显示无轨迹 0s 0m 0f，可选「设轨迹」。有弹道才显示母体 Key|时长|D|出手时间|去轨迹页。列表 InlineProperty 单行，禁止折页标题再叠「动画/发射槽」。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "mill_inspector_groups",
+      "note": "轨迹页组一发射物+子弹大小；组二起点+水平D+上下(米)+左右°+飞行时间（复用只读）；组三弹道+确定设置。钉发射红；打轨迹关键点黄；删除当前黄点|清空打点一排；生成曲线路径仅母体 Key。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "mill_curve_and_speed",
+      "note": "生成曲线后 Scene 橙中点/青水平/粉垂直/白段内快慢。等时白采样点疏密=快慢。重置匀速只把 SegEase 回 0.5。烘焙 UseVelocityCurve 关；Trunk TrackMove 均时扫 OffsetPositions。权威目录 ballistic/（无 s），资产名 ballistics_m{怪}_{Key}。Ensure 把 slot.D 写进 asset，复用槽抄母体 D/时长/终点偏移。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "mill_preview_look",
+      "note": "进入预览后只看：0.25x/0.5x/1x 播放动画与发射物，锁钉点/黄点/弧柄。退出预览才能改。无预制体用小球。",
+      "trust": "observed",
+      "source_task": "t027"
+    },
+    {
+      "id": "timeline_write",
+      "note": "构建一次写出所有已填动画行。只有一条动画时文件名不带后缀：skill_{id}.playable 与 skill_{id}_colliderdata，状态名仍写入片段（attack1 也是 skill_{id}）。两条及以上才按状态编号：attack=变体1 skill_{id}，attack1=变体2 skill_{id}_2。构建结束删掉本次没写出的变体。30fps，已有先删后建。有轨迹才按时间写 PlayEffectTrack（Main/SubN）；无发射物只留 SkillData+PlayAnimation，禁止空 Main 轨。SkillData.timelineVariants 登记磁盘已有变体。构建前把管线动画写入该怪 Override 的 placeholder_{状态}。构建后反射 ExportAllColliderData_Monster，碰撞文件名跟 Timeline 名。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "override_clip_authority",
+      "note": "碰撞导出按 Timeline 里的状态名找角色 AnimatorOverrideController 的 placeholder_{状态}，不用管线选中的 AnimationClip。动画面改动画、改状态、加变体、重开技能都不写 Override。动画行最右「刷新」才写入预制体同目录 {prefab}.overrideController 的对应槽。构建 Timeline 和导出碰撞仍会同步一次，避免碰撞读到旧槽。这个 Override 是怪物共用的。",
+      "trust": "observed",
+      "source_task": "t030"
+    },
+    {
+      "id": "fx_random_gate",
+      "note": "特效页开关「同时刻两条随机一条」默认关，构建写入组 ID 0、角色 None，全部发射。打开后，同一毫秒正好两条才写互斥：先写的一条 Default 概率 0.5，另一条 Special，组 ID 为 1。多于两条时提示且不写互斥。",
+      "trust": "observed",
+      "source_task": "t030"
+    },
+    {
+      "id": "fx_cover_prefabs",
+      "note": "特效页首行三个预制：发射特效、受击特效、地面特效。构建时轨迹发射物只写 PlayEffectBehaviour.effectPrefab。有值则写入每一个 PlayEffectClip 的不持续槽：directionalFireEffect、hitBodyEffect、hitGroundEffect。hitBodyPersistentEffect 与 hitGroundPersistentEffect 保持空。未设则对应槽留空。不把发射物抄进 Directional 发射特效。",
+      "trust": "observed",
+      "source_task": "t030"
+    },
+    {
+      "id": "launchpoint_sampled_world",
+      "note": "钉发射与 skill_{id}_colliderdata 的 Launch Points Dict 只来自片段里该挂点自己的曲线：AnimationMode 采样后减去根位移，从第 0 帧写到末帧。没有这条曲线就不写入 Dict，轨迹页显示「动画没有{挂点名}」。预制体局部变换、父骨骼带着子节点走出来的坐标都不是发射表。管线采样的片段在 SkillEditor 的 Assets/Resources/animations，不在 trunk 的 Res/animations。轨迹页 t 与 key 旁显示将写入的 (x,y,z)，与红点同一数。禁止手算曲线。",
+      "trust": "verified",
+      "source_task": "t031"
+    },
+    {
+      "id": "skill_collider_asset",
+      "note": "技能碰撞只写 Assets/collider/skill_{id}_colliderdata（文件名小写）。须含 Launch Points Dict（common=attack 等、骨架、挂点曲线），对齐 V2 导出碰撞体。禁止用 {发射物}_colliderdata 当技能发射挂点。槽上大小写入该资产 Collision Data 盒。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "bake_from_red_fire_point",
+      "note": "弹道烘焙、对齐地面、绿点和弧都只相对红点（钉住的出手帧挂点）。蓝点只画动画第 0 帧坐标，不参与水平距离、上下、左右和反解。曲线第 0 帧偏移为 0。Z 存多出来的前向米数/D，X/Y 是米。上下对齐地面 = 地面高 − 红点高。旧弹道窗不传逻辑起点，仍用自己的 FirePos。",
+      "trust": "verified",
+      "source_task": "t031"
+    },
+    {
+      "id": "launch_assert_one_dict_frame",
+      "note": "断言只在导出碰撞体下面，构建 Timeline（顺带导出）或再点导出碰撞体时各跑一次。对比 skill_{id}_colliderdata 的 Launch Points Dict 与轨迹采样，帧号用 Round(出手秒 × 采样帧率)。同一帧只显示一行。片段没有该挂点曲线时这一行报「动画没有该挂点」，不与预制体合成坐标比相同。点该行在页脚打出 Dict 这一帧的坐标。不拿空的 launchPoints 判失败。",
+      "trust": "verified",
+      "source_task": "t031"
+    },
+    {
+      "id": "per_hang_collider_box",
+      "note": "同一条技能、多个不同挂点时，第一个挂点仍写 skill_{id}_colliderdata，第二个写 skill_{id}_2_colliderdata，第三个写 _3。序号按发射槽里挂点第一次出现的顺序，不是 Timeline 变体号。禁止 skill_{id}_hang_{挂点名}。每个发射槽自带大小和偏移，不跟别的槽共用。导出写入该挂点自己的碰撞体。碰撞体页第一行保持原样，只有一个导出按钮；多出来的挂点各加一行，只显示名称、大小、偏移。检查第 2 个挂点时读 skill_{id}_2_colliderdata。",
+      "trust": "observed",
+      "source_task": "none"
+    },
+    {
+      "id": "projectile_mesh_bottom_on_path",
+      "note": "发射物轨迹烘焙仍取根位移 RootT。预览把预制体根放在弹道上，再把蒙皮网格底面中心拉到该点，蛋底贴着路径。不要改动画里的 RootT。vfxmodel_c_projectile_112_guidao 的 Root 骨骼位置曲线与 RootT 是同一段位移，子骨骼旋转还会把蒙皮甩离根。109_attack 的飞行几乎全在 RootT，骨骼局部几乎不动，皮本来就跟着根。用户确认目前能用。",
+      "trust": "verified",
+      "source_task": "none"
+    },
+    {
+      "id": "preview_clip_not_motion",
+      "note": "轨迹动画 MotionClip 只烘焙弹道的根位移和时长，不采样到发射物上。发射物栏的 PreviewClip 才是预览动画，创建时和每帧采样。没选 PreviewClip 时保持预制体姿态。旧缓存不要把 MotionPath 抄进预览槽。",
+      "trust": "verified",
+      "source_task": "t033"
+    },
+    {
+      "id": "pet_actor",
+      "note": "输入可切怪物/召唤物，两边的选择分开记住。召唤物只读 MonsterPetConfig.bytes 的 id、Name、SelfSkillId、PrefabName，不写回。预制体在 Assets/Resources/prefabs/model/pet_c。选中后技能用 SelfSkillId，SelfSkillId 为 0 表示没有可编技能。SkillPipelineActorKind 必须是 public。App.Comm 用 ET.CsvFileEncoder 读 bytes，不能引用 Editor.comm 的 MonsterPetConfigCsvReader。",
+      "trust": "verified",
+      "source_task": "t033"
+    },
+    {
+      "id": "melee_damage_preview",
+      "note": "LaunchType.Damage 不画落点、范围和飞行线。地面圆画在角色脚下，半径固定 5，不跟水平距离 D。发射物大小：没预制体可调，有预制体锁定。持续时间 Life：有发射物动画时默认取片段长；超过后隐藏；0 表示召唤后不销毁，预览时间轴和 playable 至少留 1/30 秒。没动画只生成预制体，不采样。HangPoint.None 不改显示名，近战和弹道都每帧用角色骨架 Root 的位置；没有 Root 报「预制体没有Root」，不要报「动画没有launchpoint」。",
+      "trust": "verified",
+      "source_task": "t033"
+    },
+    {
+      "id": "collider_scene_handles",
+      "note": "发射物行不再手填碰撞和偏移。时间轴那一行有「显示碰撞体」。勾上后当前发射点画绿色盒子：中心箭头改偏移，六个面的点改某一面的大小，对面不动。松开后写入该槽自己的盒子，碰撞体页仍显示大小和偏移。近战从出手起到持续时间结束都画；0 则一直留着。进入预览时只看，退出才能拖。",
+      "trust": "verified",
+      "source_task": "t033"
+    },
+    {
+      "id": "damage_radius_not_box",
+      "note": "PlayEffect 片段上的伤害半径是 DamageParameters.radius。勾了使用碰撞器且半径大于 0 时，运行时 DamageEffect 在特效物体上加球形触发器。管线场景里的绿色盒子是技能碰撞资产的大小和偏移，写入 skill_{id}_colliderdata。两处不读对方。",
+      "trust": "verified",
+      "source_task": "t033"
+    },
+    {
+      "id": "timeline_replace_by_launch_type",
+      "note": "调整 Timeline 用 AssetDatabase.OpenAsset 打开 Assets/Resources/timeline/skills 里的 skill_{id}[_N].playable，不创建 SkillPipelineTimelineHost。构建按 Table.LaunchType 写类型，不看发射槽 Key。Damage 的特效时长用 Life，0 则至少 1/30 秒；Directional 仍用飞行时间。替换已有 playable 前先让 Timeline 窗口 ClearTimeline 并取消选中，再删文件重建。禁止在窗口还握着轨道时 DeleteTrack 或 DestroyImmediate，否则文件被清空并报 SkillDataTrack 已销毁。",
+      "trust": "verified",
+      "source_task": "t033"
     }
   ],
   "excluded_causes": [
     {
-      "id": "extend_ballistic_window",
-      "note": "弹道窗口是 IMGUI 作者面，不管线面板；不改成 Odin、不塞怪物页",
+      "id": "tabgroup_five_pages",
+      "note": "表格/动作/特效/碰撞体/输入平级 Tab 会拆掉上下游；已废弃，改一页竖排",
       "trust": "observed",
       "source_task": "t015"
+    },
+    {
+      "id": "collider_inside_anim_or_fx",
+      "note": "模型碰撞靠动画、特效碰撞靠特效；确认格在特效之后、输出之前",
+      "trust": "observed",
+      "source_task": "t015"
+    },
+    {
+      "id": "extend_ballistic_window",
+      "note": "弹道窗口是 IMGUI 作者面；管线轨迹页另写。禁止整窗 Odin。FindGlobalConfig 只许 AssetDatabase 读 globalconfig.asset。",
+      "trust": "verified",
+      "source_task": "t027"
     },
     {
       "id": "extend_skilleditor3",
       "note": "主编辑器已超量，管线不进 SkillEditor2.cs / SkillEditor3",
       "trust": "observed",
       "source_task": "t015"
+    },
+    {
+      "id": "csharp_rules_in_code_governance",
+      "note": "行数/拆文件/Odin 布局只写本模块；不写进 global_rules/code_governance.md",
+      "trust": "observed",
+      "source_task": "t015"
+    },
+    {
+      "id": "velocity_curve_as_path_editor",
+      "note": "速度曲线只改时间→路程，不改形状。变速用 SegEase+等时采样疏密。UseVelocityCurve 保持关。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "prefab_named_collider_as_skill_launch",
+      "note": "{prefab}_colliderdata 只有弹体盒、Launch Points 空，不能给 ConvertToBuffConfig 当技能挂点。转化认 skill_{id}_colliderdata。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "skip_skill_launch_points",
+      "note": "缺 skill_{id}_colliderdata 时跳过挂点继续转，发射原点会错。应先走 V2 怪物导出。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "gameManager_globalconfig_in_editor",
+      "note": "编辑器读 GlobalConfig.instance 会碰 GameManager 单例报错。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "empty_playeffect_main_track",
+      "note": "无发射物仍建空 PlayEffect Main 会让转化当有特效。应省略 PlayEffectClip。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "switch_state_to_swap_whole_track",
+      "note": "单一下拉切 attack–attack4 会整页换发射槽，作者面不直观。已改为并排动画行。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "bake_from_t0_logic_origin",
+      "note": "用蓝点（动画第 0 帧）当烘焙反解原点，会把上下从 0.81 写进曲线，主干却从红点鼻子约 1.08 往下减，球停在离地约 0.27 米，地面爆炸不播。已废弃。",
+      "trust": "verified",
+      "source_task": "t031"
+    },
+    {
+      "id": "prefab_pose_when_curve_missing",
+      "note": "片段没有该挂点曲线时，把预制体子节点跟着父骨骼走出来的坐标写入 Dict。这会把未制作的发射点当成出生点。已改为缺曲线不写表。",
+      "trust": "verified",
+      "source_task": "t031"
+    },
+    {
+      "id": "trunk_res_anim_as_pipeline_clip",
+      "note": "管线采样的攻击片段在 SkillEditor/Assets/Resources/animations，不在 trunk/Unity/Assets/Res/animations。改 trunk 那份不会进入 Dict。",
+      "trust": "verified",
+      "source_task": "t031"
+    },
+    {
+      "id": "rewrite_guidao_roott_into_skin_path",
+      "note": "把 vfxmodel_c_projectile_112_guidao 的蒙皮中心写进 RootT，并冻结骨骼位移。轨迹被改长，蛋仍不贴根。该动画已 svn revert。",
+      "trust": "verified",
+      "source_task": "none"
+    },
+    {
+      "id": "key_means_directional",
+      "note": "发射槽 Key 大于 0 不代表这次构建是弹道。改成近战后若仍按 Key 写，playable 会留着 Directional 和旧飞行时长",
+      "trust": "verified",
+      "source_task": "t033"
+    },
+    {
+      "id": "destroy_open_timeline_tracks",
+      "note": "构建时就地删掉正在打开的 SkillDataTrack 会得到空 Timeline，并报 MissingReferenceException 与 GUILayout 不配对",
+      "trust": "verified",
+      "source_task": "t033"
+    },
+    {
+      "id": "none_labeled_root",
+      "note": "不要把 HangPoint.None 改名为 Root。None 的行为是每帧跟踪角色 Root",
+      "trust": "verified",
+      "source_task": "t033"
+    },
+    {
+      "id": "hold_shell_by_bone_local_only",
+      "note": "只把飞出的骨骼局部位置按回第 0 帧，并停住 Bone_projectile 的旋转。蒙皮仍跟着其余骨头的旋转飞走。",
+      "trust": "verified",
+      "source_task": "none"
     }
   ]
 }

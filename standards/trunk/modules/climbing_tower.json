@@ -22,7 +22,16 @@
     "TowerWinView",
     "Text_Time",
     "离开倒计时",
-    "打开爬塔胜利界面"
+    "打开爬塔胜利界面",
+    "Image_Bg",
+    "ImageBg02",
+    "Comm_Btn02",
+    "Comm_Tip_BaseItem",
+    "PreQuestID",
+    "PreStoryRaidID",
+    "前置任务",
+    "MaxStoryRaidId",
+    "爬塔GM"
   ],
   "routes": [
     {
@@ -37,7 +46,20 @@
         "Unity/Assets/Scripts/Model/Generate/"
       ],
       "trust": "verified",
-      "source_task": "t009"
+      "source_task": "t023"
+    },
+    {
+      "keyword": "楼梯背景前后景",
+      "prefer": [
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/ClimbingTower/TowerViewComponentSystem.cs",
+        "Unity/Assets/Scripts/ModelView/Client/YIUIComponent/ClimbingTower/TowerViewComponent.cs"
+      ],
+      "avoid": [
+        "Unity/Assets/Res/",
+        "Unity/Assets/Scripts/Loader/MonoBehaviour/TouchRotationDragArea.cs"
+      ],
+      "trust": "verified",
+      "source_task": "t023"
     },
     {
       "keyword": "Item_Stage1 五槽页",
@@ -70,16 +92,16 @@
     {
       "keyword": "主界面任务栏已击杀/总数",
       "prefer": [
-        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/Main/ClimbingTowerTaskTracingCellComponentSystem.cs",
         "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/Main/MainPanelComponentSystem.cs",
-        "Unity/Assets/Scripts/ModelView/Client/YIUIComponent/Main/MainPanelComponent.cs"
+        "Unity/Assets/Scripts/ModelView/Client/YIUIComponent/Main/MainPanelComponent.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/Main/ClimbingTowerTaskTracingCellComponentSystem.cs"
       ],
       "avoid": [
         "Unity/Assets/Res/",
         "Unity/Assets/Scripts/ModelView/Client/YIUIGen/Main/MainPanelComponentGen.cs"
       ],
       "trust": "verified",
-      "source_task": "t008"
+      "source_task": "t018"
     },
     {
       "keyword": "TowerWinView 离开倒计时",
@@ -93,7 +115,20 @@
         "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/Common/Comm_Item_BaseItemComponentSystem.cs"
       ],
       "trust": "verified",
-      "source_task": "t010"
+      "source_task": "t020"
+    },
+    {
+      "keyword": "TowerWinView 奖励 tip",
+      "prefer": [
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/ClimbingTower/TowerWinViewComponentSystem.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/Common/Comm_Tip_BaseItemComponentSystem.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/UI/UIItemTipsHelper.cs"
+      ],
+      "avoid": [
+        "Unity/Assets/Res/"
+      ],
+      "trust": "verified",
+      "source_task": "t020"
     },
     {
       "keyword": "爬塔 GM 预览/进关",
@@ -102,11 +137,39 @@
         "Unity/Assets/Scripts/ModelView/Client/YIUIComponent/ClimbingTower/TowerWinViewComponent.cs"
       ],
       "avoid": [
-        "Unity/Assets/Scripts/Model/Share/Module/ServerGM/",
         "Unity/Assets/Res/"
       ],
       "trust": "verified",
       "source_task": "t010"
+    },
+    {
+      "keyword": "爬塔 GM 进度",
+      "prefer": [
+        "Unity/Assets/Scripts/HotfixView/Client/Module/GM/ServerGMClimbingTower.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Module/ServerGM/ServerGMClimbingTowerHandler.cs",
+        "Unity/Assets/Scripts/Editor/GM/GMEditorParamDrawers.cs"
+      ],
+      "avoid": [
+        "Unity/Assets/Scripts/Model/Generate/",
+        "Unity/Assets/Res/"
+      ],
+      "trust": "observed",
+      "source_task": "t024"
+    },
+    {
+      "keyword": "爬塔前置解锁",
+      "prefer": [
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/ClimbingTower/TowerFloorQuestUnlockHelper.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/ClimbingTower/TowerViewQuestUnlockListener.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Tower/TowerFloorQuestUnlockServerHelper.cs"
+      ],
+      "avoid": [
+        "Unity/Assets/Scripts/Model/Generate/",
+        "Unity/Assets/Scripts/ModelView/Client/YIUIComponent/ClimbingTower/TowerStagePairData.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/ClimbingTower/Item_Stage1ComponentSystem.cs"
+      ],
+      "trust": "observed",
+      "source_task": "t022"
     }
   ],
   "diagnostics": [
@@ -116,7 +179,7 @@
         "viewport shows high floors at open",
         "first clone is last page"
       ],
-      "check_first": "LayoutFloorPageItems：itemIndex=pageCount-1-i；页0锚点 (-741, 1165.2)；Content 先归零",
+      "check_first": "LayoutFloorPageItems：itemIndex=pageCount-1-i；页0锚点 (-741, 1175)；Content 先归零",
       "expected": "打开时视口是最低层页（右下圈=1）",
       "cause": "容器后进的 clone 在列表末，正向 i 会把末页放到 BaseY",
       "resolution_kind": "code",
@@ -130,6 +193,27 @@
       ],
       "trust": "verified",
       "source_task": "t009"
+    },
+    {
+      "id": "third_group_missing_stair_bg",
+      "signals": [
+        "page 3 has no stairs",
+        "ImageBg02 clones follow the list"
+      ],
+      "check_first": "EnsureStairBgTiles 只 Instantiate Image_Bg；ImageBg02 不跟滑不克隆",
+      "expected": "第三组及以后前景楼梯在，后景 ImageBg02 仍是原件静止",
+      "cause": "前景不够高要接 Image_Bg；后景是整屏底，跟滑或克隆会穿帮",
+      "resolution_kind": "code",
+      "owner_target": "trunk",
+      "validation_target": "trunk",
+      "entry_paths": [
+        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/ClimbingTower/TowerViewComponentSystem.cs"
+      ],
+      "validation": [
+        "翻到第三组只有 Image_Bg 克隆，ImageBg02 不动"
+      ],
+      "trust": "verified",
+      "source_task": "t023"
     },
     {
       "id": "only_slot1_has_floor_num",
@@ -160,36 +244,43 @@
         "kill decreases left number",
         "mechanism row shows prefab 3/99"
       ],
-      "check_first": "Cell SetCounts(killed,total)/AddKilled；Panel_Task01/02/03 同时写 Unfinished 与 Finished；Text_All 与 Text_FinishedAll 都带 /b；completed=killed>=total（0/0 打勾）；切 Panel 与 Image_Unfinished/Image_Finished/Image_FinishedHolk",
-      "expected": "进关 0/b 或回填已击杀；杀一只 +1；机关无配置 0/0 打勾",
+      "check_first": "只刷 Panel_Task01/02/03：RowRoot 在 total<=0 隐藏；禁止 Instantiate ClimbingTowerTaskTracingCell。可见行同时写 Unfinished 与 Finished；Text_All 与 Text_FinishedAll 都带 /b；completed=killed>=total 仅 total>0；切 Panel 与 Image_Unfinished/Image_Finished/Image_FinishedHolk",
+      "expected": "进关 total>0 显示 0/b 或回填已击杀；杀一只 +1；total=0 的行（含无配置机关/BOSS）整行不显示；Content 下无 TracingCell Clone",
       "cause": "旧 UI 用剩余数；只刷 Unfinished 时 Finished 露出预制体默认字",
       "resolution_kind": "code",
       "owner_target": "trunk",
       "validation_target": "trunk",
       "entry_paths": [
         "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/Main/MainPanelComponentSystem.cs",
-        "Unity/Assets/Scripts/HotfixView/Client/YIUISystem/Main/ClimbingTowerTaskTracingCellComponentSystem.cs"
+        "Unity/Assets/Scripts/ModelView/Client/YIUIComponent/Main/MainPanelComponent.cs"
       ],
       "validation": [
         "Content 下计数均为已击杀/总数",
-        "无机关/BOSS 配置时 0/0 且 Finished 勾亮"
+        "无机关/BOSS 配置时该行隐藏",
+        "无 ClimbingTowerTaskTracingCell(Clone)"
       ],
       "trust": "verified",
-      "source_task": "t008"
+      "source_task": "t018"
     }
   ],
   "facts": [
     {
       "id": "item_stage1_page_layout",
-      "note": "TowerView 关卡列表：YIUIItemContainer<Item_Stage1>，一页一个 clone。预制体已排 Panel_Stage01-05，01=页内最小层、右下。禁止再用 t007 单关列偏移。常量：FloorPageSize=5；FloorPageBaseX=-741；FloorPageBaseY=1165.2；FloorPageGap=200；FloorPageDragThreshold=180；FloorPageSnapFrames=8。pageStep=Item_Stage1 Rect 高+200。Layout：itemIndex=pageCount-1-i，pos=(BaseX, BaseY+i*step)。跟手/阈值/8帧吸附仍按页。旧 Item_Stage 保留但不用于本面板。",
+      "note": "TowerView 关卡列表：YIUIItemContainer<Item_Stage1>，一页一个 clone。预制体已排 Panel_Stage01-05，01=页内最小层、右下。禁止 t007 列偏移。常量：FloorPageSize=5；FloorPageBaseX=-741；FloorPageBaseY=1175；FloorPageStep=1080。Layout：itemIndex=pageCount-1-i，pos=(BaseX, 1175+i*1080)。ScrollRect 轴向关闭，跟手改 FloorList.Y。旧 Item_Stage 保留但不用于本面板。",
       "trust": "verified",
-      "source_task": "t009"
+      "source_task": "t023"
     },
     {
       "id": "paging_behavior",
-      "note": "全量按 5 层一页 RefreshPage；禁止 5 槽换编号。Viewport EventTrigger Begin/Drag/End 跟手；Y 夹在邻页 pageStep 内。松手 ContentY-页基准超过阈值进下一页（更高层），反向回上一页；否则回当前页。吸附 8 帧 lerp。WaitFloorListSnapFrame 直接 return timer.WaitFrameAsync()，禁止把 TimerComponent 跨 await（ET0035）。",
+      "note": "全量按 5 层一页 RefreshPage。Viewport EventTrigger 跟手连续滑，Y 只夹在第 1 层页（ContentY=0）与最高层页（20 层即末页）之间，禁止越界穿帮。拖动倍率 FloorListDragSpeed=2.2；松手惯性 CoastDamp=0.88，碰到两端立刻刹住。禁止拖动翻页吸附（不要邻页 ±pageStep、不要松手阈值进页）。开界面仍可瞬移到焦点页。WaitFloorListSnapFrame 直接 return timer.WaitFrameAsync()，禁止 TimerComponent 跨 await（ET0035）。",
       "trust": "verified",
-      "source_task": "t009"
+      "source_task": "t023"
+    },
+    {
+      "id": "stair_bg_pair_follow",
+      "note": "Image_Bg 前景跟 FloorList 滚；ImageBg02 后景静止、禁止加入 stairBgFollows、禁止运行时克隆。预制体 Image_Bg 约盖两组；第三组起只 Instantiate Image_Bg，shiftY=offsetMax.y（Top）。跟滑改 offsetMin/Max.y 与 FloorList.Y 同速。禁止改 Res 与 Loader/TouchRotationDragArea。Destroy 时清 Image_Bg 运行时克隆。",
+      "trust": "verified",
+      "source_task": "t023"
     },
     {
       "id": "item_stage1_cde_layer_nums",
@@ -205,21 +296,39 @@
     },
     {
       "id": "task_tracing_killed_over_total",
-      "note": "ClimbingTowerTaskTracing 计数=已击杀/总数。Cell：u_DataCurrentCount=killed，进关 RefreshData(name,0,total)，死亡 AddKilled。固定行 Panel_Task01 怪物/02 机关/03 BOSS：u_ComTowerTaskList 上 Find，无 CDE。Unfinished 写 Text_Num 与 Text_All=/b；Finished 写 Text_FinishedNum 与 Text_FinishedAll=/b。completed=killed>=total（含 0/0 打勾）。切 Panel_Unfinished/Finished 与 Image_Unfinished、Image_Finished、Image_FinishedHolk。机关无配置不新做击杀。Quest 杀怪掩码只回填已有数据。通关看有进度行 killed>=total。禁止手改 *Gen；手写可空 u_DataHasSpecSkill。",
+      "note": "ClimbingTowerTaskTracing 只显示预制体 Panel_Task01 怪物/02 机关/03 BOSS（u_ComTowerTaskList Find，无 CDE，绑定 RowRoot）。禁止 Instantiate ClimbingTowerTaskTracingCell；同层刷新 Dispose 已有 Cell，并隐藏名含该 Cell 的节点。total<=0 整行隐藏；total>0 才显示 已击杀/总数。可见行 Unfinished 写 Text_Num 与 Text_All=/b，Finished 写 Text_FinishedNum 与 Text_FinishedAll=/b。completed=killed>=total 仅 total>0。切 Panel_Unfinished/Finished 与 Image_Unfinished、Image_Finished、Image_FinishedHolk。机关无配置总数恒 0，不显示、不新做击杀。RequiredGroup.Count<=0 不入追踪；Count>0 只进 towerRequiredGroupIds，不生成 Cell。击杀/回填走 SetTowerFixedTaskCounts。通关：点名怪看分组 killed>=need，清图看固定行 total>0 且 killed>=total。Quest 杀怪掩码只回填已有数据。禁止手改 *Gen。",
       "trust": "verified",
-      "source_task": "t008"
+      "source_task": "t018"
     },
     {
       "id": "tower_win_leave_countdown",
-      "note": "TowerWinView 离开倒计时 10s。Text_Time 在 Comm_Btn02 (1) 下（不要绑第一颗 Comm_Btn02），文案 (Ns)；不在 View CDE 组件表，禁止 FindComponent。不绑 CDE、不点生成。WaitAsync+EntityRef 每秒刷新；禁止跨 await 持有 TimerComponent。到 0 走 OnEventExit（C2M_TowerLeave+关面板）。点 BaseItem：AddClickEvent+GetComponentInParents，互斥 Select(Image_Select)，停表且不恢复，隐藏 Text_Time 只留按钮「离开」。不做 tips。YIUIOpen 须 ResetLeaveUiState（清 isLeaving）。Hotfix 禁止可变 static。",
+      "note": "TowerWinView 离开倒计时 10s。权威离开钮是 Comm_Btn02（不要 Comm_Btn02 (1)）。Text (TMP)=「离开」，绘制范围以预制体为准，代码禁止改 Left/Right/alignment。Text_Time=倒计时 (Ns)，不在 View CDE 组件表，禁止 FindComponent、不点生成。按名找 Comm_Btn02/Text_Time。WaitAsync+EntityRef 每秒刷新；禁止跨 await 持有 TimerComponent。到 0 走 OnEventExit（C2M_TowerLeave+关面板）。点 BaseItem：AddClickEvent+GetComponentInParents，互斥 Select(Image_Select)，停表且不恢复，隐藏 Text_Time。YIUIOpen 须 ResetLeaveUiState。Hotfix 禁止可变 static。",
+      "trust": "verified",
+      "source_task": "t020"
+    },
+    {
+      "id": "tower_win_reward_tips",
+      "note": "点奖励弹出 Comm_Tip_BaseItem，禁止改 Common 预制体与 Comm_Tip System。RefreshPreviewByConfig 刷图标/名/数量；描述 u_DataUseText=UILanguageHelper.GetLanguageText(BaseItemConfig.Description)；激活 Panel_Tipskill、关闭 Panel_Tipoperation。CreateTipsWithHandle 会在 Popup 铺全屏 PassThroughMask，预制体含 UIBGBlurMask，根节点若拉伸则 IsInside 为整屏、点击被吃掉。创建后须收根尺寸、关模糊射线并禁用 PassThroughMask。anchoredPosition (1200,-6)。再点同一道具关 tip 并 Select(false)。不读 Res、不绑 CDE。",
+      "trust": "verified",
+      "source_task": "t020"
+    },
+    {
+      "id": "climbing_tower_gm_preview",
+      "note": "GM 爬塔页签（EGMType.ClimbingTower=13，机械臂已占 12）：21 打开爬塔胜利界面、22 进入爬塔关卡已从案列迁入。预览仍跳过 C2M_TowerFloorClear；GmPreviewOpen 在 ModelView TowerWinViewComponent 且 [StaticField]。路径 HotfixView/Client/Module/GM/GM_Command_ClimbingTower.cs。不重置任务。",
       "trust": "verified",
       "source_task": "t010"
     },
     {
-      "id": "climbing_tower_gm_preview",
-      "note": "GM 案列页：打开爬塔胜利界面（跳过 C2M_TowerFloorClear；GmPreviewOpen 在 ModelView TowerWinViewComponent 且 [StaticField]；预览 2 个 BaseItem 来自 TowerFloorRewardConfig）；进入爬塔关卡（FloorId 发 C2M_TowerChallenge）。路径 HotfixView/Client/Module/GM/GM_Command_ClimbingTower.cs。不重置任务。",
-      "trust": "verified",
-      "source_task": "t010"
+      "id": "tower_floor_three_gate_unlock",
+      "note": "层解锁三闸 AND，0 跳过：PreFloorID（MaxTowerFloorId）、PreStoryRaidID（MaxStoryRaidId>=该值）、PreQuestID（任务 State>=1000 或 Type==Completed；子实体缺失算未完成）。已通关层仍 Cleared。UI 只绑 FinishState 0/1/2。客户端 TowerFloorQuestUnlockHelper + TowerViewQuestUnlockListener；服务端 TowerFloorQuestUnlockServerHelper，IsFloorUnlocked/TryRecordTowerFloorClear 只改调用。锁提示三分：前置关卡 / 主线推图 / 前置任务。新号进主线图 OnEnterMap 把 MaxStoryRaidId 0 写成当前 raidId，常见为 1 不是 0。禁止手改 Generate。测试表：L1 PreFloor0 PreStory0 PreQuest1；L2 Pre1/0/2；L3 Pre2/1/0；L4 Pre3/1/4。",
+      "trust": "observed",
+      "source_task": "t022"
+    },
+    {
+      "id": "climbing_tower_gm_progress",
+      "note": "爬塔 GM 23 通关当前已解锁层：走 TryRecordTowerFloorClear，不发奖不弹胜利；在塔内再 ExitRaid 回大厅。24 设置 MaxStoryRaidId：0 或 1~10000，允许改低，爬塔号>=10001 拒绝。PlayerData 不是 IHLSData，NotifySyncData 会被帧末丢掉，必须 Pack+M2C_SyncData 直推并 DBSave。25 客户端打印解锁快照。设置主线抽屉只读 HelpBox 展示层/主线/任务与下一锁闸，GetParams 只留 1 个写入参数，禁止加只读 GMParamInfo。打开着的列表听 PlayerDataSyncUpdated 重刷。",
+      "trust": "observed",
+      "source_task": "t024"
     }
   ],
   "excluded_causes": [
@@ -242,6 +351,24 @@
       "source_task": "t009"
     },
     {
+      "id": "clone_only_one_stair_layer",
+      "note": "禁止再成对复制 ImageBg02。第三组只接 Image_Bg；ImageBg02 跟滑或克隆会穿帮。",
+      "trust": "verified",
+      "source_task": "t023"
+    },
+    {
+      "id": "page_snap_on_drag_end",
+      "note": "禁止松手吸附到邻页（旧阈值 180 + 8 帧 lerp）。列表自由停，只在 1/20 两端卡死。",
+      "trust": "verified",
+      "source_task": "t023"
+    },
+    {
+      "id": "page_step_from_prefab_rect",
+      "note": "不要用 Item_Stage1.rect.height+200 当组距。组距固定 1080，第一组 Y=1175。",
+      "trust": "verified",
+      "source_task": "t021"
+    },
+    {
       "id": "reward_cde_blocks_floor_paging",
       "note": "TowerView Gen 仍 Find u_ComInfoRewardLIst / Panel_DropItemList，运行可能报 CDE/组件表缺失。用户确认关卡分页可用即可忽略；不要手改 TowerView Gen 去对齐。",
       "trust": "observed",
@@ -249,21 +376,63 @@
     },
     {
       "id": "mechanism_kill_system_missing",
-      "note": "配置无机关数量与击杀；t008 不新做机关击杀系统。无配置行 SetCounts(0,0) 并打勾。",
+      "note": "配置无机关数量与击杀；不新做机关击杀系统。总数 0 的行（含机关/BOSS）隐藏，不再 0/0 打勾。",
       "trust": "verified",
-      "source_task": "t008"
+      "source_task": "t018"
     },
     {
       "id": "cde_bind_text_time",
-      "note": "Text_Time 不在 TowerWinView 组件表。FindComponent 会 Error。倒计时按层级找 Comm_Btn02 (1)/Text_Time，不要为此绑 CDE 或手改 Gen。",
+      "note": "Text_Time 不在 TowerWinView 组件表。FindComponent 会 Error。倒计时按层级找 Comm_Btn02/Text_Time，不要为此绑 CDE 或手改 Gen。",
       "trust": "verified",
-      "source_task": "t010"
+      "source_task": "t020"
+    },
+    {
+      "id": "code_edit_leave_tmp_rect",
+      "note": "禁止代码改 Comm_Btn02/Text (TMP) 的 Left/Right/alignment。绘制范围用户在预制体手调。按钮 LayoutGroup 会覆盖运行时 Rect，不要用代码对拍。",
+      "trust": "verified",
+      "source_task": "t020"
+    },
+    {
+      "id": "comm_btn02_clone_as_leave",
+      "note": "离开钮不是 Comm_Btn02 (1)。t010 按 (1) 查找已废。界面上 (1) 若仍在，只是另一颗按钮。",
+      "trust": "verified",
+      "source_task": "t020"
     },
     {
       "id": "gm_reopen_item_click_highlight",
       "note": "GM 第二次打开同一 TowerWinView 时，点道具停表/高亮不稳定。真通关路径不依赖此复用。留给后续任务，本单不收口。",
       "trust": "observed",
       "source_task": "t010"
+    },
+    {
+      "id": "instantiate_tracing_cell_clones",
+      "note": "禁止再 Instantiate ClimbingTowerTaskTracingCell。点名怪进度只进 towerRequiredGroupIds 字典，任务栏只显示 Panel_Task 三行。",
+      "trust": "verified",
+      "source_task": "t018"
+    },
+    {
+      "id": "zero_total_shows_checkmark",
+      "note": "t008 的 0/0 打勾已废。total<=0 隐藏 RowRoot，不再显示勾。",
+      "trust": "verified",
+      "source_task": "t018"
+    },
+    {
+      "id": "hand_edit_generate_prequest",
+      "note": "禁止手改 Model/Generate 加 PreQuestID。字段来自导表。",
+      "trust": "verified",
+      "source_task": "t022"
+    },
+    {
+      "id": "client_only_tower_unlock",
+      "note": "只改客户端列表会被服务端进层/通关记账拒绝。红点与服务端同一三闸。",
+      "trust": "observed",
+      "source_task": "t022"
+    },
+    {
+      "id": "playerdata_notifysyncdata_dropped",
+      "note": "PlayerData.NotifySyncData 不会把 MaxStoryRaidId 同步到客户端。进度写入要走 StoryMapFullClearHelper 同款 Pack+SendToClient。",
+      "trust": "observed",
+      "source_task": "t024"
     }
   ]
 }

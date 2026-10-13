@@ -17,5 +17,10 @@
     "view": "unity_editor",
     "share_server": "dotnet",
     "batch_entry": "Unity/scripts/unity.ps1"
-  }
+  },
+  "hook_tasks": [
+    {"id": "128", "for": "爬塔系统功能开发相关"},
+    {"id": "15", "for": "技能逻辑开发相关（包括带有行为树）"},
+    {"id": "32", "for": "技能配置相关资源"}
+  ]
 }

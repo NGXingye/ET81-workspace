@@ -15,7 +15,12 @@
     "50005",
     "海豹头球",
     "视觉贴附",
-    "拉扯"
+    "拉扯",
+    "animDistance",
+    "诡弹",
+    "50030",
+    "枪口表",
+    "LaunchPoint"
   ],
   "routes": [
     {
@@ -161,6 +166,30 @@
       ],
       "trust": "verified",
       "source_task": "t011"
+    },
+    {
+      "id": "wait_buff_duration_vs_launch_table",
+      "signals": [
+        "later_shots_wrong_yaw",
+        "client_ahead_server_muzzle",
+        "four_shots_first_two_ok"
+      ],
+      "check_first": "等待层 Buff Duration vs LaunchPointConfig.TotalFrames/SampleFrameRate",
+      "expected": "该层 Duration(ms) = 1000 × 挂点总帧 / 采样帧率（200018201=2000）",
+      "cause": "转化写 Timeline 最晚 clip.end（3133）。AlreadyRate 用这个除数去查 2s/60 帧表，后两发落到更早的朝向。",
+      "resolution_kind": "config",
+      "owner_target": "trunk",
+      "validation_target": "trunk",
+      "entry_paths": [
+        "Unity/Assets/Config/Spell/2000182-扶不扶机器人-转圈电磁/200018201.asset",
+        "Unity/Assets/Config/Spell/2000182-扶不扶机器人-转圈电磁/200018204.asset"
+      ],
+      "validation": [
+        "201 Duration=2000 时四发水平方向跟客户端枪口",
+        "204 Duration 仍是飞行寿命 1500"
+      ],
+      "trust": "verified",
+      "source_task": "t029"
     }
   ],
   "facts": [
@@ -205,6 +234,24 @@
       "note": "ballistics_m100279_50005 在 Bridge Resources；曲线时间 0~1、48 key、UseVelocityCurve=0。Copy 与源 Y 一致、Z=米/D。t=0~0.17 头顶回收；Y 峰后单调到 -1，无回升。不是 useAnimDistance。Inspector 轨迹预览用 Distance=0 会缩成竖线。",
       "trust": "verified",
       "source_task": "t011"
+    },
+    {
+      "id": "launch_table_samples_firing_buff_phase",
+      "note": "烘焙枪口表按开火 Buff 的 AlreadyRate 采样，不是按 00 的等待。CreateChildBuff 把父的 AlreadyRate 抄给子 Buff。00 上用来排队 05/01/07 的等待若推进相位，01/07 会从动画中段取枪口。开火层 Duration(ms) 对齐 1000×挂点总帧/采样帧率（200018201=2000），不要垫表去迁就 Timeline。BuffVM 的 BTTimeWaitAsync 在勾了「等到上一段动画结束」时同样走 ResolveAttackEndWait，记 WaitTill；没勾只认 Wait Time。剩余取根运动 MotionEndTime 与主 Buff 下自带 SetRootMotion 的子 Buff 寿命中更长的。从没记过就退回填写的毫秒；结束时间已过则剩余为 0。骨架挂点轨道按 RootMotionComponent.motionType 现取，不是按开火 Buff 记住的动作。06 把动作改成 attack2 后，07 还在发射的子弹会跟着起身轨道走。视觉贴附只在出生帧把外观从烘焙点挪到当时枪口，约 0.3 秒或 1 米内收回，不跟着后来的骨骼。",
+      "trust": "verified",
+      "source_task": "t029"
+    },
+    {
+      "id": "animdistance_is_directional_switch",
+      "note": "SampleBallisticCurves 在 UseBallisticZ 时把 directionalForwardDistance 写入 Copy.animDistance。运行时 animDistance>0 且 useAnimDistance=false：不贴枪口、forward 压 XZ。怪物飞距仍是节点 speed×子弹 Buff 秒。2000182 用户把 50030.animDistance 改 0 后贴枪口、隔次 01 的诡弹消失。不要为关开关去上游清 Z 曲线。当前不改中转：转完人工把需要贴枪口的 Copy.animDistance 置 0。",
+      "trust": "verified",
+      "source_task": "t029"
+    },
+    {
+      "id": "red_fire_birth_plus_curve",
+      "note": "出生点是挂点表在发射相位的那一帧，不是弹道第 0 点。相位帧号 = 出手秒 × 采样帧率（海豹 1.2s×30=第 36 帧）。曲线第 0 帧必须是 (0,0,0)，之后 X/Y 米、Z 为米/D，主干再把 Z×飞行长度。落点高 = 出生 Y + 曲线末点 Y。末点 Y 必须相对红点：鼻子 Y≈1.081 时贴地末点约 -1.081。用蓝点高度 0.81 写的 -0.81 会停在离地约 0.27 米，碰不到地就没有地面爆炸。200017305 在 Dict 未再转化前仍是手钉的整表 Y=1.080746。",
+      "trust": "verified",
+      "source_task": "t031"
     }
   ],
   "excluded_causes": [
@@ -243,6 +290,30 @@
       "note": "102 改 Trigger 后 50005 仍回拉；改回投射后关贴附就不扯",
       "trust": "verified",
       "source_task": "t011"
+    },
+    {
+      "id": "pad_launch_table_to_timeline_frames",
+      "note": "把 60 帧枪口表垫到 Timeline 94 帧会和 placeholder_attack 映射动画对不上。相位应对齐表自己的时长，不要垫表。",
+      "trust": "verified",
+      "source_task": "t029"
+    },
+    {
+      "id": "root_motion_yaw_sync_lag_for_2000182",
+      "note": "100283_attack 根运动 2s、61 帧，Velocity 和 YawRate 全 0。后两发偏不是服务端旋转慢了，是等待层 Duration 用了 Timeline 3.133s 去查 2s 枪口表。",
+      "trust": "verified",
+      "source_task": "t029"
+    },
+    {
+      "id": "copy_z_curve_causes_ghost_shot",
+      "note": "50030 中段 Z≈0.12 只让四发中段超前约 0.7m，每次 01 都一样，不是隔次出现的快闪诡弹。",
+      "trust": "verified",
+      "source_task": "t029"
+    },
+    {
+      "id": "bake_inverse_from_blue_point",
+      "note": "海豹头球把反解原点放在动画第 0 帧蓝点后，首帧被推出红点，落点也差一个身体高度。烘焙原点改回红点后用户确认从鼻子出生且末点 -1.081 能爆炸。",
+      "trust": "verified",
+      "source_task": "t031"
     }
   ]
 }

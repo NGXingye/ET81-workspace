@@ -1,5 +1,5 @@
-﻿---
-description: 仅新对话且无本任务上下文时使用。已有上下文或用户发出 /implement /harvest /interrupt 时不要使用。
+---
+description: 仅新对话且无本任务上下文时使用。已有上下文或用户发出 /implement /harvest /harvests /interrupt 时不要使用。
 alwaysApply: false
 ---
 
@@ -9,9 +9,10 @@ alwaysApply: false
 
 # 1. 口令短路
 
-- `/implement`：只对活卡。`powershell -File runtime/etctl.ps1 begin-implement`；失败则停。只按 stdout 工作。禁止读编辑器 md。候选包须先 `etctl promote`。结束。
-- `/harvest`：不走 §2。`idle` 则拒绝。不必先 `/implement`。仅当 `phase` 为 `awaiting_verify`，或 `route=fast`，或用户点名只收分析：只读游标与 `current_scope.json`。事实写 `standards/`，门禁有变才写 `profiles/`，然后 idle。有 `resume_task_id` 则 idle 后 `etctl promote` 该号。禁止读蓝图与 `global_rules/`。不 svn commit。结束。
-- `/interrupt`：活卡占用。禁止读活卡。新号候选后 `powershell -File runtime/etctl.ps1 interrupt <task_id>`。可勾住 implement/awaiting_verify。禁止复用 parent 号。用户确认主力窗口已停。结束。
+- `/implement`：执行 `.cursor/commands/implement.md`。结束。
+- `/harvest`：执行 `.cursor/commands/harvest.md`。结束。
+- `/harvests`：执行 `.cursor/commands/harvests.md`。结束。
+- `/interrupt`：执行 `.cursor/commands/interrupt.md`。结束。
 
 # 2. 无上下文读序
 
@@ -24,7 +25,7 @@ alwaysApply: false
 7. catalog 命中的 1–2 个 JSON
 8. 仍缺框架事实：`standards/<editor>/target.json`
 
-禁止读已登记编辑器 Markdown。无契约：只读；禁止改源码与新建权威 md。discovery：活卡 idle 才写 `current_scope.json`；活卡非 idle 且本对话不是该 `task_id` 则写入 `contracts/candidates/<task_id>.json`（最多 2），禁止改 current。未选模块不打开业务源码，除非用户给了 seed。
+写权限见 `AGENTS.md`。discovery：活卡 idle 才写 `current_scope.json`；活卡非 idle 且本对话不是该 `task_id` 则写入 `contracts/candidates/<task_id>.json`（最多 2），禁止改 current。未选模块不打开业务源码，除非用户给了 seed。
 
 # 3. 分析读序（仅 discovery）
 
@@ -34,8 +35,8 @@ alwaysApply: false
 2. 仍缺：`editor_md_paths`（先写入 `current_scope.json`；结束登记 audit）
 3. 仍缺：`seed_paths` / 模块 `prefer`。运行行为以源码为准
 
-分析模型提炼：用户关键信息与代码观察写入 `evidence.note`；改法写入 `plan`（一行一项，指向 `write_paths`，不粘贴源码）。禁止让用户手填分析包。进入 `awaiting_scope` 或 `route=fast` 且 `write_paths` 非空时 `plan` 必填。
+分析模型提炼：用户关键信息与代码观察写入 `evidence.note`；改法写入 `plan`（一行一项，指向 `write_paths`，不粘贴源码）。禁止让用户手填分析包。进入 `awaiting_scope` 或 `route=fast` 且 `write_paths` 非空时 `plan` 必填。Trunk 已打开的目标 `.cs` 物理行 >1500 且过耦合、本单要加行为：`plan` 把该块拆到新文件（列入 `write_paths`），老文件只挂钩；`trivial` 除外。未点名重构则不清理邻接旧债。
 
 # 4. 写（discovery）
 
-游标 `in_progress`；分析包从 `contracts/_template_scope.json` 复制。活卡非 idle 时改为写入 `contracts/candidates/<task_id>.json` 并加上 `goal`，不改游标与 current。默认禁止 svn update。`route=fast` 且用户明确同意时：对 `write_paths` scoped `svn update` 后按 `plan` 改，契约保持 discovery。需要用户看范围则 `awaiting_scope`。高风险（Core/Loader、协议生成、跨模块批量）先 `blocked`。第二工作副本仅用户点名。路径/阶段/证据只写 JSON。仅当本步改受管理 md、键值或 runtime 时才打开对应 `global_rules/` 文件。
+游标 `in_progress`；分析包从 `contracts/_template_scope.json` 复制。活卡非 idle 时改为写入 `contracts/candidates/<task_id>.json` 并加上 `goal`，不改游标与 current。默认禁止 svn update。`route=fast` 且用户明确同意时：对 `write_paths` scoped `svn update`，基准见 `AGENTS.md`，再按 `plan` 改。契约保持 discovery。需要用户看范围则 `awaiting_scope`。高风险（Core/Loader、协议生成、跨模块批量）先 `blocked`。第二工作副本仅用户点名。路径/阶段/证据只写 JSON。仅当本步改受管理 md、键值或 runtime 时才打开对应 `global_rules/` 文件。

@@ -1,0 +1,42 @@
+{
+  "task_id": "t035",
+  "phase": "discovery",
+  "scope_revision": 1,
+  "goal": "中转工具写碰撞偏移时把 Y 乘了 -1。运行时静态盒子已经按存下来的数偏移。管线里的负数写进 trunk 后符号被翻掉。这一单只改中转工具的位置 Y，不改运行时。",
+  "intent": "bug",
+  "size": "small",
+  "route": "unset",
+  "target_id": "BridgeEditor",
+  "profile_id": "skill_sync",
+  "seed_paths": [
+    "Assets/Scripts/Editor/SpellConversion/SpellConversionEngine.ConfigWriter.cs"
+  ],
+  "read_paths": [],
+  "write_paths": [],
+  "editor_md_paths": [],
+  "evidence": [
+    {
+      "path": "Assets/Scripts/Editor/SpellConversion/SpellConversionEngine.ConfigWriter.cs",
+      "note": "SpellShapes 偏移关键帧的 Position.y 写成 -1 * pos.y。同一处旋转也取反。弹体形状那条路径写 position 时没有取反。",
+      "status": "observed"
+    },
+    {
+      "path": "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/SpellUnit/BuffSensorSystem.Setup.cs",
+      "note": "挂点为 None 的静态盒子会把这一帧偏移加到落点上。用户已测到偏移生效，但得不到负数。",
+      "status": "observed"
+    }
+  ],
+  "risks": [
+    "已经转化过的技能，偏移 Y 是取反后的数。改工具后只有重新转化才会变号，旧资源不重转则保持原值。"
+  ],
+  "uncertain": [
+    "同一行还有旋转取反。用户只要求位置 Y 能保留负数。"
+  ],
+  "validation": [
+    "管线偏移 Y 为负数时，trunk 偏移关键帧的 Y 仍是这个负数。",
+    "静态盒子按存下来的 Y 离开落点。"
+  ],
+  "plan": [
+    "SpellConversionEngine.ConfigWriter.cs：SpellShapes 偏移关键帧的 Position.y 不再乘 -1。不改运行时，不改旋转。"
+  ]
+}

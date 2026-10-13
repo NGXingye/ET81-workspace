@@ -1,0 +1,171 @@
+{
+  "module_id": "skill_sync",
+  "editor": "integrations",
+  "load": "on_match",
+  "trust": "observed",
+  "keywords": [
+    "资源同步",
+    "SkillSync",
+    "转化到本地",
+    "提交原料",
+    "提交配置",
+    "ConfigET",
+    "预检叠入"
+  ],
+  "producer": "SkillEditor",
+  "converter": "BridgeEditor",
+  "consumer": "trunk",
+  "routes": [
+    {
+      "keyword": "技能输出同步",
+      "prefer": [
+        "Assets/Scripts/App/Comm/EditorTools/SkillSync/",
+        "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineWindow.cs",
+        "C:/myProject/BridgeEditor/Assets/Scripts/Editor/SkillSyncHeadless.cs",
+        "C:/myProject/BridgeEditor/Assets/Scripts/Editor/SpellConversion/SpellConversionEngine.cs"
+      ],
+      "avoid": [
+        "Assets/Editor/SkillEditor/SkillEditor2.cs",
+        "C:/myProject/BridgeEditor/Assets/Scripts/Editor/TimelineToSpellConverterV2.cs"
+      ],
+      "trust": "observed",
+      "source_task": "t016"
+    }
+  ],
+  "facts": [
+    {
+      "id": "local_only_no_python",
+      "note": "只服务本机 C:/myProject。调度用 SkillEditor C#，不用 Python、无常驻进程。转换必须在 Bridge Unity 进程调 SpellConversionEngine，禁止把引擎拷进 SkillEditor。",
+      "trust": "observed",
+      "source_task": "t016"
+    },
+    {
+      "id": "no_junction_v1",
+      "note": "ConfigET 是 trunk/Unity/Assets/Config 的独立嵌套 WC，与 C:/myProject/trunk 内 Config 同 URL 不同盘。v1 不做 junction。转化后 File.Copy 白名单进 trunk Config。",
+      "trust": "verified",
+      "source_task": "t016"
+    },
+    {
+      "id": "freshness_local_overlay",
+      "note": "转化默认不 svn update。作者真相=SkillEditor 盘。只拷当前 skill_{id}* playable 与 skill_{id}* colliderdata；本技能用到的 ballistic_m*.asset。禁止整份 globalconfig.asset。Headless RegisterBallistics Upsert 索引。",
+      "trust": "verified",
+      "source_task": "t016"
+    },
+    {
+      "id": "commit_order",
+      "note": "预检叠入提交原料（SkillEditor timeline + collider，磁盘缺失的旧变体先 svn delete）后，只 svn update 该技能前缀文件：EditorAssetsComm/Resources/res/timeline/skills 与 BridgeEditor/Assets/collider。BridgeEditor/Assets/Resources/res 是指向 EditorAssetsComm 的符号链接，skills 上没有独立 SVN Update，禁止 svn update 整棵 Bridge Resources。然后才提交配置。配置钮在原料仍有 diff 时禁用。冲突则停。",
+      "trust": "observed",
+      "source_task": "t016"
+    },
+    {
+      "id": "align_configet_after_config_commit",
+      "note": "对齐 ConfigET 只在提交配置成功之后自动做（revert/update 那几条路径）。提交原料不碰 ConfigET。禁止 commit ConfigET 与 trunk 同一批文件。",
+      "trust": "verified",
+      "source_task": "t016"
+    },
+    {
+      "id": "scheduler",
+      "note": "有活窗口 Bridge：job.json → Headless Tick 自动 RunJob → result.json，禁止再开 batchmode。无活窗口：清过期锁后 -executeMethod SkillSyncHeadless.RunJob。Unity.exe 见 EditorPrefs SkillSync.UnityExe。禁止切过去点确定。",
+      "trust": "observed",
+      "source_task": "t016"
+    },
+    {
+      "id": "svn_hook_log",
+      "note": "timeline/collider 仓库 hook 要 task:15；trunk Config 要 task:32。日志固定「特效相关，{monsterId}，技能{skillId}，…」。缺前缀 pre-commit E165001。成功提示复用同一句。",
+      "trust": "verified",
+      "source_task": "t019"
+    },
+    {
+      "id": "preview_then_convert",
+      "note": "转化到本地须先预检叠入成功。勾选「更新转化工具」才 svn update Bridge Assets/Scripts/Editor/SpellConversion/，默认不勾、不 update 整棵 Bridge、不碰 ConfigET。",
+      "trust": "observed",
+      "source_task": "t019"
+    },
+    {
+      "id": "trunk_config_layout",
+      "note": "Buff 与 Spell 同目录 Config/Spell/{id}-名/，无 Config/Buff。SpellShape 按 Buff YAML spellShapesId 反查 {id}_{特效}.asset，禁止按 skillId glob。Directional 才有 Spell/Ballistics/BallisticCopy{id}.asset；弹体碰撞落 SpellUnit/{id}_{prefab}.asset。Damage 伤害物碰撞=SpellShape。2000178 近战 Damage：无 Ballistics。",
+      "trust": "verified",
+      "source_task": "t016"
+    },
+    {
+      "id": "convert_buffconfig_launch",
+      "note": "ConvertToBuffConfig 在 launchPoints 为空且 Dict 有条目时，用 launchPointsDict[0] 的第一组。子弹与主动作 buff 优先走 GetLaunchPointsForAnimation：按动画名和变体从 Dict 取表，再 ConvertToBuffConfigWithLaunchPoints 抄进 Buff。不回写 collider 的 launchPoints。effectColliderData 为 null 时不得解引用。挂点表帧数原样抄，不按 Timeline 重采样。机甲臂技能（skillId 在 1000000 与 2000000 之间）不抄挂点表。r45009 合并后两者都保留。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "unity_name_not_conditional",
+      "note": "转化拼去重键禁止对 UnityEngine.Object 使用 ?.name。丢失引用的托管外壳不是 C# null，?. 仍会进 Object.get_name 并抛 NullReferenceException，整次 Convert 中断。先用 Unity 的 != null 再取 name（UnityObjectName）。角色受击槽挂地面特效是合法数据：2000175 两条 Directional 的 hitBodyEffect 都是 vfx_monster_100281_skill01_0001ground01，碰到角色才播，不得因此失败。两条发射物按 effectPrefab 名分开（vfxmodel_c_projectile_109 与 _112），受击名只是同弹体不同受击时的附加键。",
+      "trust": "verified",
+      "source_task": "none"
+    },
+    {
+      "id": "projectile_spellunit_id_occupied",
+      "note": "vfxmodel_c_projectile_{N} 占用 SpellUnit Id N。该 Id 已有 Prefab 且名字不同则整次 Convert 取消，不覆盖。2000175 曾因 Id 109 已被 vfx_monster_100283_skill01_0001send01 占用而失败。换未占用的 projectile_{N}，或先处理旧配置。",
+      "trust": "observed",
+      "source_task": "none"
+    },
+    {
+      "id": "play_animation_apply_root_motion",
+      "note": "SpellConversion 读 PlayAnimationBehaviour.applyRootMotion。字段缺失则 Bridge CS1061，无法转化。默认 false，未勾选不挂 BTSetRootMotion。片段类在 EditorAssetsComm 的 PlayAnimation 轨，SkillEditor 与 EditorAssetsComm 是同一 URL 的两份工作副本。r45008 已提交。",
+      "trust": "verified",
+      "source_task": "none"
+    },
+    {
+      "id": "post_convert_wait_buff_duration",
+      "note": "等待层 Buff Duration 写的是 Timeline 最晚 clip.end（200018201=3133）。枪口相位 AlreadyRate+=wait/(Expire-Create)。表时长=TotalFrames/SampleFrameRate（60/30=2s）。两者不等时后发子弹查到更早的帧。用户把 201 改成 2000 后方向对齐。局限：只改自身带枪口表且用 BTTimeWait 推相位的那层；子弹子 Buff Duration 是飞行寿命；时间线=动画长度的技能看不出。当前不改中转/运行时：转完人工把该层 Duration 改成 挂点总帧/采样帧率。",
+      "trust": "verified",
+      "source_task": "t029"
+    }
+  ],
+  "excluded_causes": [
+    {
+      "id": "skip_bridge_engine",
+      "note": "SkillEditor 无 SpellConfig；拷 playable 进 trunk 正式战斗不播 Timeline",
+      "trust": "observed",
+      "source_task": "t016"
+    },
+    {
+      "id": "python_orchestrator",
+      "note": "Python 不减 Unity 冷启动，且 workspace 未登记 .py 禁止存在",
+      "trust": "observed",
+      "source_task": "t016"
+    },
+    {
+      "id": "glob_spellshape_by_skill_id",
+      "note": "SpellShape/SpellUnit 文件名不含 skillId；必须从该技能 Buff YAML 反查 id",
+      "trust": "verified",
+      "source_task": "t016"
+    },
+    {
+      "id": "onimgui_yaml_scan",
+      "note": "每帧解析 Buff YAML 会卡；源资源目录列举可热更，转化产物只在预检叠入/转化完成刷新",
+      "trust": "observed",
+      "source_task": "t016"
+    },
+    {
+      "id": "four_button_mutex",
+      "note": "预检/提交同步；仅转化异步。四钮全互锁价值低，不做。",
+      "trust": "observed",
+      "source_task": "t019"
+    },
+    {
+      "id": "jobwindow_confirm",
+      "note": "转化不得切到 Bridge 点确定；Headless 自动 RunJob 或 batchmode。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "copy_full_globalconfig",
+      "note": "叠入整份 globalconfig.asset / 整包 ballistic 会卡住 Bridge 导入。只拷本技能弹道并 Upsert 索引。",
+      "trust": "verified",
+      "source_task": "t027"
+    },
+    {
+      "id": "character_hit_vfx_aborts_convert",
+      "note": "角色受击槽挂了特效（含地面预制名）不应中断转化；两条不同发射物也不应因此合成一条。",
+      "trust": "verified",
+      "source_task": "none"
+    }
+  ]
+}
