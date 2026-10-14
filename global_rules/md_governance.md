@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-13 15:46 UTC+8
-> 版本号：1.6.1
+> 最新修改时间：2026-10-14 23:40 UTC+8
+> 版本号：1.7.0
 > 文档状态：生效
 > 读取等级：L1（创建、迁移、重命名、删除 Markdown 或改版头/章节时必读）
 
@@ -28,9 +28,10 @@
 | 导航 | `project_index.md`、`project_pipeline.md`、`*/_index.md` | 路径、读取时机、用户管线 |
 | 文档法 | 本文件 | 如何写 md |
 | 键值预算 | `kv_budget.md` | 三种状态文件的键 |
-| 游标 / 配置 / 契约 | `project_cursor.md`、`profiles/`、`contracts/current.md` | 现在 / 模块边界 / 这一单 |
-| JSON 数据 | `contracts/current_scope.json`、`targets/`、`standards/<editor>/` | 阶段、路径、证据、编辑目标、按编辑器知识 |
-| 标准 / 审计 | `standards/` | 长期知识；授权痕迹 |
+| 游标 / 门禁 / 契约 | `project_cursor.md`、`profiles/`、`contracts/current.md` | 现在 / 模块写入门禁（脚本读） / 这一单 |
+| 知识卡 | `cards/<module_id>.md`、`cards/pitfalls.md` | 模块怎么转、坑、验证；跨模块通用坑。按 `cards/_template.md` 六节，每卡目标约 80 行 |
+| JSON 数据 | `contracts/current_scope.json`、`targets/` | 阶段、路径、证据、编辑目标 |
+| 账 / 审计 / 归档 | `standards/records/`、`standards/audit/`、`archive/` | 收口账；授权痕迹；退役文件只读 |
 
 # 2. 章节、篇幅与最小读取
 
@@ -107,8 +108,8 @@
 
 # 5. 版本历史
 
+- 1.7.0（2026-10-14）：登记 `cards/` 知识卡文类；`standards/` 只留收口账与审计；`archive/` 只读。
 - 1.6.1（2026-10-13）：进度不写进状态文件，收口账另记。
 - 1.6.0（2026-10-13）：游标、活契约、候选索引不写版本历史。
 - 1.5.1（2026-09-14）：文类登记 `project_pipeline.md`。
 - 1.5.0（2026-09-12）：登记 JSON 命名；机检改走 etctl。
-- 1.4.0（2026-09-07）：篇幅按读取等级分级（L0 最严、L2 最宽）；禁止降级规避行数。

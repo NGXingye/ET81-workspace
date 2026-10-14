@@ -102,6 +102,14 @@
     "parent_task_id": { "type": "string" },
     "resume_task_id": { "type": "string" },
     "parked": { "type": "boolean" },
-    "parked_by": { "type": "string" }
+    "parked_by": { "type": "string" },
+    "knowledge_used": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "knowledge_gap": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
   }
 }

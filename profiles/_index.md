@@ -1,11 +1,11 @@
-> 最新修改时间：2026-10-09 21:06 UTC+8
-> 版本号：1.8.4
+> 最新修改时间：2026-10-14 23:40 UTC+8
+> 版本号：1.9.0
 > 文档状态：生效
 > 读取等级：L1（查找模块配置时读取）
 
 # 0. 职责定位
 
-本文件是 `profiles/` 的目录索引。本目录只保存模块长期门禁（能碰哪、禁什么）。行为事实在 `standards/`，不要写进配置正文。活动配置由 `project_cursor.md` 的 `active_profile` 引用。
+本文件是 `profiles/` 的目录索引。本目录只保存模块写入门禁（`allowed_write`、`extra_forbidden` 等键），由 `runtime/guard.ps1`、`begin-implement` 读取。行为、风险与验证在 [`../cards/_index.md`](../cards/_index.md)，不要写进配置正文。活动配置由 `project_cursor.md` 的 `active_profile` 引用。模型开工不必打开本目录。
 
 # 1. 文件索引
 
@@ -39,8 +39,8 @@
 
 # 2. 版本历史
 
+- 1.9.0（2026-10-14）：本目录降为脚本门禁；行为与风险移入 `cards/`。
 - 1.8.4（2026-10-09）：登记 `spell_unit_phase`（t032）。
 - 1.8.3（2026-10-08）：skill_sync 白名单加上 PlayAnimationBehaviour，转化要读根运动开关。
 - 1.8.2（2026-09-29）：t027 中途 harvest：skill_pipeline/skill_sync 白名单扩 SkillSync 与 SpellConversion。
 - 1.8.1（2026-09-29）：t027 中途 harvest：skill_pipeline 白名单扩 Bake/新建 playable。
-- 1.8.0（2026-09-24）：登记 `yiui_joystick`（t025）。

@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-13 17:11 UTC+8
-> 版本号：2.17.0
+> 最新修改时间：2026-10-14 23:40 UTC+8
+> 版本号：2.17.1
 > 文档状态：生效
 > 读取等级：L1（新增或修改 `runtime/` 脚本或 schema 前必读）
 
@@ -29,7 +29,7 @@
 - **收回空闲**：`etctl idle`。把 scope、游标任务段、契约收成空闲最小形态；游标不改 `source_root`。已是空闲则不写文件。不写版本历史，不升版本号。不删 `commit_plan.json`、不删候选、不 svn、不 promote。scope 里的 `resume_task_id` 打印后清掉。任何非空闲阶段都可调用。
 - **源码拦截**：`etctl guard <path>`。路径不在游标 `source_root` 与任一 `targets/*.json` 的 `workspace_path` 之下则放行。在其下必须同时满足：`phase` 与 `task_status` 都不是 `idle`，且 `task_status` 为 `in_progress`；`phase=implement` 且契约 `active`，或 `phase=discovery` 且 `route=fast`；路径与 `write_paths` 某一项是同一文件（相对路径相对该目标 `workspace_path`，无目标则相对 `source_root`）；活动 profile 的 `allowed_write` 不是 `workspace_only`。否则退出码 2。`.cursor/hooks.json` 在写文件工具和会改文件的 shell 之前调用它。
 - **一事一入口**：机检与将来的 SVN 预检不得写进同一脚本。
-- **数据位置**：活卡范围 → `contracts/current_scope.json`；未开工分析 → `contracts/candidates/<task_id>.json`（最多 2）；提交计划 → `contracts/commit_plan.json`；编辑目标 → `targets/<id>.json`；长期知识 → `standards/`；schema → `runtime/schema/`。`promote`、`interrupt`、`idle` 改完候选或活卡号后重写候选索引的候选行与版头时间，不升该索引版本号。写入或删除 `contracts/candidates/*.json` 后，`.cursor/hooks/sync-candidate-index.ps1` 同样重写。候选行不手改。
+- **数据位置**：活卡范围 → `contracts/current_scope.json`；未开工分析 → `contracts/candidates/<task_id>.json`（最多 2）；提交计划 → `contracts/commit_plan.json`；编辑目标 → `targets/<id>.json`；长期知识 → `cards/`；收口账 → `standards/records/`；schema → `runtime/schema/`。`promote`、`interrupt`、`idle` 改完候选或活卡号后重写候选索引的候选行与版头时间，不升该索引版本号。写入或删除 `contracts/candidates/*.json` 后，`.cursor/hooks/sync-candidate-index.ps1` 同样重写。候选行不手改。
 - **共享解析**：仅当两个入口都要用时，才允许已登记的非入口文件。禁止为尚未存在的命令先建空框架。
 - 入口只编排：参数 → 调用检查/读写 JSON → 退出码。
 
@@ -63,8 +63,8 @@
 
 # 5. 版本历史
 
+- 2.17.1（2026-10-14）：长期知识位置改为 `cards/`。
 - 2.17.0（2026-10-13）：写入或删除候选 JSON 后由钩子重写候选行，不手改。
 - 2.16.0（2026-10-13）：`promote`、`interrupt`、`idle` 重写候选索引的候选行。
 - 2.15.0（2026-10-13）：提新活卡时未交完的提交计划拒绝，交完则重置。
 - 2.14.0（2026-10-13）：`etctl idle` 不再给契约写版本历史。
-- 2.13.0（2026-10-13）：implement 执行步骤改链到 `/implement`。

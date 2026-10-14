@@ -13,13 +13,9 @@ $RequiredFiles = @(
     'contracts/_template_interrupt.json', 'contracts/_template_commit_plan.json',
     'contracts/current.md', 'contracts/current_scope.json', 'contracts/candidates/_index.md',
     'profiles/_index.md', 'profiles/_template.md', 'profiles/control.md',
-    'standards/_index.md', 'standards/catalog.json', 'standards/framework_baseline.md',
-    'standards/source_code_map.md', 'standards/audit/source_import_record.md',
-    'standards/trunk/target.json', 'standards/trunk/modules/monster_ai.json',
-    'standards/trunk/modules/root_motion.json',
-    'standards/SkillEditor/target.json', 'standards/BridgeEditor/target.json',
-    'standards/ActionEditor/target.json', 'standards/integrations/_index.md',
-    'standards/records/task_outcomes.jsonl',
+    'standards/_index.md', 'standards/audit/source_import_record.md',
+    'standards/records/task_outcomes.jsonl', 'archive/_index.md',
+    'cards/_index.md', 'cards/_template.md', 'cards/pitfalls.md', 'cards/framework.md',
     'runtime/_index.md', 'runtime/etctl.ps1', 'runtime/check-helpers.ps1',
     'runtime/check-workspace.ps1', 'runtime/begin-implement.ps1', 'runtime/promote.ps1',
     'runtime/interrupt.ps1', 'runtime/commit-units.py', 'runtime/check-commit-plan.py',
@@ -147,7 +143,7 @@ if (Test-Path -LiteralPath $ContractPath) {
     }
 }
 
-Test-StandardsCatalog $State $WorkspaceRoot
+Test-CardsIndex $State $WorkspaceRoot
 
 $candDir = Join-Path $WorkspaceRoot 'contracts/candidates'
 if (Test-Path -LiteralPath $candDir) {

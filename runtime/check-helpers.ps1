@@ -36,7 +36,7 @@ function Get-FieldMap([string]$Content) {
 }
 
 function Get-BaselineUnityVersion([string]$WorkspaceRoot) {
-    $path = Join-Path $WorkspaceRoot 'standards/framework_baseline.md'
+    $path = Join-Path $WorkspaceRoot 'cards/framework.md'
     if (-not (Test-Path -LiteralPath $path)) { return $null }
     $text = Get-Content -LiteralPath $path -Raw -Encoding UTF8
     $pattern = [regex]::Escape($script:UnityEditorLabel) + '\s*\|\s*`?([0-9]+\.[0-9]+\.[0-9]+f[0-9]+(?:c[0-9]+)?)`?'
@@ -123,7 +123,7 @@ function Test-RequiredJsonProps([hashtable]$State, [string]$Code, [string]$Rel, 
 
 function Test-CurrentScopeJson([hashtable]$State, [string]$Rel, $Obj, $ContractFields, [string]$WorkspaceRoot) {
     if (-not (Test-RequiredJsonProps $State 'SCOPE_JSON' $Rel $Obj @('task_id', 'phase', 'scope_revision'))) { return }
-    $allowed = @('task_id', 'phase', 'scope_revision', 'intent', 'size', 'route', 'edit_ops', 'target_id', 'profile_id', 'seed_paths', 'read_paths', 'write_paths', 'editor_md_paths', 'evidence', 'risks', 'uncertain', 'validation', 'plan', 'goal', 'implement_round', 'verify_feedback', 'parent_task_id', 'resume_task_id', 'parked', 'parked_by')
+    $allowed = @('task_id', 'phase', 'scope_revision', 'intent', 'size', 'route', 'edit_ops', 'target_id', 'profile_id', 'seed_paths', 'read_paths', 'write_paths', 'editor_md_paths', 'evidence', 'risks', 'uncertain', 'validation', 'plan', 'goal', 'implement_round', 'verify_feedback', 'parent_task_id', 'resume_task_id', 'parked', 'parked_by', 'knowledge_used', 'knowledge_gap')
     foreach ($p in $Obj.PSObject.Properties.Name) {
         if ($allowed -notcontains $p) { Add-CheckError $State 'SCOPE_JSON' ($Rel + ' unknown field ' + $p) }
     }
@@ -141,7 +141,7 @@ function Test-CurrentScopeJson([hashtable]$State, [string]$Rel, $Obj, $ContractF
     }
     if ($phase -eq 'idle') {
         if ([int]$Obj.scope_revision -ne 0) { Add-CheckError $State 'SCOPE_JSON' ($Rel + ' idle scope_revision must be 0') }
-        foreach ($extra in @('intent', 'size', 'route', 'edit_ops', 'seed_paths', 'read_paths', 'write_paths', 'editor_md_paths', 'evidence', 'risks', 'uncertain', 'validation', 'plan', 'goal', 'implement_round', 'verify_feedback', 'parent_task_id', 'resume_task_id', 'parked', 'parked_by')) {
+        foreach ($extra in @('intent', 'size', 'route', 'edit_ops', 'seed_paths', 'read_paths', 'write_paths', 'editor_md_paths', 'evidence', 'risks', 'uncertain', 'validation', 'plan', 'goal', 'implement_round', 'verify_feedback', 'parent_task_id', 'resume_task_id', 'parked', 'parked_by', 'knowledge_used', 'knowledge_gap')) {
             if ($Obj.PSObject.Properties.Name -contains $extra) { Add-CheckError $State 'SCOPE_JSON' ($Rel + ' idle must omit ' + $extra) }
         }
         return
@@ -235,15 +235,13 @@ function Test-TargetJson([hashtable]$State, [string]$Rel, $Obj, [string]$ExpectI
     if (-not (Test-Path -LiteralPath ([string]$Obj.workspace_path))) { Add-CheckError $State 'TARGET_JSON' ($Rel + ' workspace_path missing') }
 }
 
-function Test-StandardsCatalog([hashtable]$State, [string]$WorkspaceRoot) {
-    $rel = 'standards/catalog.json'; $path = Join-Path $WorkspaceRoot $rel
-    if (-not (Test-Path -LiteralPath $path)) { Add-CheckError $State 'STANDARDS' $rel; return }
-    $cat = Get-JsonObject $path
-    if (-not $cat -or -not $cat.entries) { Add-CheckError $State 'STANDARDS' ($rel + ' missing entries'); return }
-    foreach ($ed in @($cat.editors)) {
-        $tid = [string]$ed.id
-        if (-not (Test-Path -LiteralPath ([string]$ed.workspace_path))) { Add-CheckError $State 'STANDARDS' ($rel + ' editor path missing ' + $tid) }
-        if (-not (Test-Path -LiteralPath (Join-Path $WorkspaceRoot ('standards/' + $tid + '/target.json')))) { Add-CheckError $State 'STANDARDS' ($rel + ' missing standards/' + $tid + '/target.json') }
+function Test-CardsIndex([hashtable]$State, [string]$WorkspaceRoot) {
+    $rel = 'cards/_index.md'; $path = Join-Path $WorkspaceRoot $rel
+    if (-not (Test-Path -LiteralPath $path)) { Add-CheckError $State 'CARDS' $rel; return }
+    $text = Get-Content -LiteralPath $path -Raw -Encoding UTF8
+    foreach ($m in [regex]::Matches($text, '\]\(\./([^)]+\.md)\)')) { if (-not (Test-Path -LiteralPath (Join-Path $WorkspaceRoot ('cards/' + $m.Groups[1].Value)))) { Add-CheckError $State 'CARDS' ($rel + ' link missing cards/' + $m.Groups[1].Value) } }
+    Get-ChildItem -LiteralPath (Join-Path $WorkspaceRoot 'profiles') -Filter '*.md' -File | Where-Object { $_.Name -notlike '_*' } | ForEach-Object {
+        $id = [System.IO.Path]::GetFileNameWithoutExtension($_.Name)
+        if ($text -notmatch ([regex]::Escape('`' + $id + '`'))) { Add-CheckError $State 'CARDS' ($rel + ' no card routes profile ' + $id) }
     }
-    foreach ($e in @($cat.entries)) { foreach ($load in @($e.load)) { if (-not (Test-Path -LiteralPath (Join-Path $WorkspaceRoot ($load -replace '/', '\')))) { Add-CheckError $State 'STANDARDS' ($rel + ' load missing ' + $load) } } }
 }

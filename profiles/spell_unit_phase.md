@@ -1,11 +1,11 @@
-> 最新修改时间：2026-10-09 21:06 UTC+8
-> 版本号：1.0.0
+> 最新修改时间：2026-10-14 23:40 UTC+8
+> 版本号：1.1.0
 > 文档状态：生效
-> 读取等级：L2（active_profile 为 spell_unit_phase 时读取）
+> 读取等级：L2（脚本读取门禁；人和模型读 cards/ballistic.md）
 
 # 0. 职责定位
 
-本文件是弹体二阶段门禁。只改轨迹摘下、同一发续命与客端寿命特效。Trunk 与 BridgeEditor 的 ScriptsET 成对改。不改 `50_ai`，不改 AnimatorParamHelper，不整份覆盖 `200017501` / `200017504`。
+本文件只保存模块 `spell_unit_phase` 的机器门禁（`allowed_write` 等键），由 `runtime/guard.ps1`、`begin-implement` 读取。怎么运转、坑和验证见 [`cards/ballistic.md`](../cards/ballistic.md)。不在这里写行为事实。
 
 # 1. 模块字段
 
@@ -17,4 +17,5 @@
 
 # 2. 版本历史
 
+- 1.1.0（2026-10-14）：行为事实与风险提示移入 cards/ballistic.md；本文件只留门禁键。
 - 1.0.0（2026-10-09）：t032 harvest。进度摘下与寿命结束；禁改共用 AI 与这两份行为树。

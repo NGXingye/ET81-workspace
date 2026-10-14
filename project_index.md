@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-13 14:20 UTC+8
-> 版本号：1.12.0
+> 最新修改时间：2026-10-14 23:40 UTC+8
+> 版本号：1.13.0
 > 文档状态：生效
 > 读取等级：L1（路径发现或登记变更时读取）
 
@@ -31,9 +31,11 @@
 
 - [`global_rules/_index.md`](./global_rules/_index.md) — 文档法、键值预算、代码门禁、运行时写法。
 - [`contracts/_index.md`](./contracts/_index.md) — 唯一活开工契约、scope JSON、最多 2 个候选分析包。
-- [`profiles/_index.md`](./profiles/_index.md) — 模块长期门禁；行为事实在 `standards/`。
+- [`cards/_index.md`](./cards/_index.md) — 模块卡与跨模块坑；模型每轮按关键词查，人偶尔翻。
+- [`profiles/_index.md`](./profiles/_index.md) — 模块写入门禁（脚本读）；行为知识在 `cards/`。
 - [`targets/_index.md`](./targets/_index.md) — 编辑目标 JSON。
-- [`standards/_index.md`](./standards/_index.md) — 按编辑器分区的模型事实库。
+- [`standards/_index.md`](./standards/_index.md) — 收口账与 trunk 文档授权审计。
+- [`archive/_index.md`](./archive/_index.md) — 已退役的旧知识文件，只读备查。
 - [`runtime/_index.md`](./runtime/_index.md) — 已登记运行时脚本与 schema；未登记脚本禁止存在。
 
 # 4. 登记规则
@@ -42,8 +44,8 @@
 
 # 5. 版本历史
 
+- 1.13.0（2026-10-14）：登记 `cards/` 知识层与 `archive/`；profiles 降为脚本门禁。
 - 1.12.0（2026-10-13）：登记 `.cursor/hooks.json` 源码写入拦截。
 - 1.11.0（2026-10-13）：根目录 `commit.cmd` 为提交窗口入口。
 - 1.10.0（2026-10-09）：登记 `/harvests`；`/harvest` 改为中途。
 - 1.9.0（2026-09-23）：登记 `/interrupt`。
-- 1.8.0（2026-09-17）：登记候选分析包。

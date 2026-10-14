@@ -1,29 +1,47 @@
-> 最新修改时间：2026-10-13 15:46 UTC+8
-> 版本号：1.7.0
+> 最新修改时间：2026-10-14 23:40 UTC+8
+> 版本号：2.0.0
 > 文档状态：生效
-> 读取等级：L2（用户发出 /harvest 时由 Cursor 注入）
+> 读取等级：L2（用户发出 /harvest 或 /harvests 时由 Cursor 注入）
 
 # 0. 职责定位
 
-仅当用户在本轮发出 `/harvest` 时执行。这是中途收割。不走冷启动。不必先 `/implement`。不停卡。
+仅当用户在本轮发出 `/harvest` 时执行。这是中途收割：把本单真正学到的东西提炼进 `cards/`。不走冷启动。不必先 `/implement`。不停卡。`/harvests` 的知识部分也按本文 §1 执行。
 
 正路：同窗口，你已验证（fast 小改、`/implement` 之后、或只收分析且你点名）。
 
-拒绝并留在当前阶段：`idle`；无可沉淀事实；刚改编辑器源码且尚未验证（除非你明确只收分析）；仍 `blocked` 且未选择收口。
+拒绝并留在当前阶段：`idle`；刚改编辑器源码且尚未验证（除非你明确只收分析）；仍 `blocked` 且未选择收口。
 
-禁止读取：`project_pipeline.md`、`global_rules/`、runtime 源码、catalog 整库、discovery 读序。本对话已有证据则不要重读游标。新窗口仅当 `phase` 为 `awaiting_verify`，或 `route=fast` 且你点名，或你点名只收分析时，只读游标与 `current_scope.json`。
+禁止读取：`project_pipeline.md`、`global_rules/`、runtime 源码、`archive/`、discovery 读序。本对话已有证据则不要重读游标。新窗口仅当 `phase` 为 `awaiting_verify`，或 `route=fast` 且你点名，或你点名只收分析时，只读游标与 `current_scope.json`。
 
-执行：
+# 1. 提炼规则
 
-- `standards/`：本单模块 JSON、必要时 catalog 命中行。不写 `records/task_outcomes.jsonl`。
-- `profiles/`：无则从 `_template.md` 复制并登记 `_index.md`；已有则仅当 `allowed_write`/禁区变了才改。不把行为事实写入 profile。
-- 不改 `task_id`、阶段、`write_paths`、游标。不收回 idle。不 `promote`。不 `svn commit`。
-- 全量收口用 `/harvests`。
+先回答三问（只在心里或回复里答，不另建文件）：
 
-# 1. 版本历史
+1. **哪里绕了路或判断错了？** 以本单 `verify_feedback`、`knowledge_gap`、被推翻的假设为准。
+2. **根因是什么，能不能泛化？** 能迁移到别的模块 → `cards/pitfalls.md`；只属于本模块 → 该卡 `# 2`（机制写 `# 1`，验证方法写 `# 4`）。
+3. **以后在什么场景会再触发？** 写成 pitfalls 的「场景触发」或卡里那一行的前半句。
 
+答不出三问，或答案已在卡里，就**一个字都不改**，回复「本单无新增知识」。
+
+写入纪律：
+
+- **只加新的**：先在目标卡和 pitfalls 里找同义条目；已有就不加。
+- **旧的被推翻就原地改**：需求变化或新验证结果与旧条目矛盾时，直接改那一条（必要时注明「自 tNNN 起」），不追加第二条并存。被彻底废弃的做法删掉，不留墓碑。
+- **不搬流水账**：不写本单改了哪些文件、一次性数值、过程叙述；具体 ID/路径只作例子放括号或 `# 5`。
+- **可信度**：用户在运行中确认过的才算已验证；只读过代码的条目末尾标「（未验证）」，后续验证通过再去掉标记。
+- **控长度**：一张卡目标约 80 行、pitfalls 约 20 条。超了先合并同类，再删最久没用上的。
+- **记账**：被用上的 pitfalls 条目更新「最后有用」为本单号；改过的卡在 `# 5` 补本单号，条目有增改则升次版本号（如 1.0.0→1.1.0）并写一条一行历史、历史最多 5 条；只改证据号或最后有用则只更新时间。
+- **门禁另算**：只有可写范围或禁区真的变了才改 `profiles/<id>.md` 的键；新模块第一次开工才从 `profiles/_template.md` 复制并登记，同时用 `cards/_template.md` 建卡并登记 `cards/_index.md`（关键词里写上 profile id）。
+- 回复里列出：新增 / 原地改 / 删除了哪些条目，或「无新增」。
+
+# 2. 不做的事
+
+不改 `task_id`、阶段、`write_paths`、游标。不写 `standards/records/task_outcomes.jsonl`（留给 `/harvests`）。不收回 idle。不 `promote`。不 `svn commit`。全量收口用 `/harvests`。
+
+# 3. 版本历史
+
+- 2.0.0（2026-10-14）：收割从「写事实进 standards」改为按三问提炼进 cards；只加新、旧的原地改、无价值不改。
 - 1.7.0（2026-10-13）：中途收割不写收口账。
 - 1.6.0（2026-10-09）：改为中途收割，不停卡。
 - 1.5.0（2026-09-23）：resume promote 恢复原阶段。
 - 1.4.0（2026-09-23）：热插队收口后 promote `resume_task_id`。
-- 1.3.0（2026-09-17）：不必先 `/implement`；fast 验证后可收口。

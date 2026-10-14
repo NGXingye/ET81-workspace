@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-13 11:50 UTC+8
-> 版本号：1.11.0
+> 最新修改时间：2026-10-14 23:40 UTC+8
+> 版本号：1.12.0
 > 文档状态：生效
 > 读取等级：L1（查找开工契约时读取）
 
@@ -13,7 +13,7 @@
   职责：空闲/开工字段模板与省略规则。  
   读取时机：复制或重置 `current.md` 前。
 - [`_template_scope.json`](./_template_scope.json)  
-  职责：分析阶段数据包模板（intent/size/route/路径/证据/`plan`）。  
+  职责：分析阶段数据包模板（intent/size/route/路径/证据/`plan`/`knowledge_used`/`knowledge_gap`）。  
   读取时机：进入 discovery 或填写 `current_scope.json` 前。
 - [`_template_interrupt.json`](./_template_interrupt.json)  
   职责：热插队分析包模板（新号 + `parent_task_id` + trivial/fast）。  
@@ -33,8 +33,8 @@
 
 # 2. 版本历史
 
+- 1.12.0（2026-10-14）：分析包模板加 `knowledge_used` / `knowledge_gap`。
 - 1.11.0（2026-10-13）：笔数为软参考；一笔最多 8 个 `.cs`。
 - 1.10.0（2026-10-13）：提交计划上限改为 10 笔。
 - 1.9.0（2026-10-13）：登记提交计划模板。
 - 1.8.0（2026-09-23）：parked 可含 implement；promote 原阶段提回。
-- 1.7.0（2026-09-23）：登记热插队模板；interrupt 勾住活卡。

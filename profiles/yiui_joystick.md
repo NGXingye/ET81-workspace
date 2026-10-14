@@ -1,11 +1,11 @@
-> 最新修改时间：2026-09-28 10:31 UTC+8
-> 版本号：1.0.3
+> 最新修改时间：2026-10-14 23:40 UTC+8
+> 版本号：1.1.0
 > 文档状态：生效
-> 读取等级：L2（active_profile 为 yiui_joystick 时读取）
+> 读取等级：L2（脚本读取门禁；人和模型读 cards/yiui_joystick.md）
 
 # 0. 职责定位
 
-本文件是 YIUI 摇杆模块配置。只改 Main 里摇杆手写系统、扇形命中与 Gizmos 开关。不改 `zFrame` 摇杆源码、YIUI 插件与 Res。
+本文件只保存模块 `yiui_joystick` 的机器门禁（`allowed_write` 等键），由 `runtime/guard.ps1`、`begin-implement` 读取。怎么运转、坑和验证见 [`cards/yiui_joystick.md`](../cards/yiui_joystick.md)。不在这里写行为事实。
 
 # 1. 模块字段
 
@@ -17,6 +17,7 @@
 
 # 2. 版本历史
 
+- 1.1.0（2026-10-14）：行为事实与风险提示移入 cards/yiui_joystick.md；本文件只留门禁键。
 - 1.0.3（2026-09-28）：t026 harvest；扇形命中，禁区仍不改 zFrame。
 - 1.0.2（2026-09-24）：放开 Gizmos 页签与左摇杆范围开关。
 - 1.0.1（2026-09-24）：红区组件改到 ModelView。热更程序集不能声明实例字段。

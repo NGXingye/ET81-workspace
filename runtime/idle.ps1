@@ -74,7 +74,7 @@ function Test-ScopeIdle($Scope) {
     if ([string]$Scope.phase -ne 'idle') { return $false }
     if ([string]$Scope.task_id -ne 'none') { return $false }
     if ([int]$Scope.scope_revision -ne 0) { return $false }
-    $ban = @('intent', 'size', 'route', 'edit_ops', 'target_id', 'profile_id', 'seed_paths', 'read_paths', 'write_paths', 'editor_md_paths', 'evidence', 'risks', 'uncertain', 'validation', 'plan', 'goal', 'implement_round', 'verify_feedback', 'parent_task_id', 'resume_task_id', 'parked', 'parked_by')
+    $ban = @('intent', 'size', 'route', 'edit_ops', 'target_id', 'profile_id', 'seed_paths', 'read_paths', 'write_paths', 'editor_md_paths', 'evidence', 'risks', 'uncertain', 'validation', 'plan', 'goal', 'implement_round', 'verify_feedback', 'parent_task_id', 'resume_task_id', 'parked', 'parked_by', 'knowledge_used', 'knowledge_gap')
     foreach ($p in $Scope.PSObject.Properties.Name) {
         if ($ban -contains $p) { return $false }
     }
