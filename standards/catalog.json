@@ -190,7 +190,9 @@
         "召唤物",
         "近战",
         "发射物动画",
-        "显示碰撞体"
+        "显示碰撞体",
+        "公共弹道",
+        "初始化为公共ID"
       ],
       "editor": "SkillEditor",
       "load": ["standards/SkillEditor/modules/skill_pipeline.json"]

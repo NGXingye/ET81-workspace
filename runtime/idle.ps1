@@ -4,6 +4,7 @@ $ErrorActionPreference = 'Stop'
 $RuntimeRoot = $PSScriptRoot
 $WorkspaceRoot = Split-Path -Parent $RuntimeRoot
 . (Join-Path $RuntimeRoot 'check-helpers.ps1')
+. (Join-Path $RuntimeRoot 'candidate-index.ps1')
 
 function Write-IdleError([string]$Msg) {
     [ordered]@{ ok = $false; error = $Msg } | ConvertTo-Json -Compress:$false
@@ -123,6 +124,7 @@ $scopeJson = "{`r`n  `"task_id`": `"none`",`r`n  `"phase`": `"idle`",`r`n  `"sco
 Write-Utf8 $contractPath $contractText
 Write-Utf8 $cursorPath $cursorText
 Write-Utf8 $scopePath $scopeJson
+Update-CandidateIndex $WorkspaceRoot $stamp
 
 $payload = [ordered]@{ ok = $true; already_idle = $false }
 if ($resume) { $payload['resume_task_id'] = $resume }

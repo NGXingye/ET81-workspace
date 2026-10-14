@@ -1,4 +1,4 @@
-> 最新修改时间：2026-10-13 15:46 UTC+8
+> 最新修改时间：2026-10-14 23:00 UTC+8
 > 版本号：1.1.0
 > 文档状态：活动
 > 读取等级：L0（每次冷启动必读、任务状态变更时更新）
@@ -17,7 +17,7 @@
 
 # 2. 源码工作副本
 
-- `source_root`：`C:\myProject\SkillEditor`
+- `source_root`：`C:\myProject\BridgeEditor`
 - `source_root_mode`：`normal`
 - `version_control`：`svn`
 

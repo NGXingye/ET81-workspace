@@ -2,6 +2,7 @@ param([switch]$Strict)
 $ErrorActionPreference = 'Stop'
 $WorkspaceRoot = Split-Path -Parent $PSScriptRoot
 . (Join-Path $PSScriptRoot 'check-helpers.ps1')
+. (Join-Path $PSScriptRoot 'candidate-index.ps1')
 $State = New-CheckState
 
 $RequiredFiles = @(
@@ -169,6 +170,7 @@ if (Test-Path -LiteralPath $candDir) {
         if ($candObj -and $candObj.PSObject.Properties.Name -contains 'parent_task_id' -and [string]$candObj.parent_task_id) { $parentHits++ }
     }
     if ($parentHits -gt 1) { Add-CheckError $State 'CANDIDATE' 'at most one interrupt packet' }
+    Test-CandidateIndex $State $WorkspaceRoot $liveTid
 }
 
 $targetsDir = Join-Path $WorkspaceRoot 'targets'

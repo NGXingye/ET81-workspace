@@ -37,15 +37,15 @@
     },
     {
       "id": "buttons",
-      "note": "输出：构建 Timeline（替换）|调整 Timeline（Unity Timeline 窗）；预检叠入|转化到本地|只转轨迹|取消等待|更新转化工具（默认不勾）；提交配置。只转轨迹只写 BallisticCopy，不写 Spell/Buff。预检叠入提交原料（含磁盘已删的旧变体 svn delete）并只 svn update 该技能在 EditorAssetsComm skills 与 Bridge collider 的文件。Bridge res 是指向 EditorAssetsComm 的链接。只有一条动画时转化读 skill_{id}.playable。转化须预检成功。配置钮在原料仍有 diff 时禁用。",
+      "note": "输出：构建 Timeline（替换）|调整 Timeline（Unity Timeline 窗）；预检叠入|转化到本地|只转轨迹|取消等待|更新转化工具（默认不勾）；提交配置。只转轨迹只写 BallisticCopy，不写 Spell/Buff。预检叠入提交原料（含磁盘已删的旧变体 svn delete）并只 svn update 该技能在 EditorAssetsComm skills 与 Bridge collider 的文件。弹道类型同一笔提交 globalconfig.asset 索引和对应轨迹，并在 EditorAssetsComm 拉下这两处。创建 Key 前先更新 globalconfig 再改那一行。近战和召唤不提交轨迹和 globalconfig。冲突停、不回退。Bridge res 是指向 EditorAssetsComm 的链接。只有一条动画时转化读 skill_{id}.playable。转化须预检成功。配置钮在原料仍有 diff 时禁用。",
       "trust": "observed",
-      "source_task": "t027"
+      "source_task": "t035"
     },
     {
       "id": "resource_grid",
-      "note": "资源对照：源资源较窄，Playable|Colliderdata 左右；转化产物更宽，最左技能Buff(Spell\\实际目录)，有轨迹则中间 Spell\\Ballistics，最右伤害物碰撞（SpellShape|Directional，括号跟类型不写死）。格子固定高度，超出格内滚动。源资源热更；转化产物只在预检叠入/转化完成刷新。禁止 OnImGUI 扫 YAML。",
-      "trust": "observed",
-      "source_task": "t019"
+      "note": "资源对照：技能树和 AI 始终显示。近战 Damage 只加 SpellShape。弹道 Directional 加轨迹和 SpellUnit。召唤不加轨迹和包围盒，召唤说明写在技能树列。AI 只列 trunk Config/AI 里文件名含技能号的已有行为树，不生成。源资源热更；转化产物只在预检叠入或转化完成刷新。禁止 OnImGUI 扫 YAML。",
+      "trust": "verified",
+      "source_task": "t035"
     },
     {
       "id": "commit_log",

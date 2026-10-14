@@ -47,15 +47,15 @@
     },
     {
       "id": "freshness_local_overlay",
-      "note": "转化默认不 svn update。作者真相=SkillEditor 盘。只拷当前 skill_{id}* playable 与 skill_{id}* colliderdata；本技能用到的 ballistic_m*.asset。禁止整份 globalconfig.asset。Headless RegisterBallistics Upsert 索引。",
-      "trust": "verified",
-      "source_task": "t016"
+      "note": "转化默认不 svn update 转化工具。作者真相=SkillEditor 盘。只拷当前 skill_{id}* playable 与 skill_{id}* colliderdata。弹道且有轨迹时，只处理这条技能实际用到的 ballistic 文件。创建或改 Key 前先 svn update SkillEditor 的 globalconfig.asset，再写索引那一行。预检提交这一份索引和对应轨迹。转行为树前 svn update EditorAssetsComm 的同一份 globalconfig.asset 和对应轨迹。禁止 File.Copy 整份 globalconfig，转化不再 SaveAssets 它。冲突则停，不回退。",
+      "trust": "observed",
+      "source_task": "t035"
     },
     {
       "id": "commit_order",
-      "note": "预检叠入提交原料（SkillEditor timeline + collider，磁盘缺失的旧变体先 svn delete）后，只 svn update 该技能前缀文件：EditorAssetsComm/Resources/res/timeline/skills 与 BridgeEditor/Assets/collider。BridgeEditor/Assets/Resources/res 是指向 EditorAssetsComm 的符号链接，skills 上没有独立 SVN Update，禁止 svn update 整棵 Bridge Resources。然后才提交配置。配置钮在原料仍有 diff 时禁用。冲突则停。",
+      "note": "预检叠入提交原料（SkillEditor timeline + collider，磁盘缺失的旧变体先 svn delete）。弹道类型同一笔再提交 globalconfig.asset 索引和对应轨迹。提交前先 update，冲突则停且不回退。之后 svn update EditorAssetsComm 的 globalconfig.asset 与对应 ballistic 文件，以及该技能前缀：EditorAssetsComm/Resources/res/timeline/skills 与 BridgeEditor/Assets/collider。禁止 svn update 整棵 Bridge Resources，禁止整份覆盖 globalconfig。配置钮在原料仍有 diff 时禁用。",
       "trust": "observed",
-      "source_task": "t016"
+      "source_task": "t035"
     },
     {
       "id": "align_configet_after_config_commit",
@@ -157,9 +157,9 @@
     },
     {
       "id": "copy_full_globalconfig",
-      "note": "叠入整份 globalconfig.asset / 整包 ballistic 会卡住 Bridge 导入。只拷本技能弹道并 Upsert 索引。",
-      "trust": "verified",
-      "source_task": "t027"
+      "note": "禁止 File.Copy 整份 globalconfig.asset 或整包 ballistic。弹道只提交并 svn update 对应轨迹。globalconfig 只在创建 Key 前先 update，再改索引那一行，由预检提交，转行为树前在 EditorAssetsComm 拉取。转化不 SaveAssets 这份索引。",
+      "trust": "observed",
+      "source_task": "t035"
     },
     {
       "id": "character_hit_vfx_aborts_convert",

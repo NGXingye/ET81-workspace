@@ -1,0 +1,20 @@
+{
+  "task_id": "t036",
+  "phase": "discovery",
+  "scope_revision": 1,
+  "goal": "一份技能只留一份 colliderdata，碰撞盒与发射点采样按发射物一一对应。共享中转不改，本地在转化后按同一下标写入。",
+  "intent": "unknown",
+  "size": "unknown",
+  "route": "unset",
+  "target_id": "trunk",
+  "profile_id": "none",
+  "seed_paths": [],
+  "read_paths": [],
+  "write_paths": [],
+  "editor_md_paths": [],
+  "evidence": [],
+  "risks": [],
+  "uncertain": [],
+  "validation": [],
+  "plan": []
+}

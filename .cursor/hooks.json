@@ -15,6 +15,27 @@
         "failClosed": true,
         "timeout": 20
       }
+    ],
+    "afterFileEdit": [
+      {
+        "command": "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .cursor/hooks/sync-candidate-index.ps1",
+        "matcher": "Write|StrReplace|ApplyPatch|Edit",
+        "timeout": 20
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .cursor/hooks/sync-candidate-index.ps1",
+        "matcher": "Delete",
+        "timeout": 20
+      }
+    ],
+    "afterShellExecution": [
+      {
+        "command": "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File .cursor/hooks/sync-candidate-index.ps1",
+        "matcher": "contracts[/\\\\]candidates[/\\\\]\\S+\\.json",
+        "timeout": 20
+      }
     ]
   }
 }

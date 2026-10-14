@@ -4,6 +4,7 @@ $ErrorActionPreference = 'Stop'
 $RuntimeRoot = $PSScriptRoot
 $WorkspaceRoot = Split-Path -Parent $RuntimeRoot
 . (Join-Path $RuntimeRoot 'check-helpers.ps1')
+. (Join-Path $RuntimeRoot 'candidate-index.ps1')
 
 function Write-InterruptError([string]$Msg) {
     [ordered]@{ ok = $false; error = $Msg } | ConvertTo-Json -Compress:$false
@@ -190,5 +191,6 @@ $cursorText = Set-HeaderTime $cursorText $stamp
 Write-Utf8 $cursorPath $cursorText
 
 Remove-Item -LiteralPath $candPath
+Update-CandidateIndex $WorkspaceRoot $stamp
 [ordered]@{ ok = $true; task_id = $TaskId; parked = $liveId; parent_task_id = $parentId; phase = [string]$cand.phase } | ConvertTo-Json -Compress:$false
 exit 0
