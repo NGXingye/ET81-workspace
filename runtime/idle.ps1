@@ -18,6 +18,25 @@ function Write-Utf8([string]$Path, [string]$Text) {
     $enc = New-Object System.Text.UTF8Encoding $false
     [System.IO.File]::WriteAllText($Path, $Text, $enc)
 }
+function Limit-TaskOutcomes([string]$Root, [string[]]$Extra) {
+    $path = Join-Path $Root 'standards/records/task_outcomes.jsonl'
+    if (-not (Test-Path -LiteralPath $path)) { return }
+    $text = [System.IO.File]::ReadAllText($path)
+    $eol = "`n"; if ($text.Contains("`r`n")) { $eol = "`r`n" }
+    $lines = @($text -split "`r?`n" | Where-Object { $_.Trim() })
+    if ($lines.Count -le 125) { return }
+    $keep = @{}; foreach ($x in $Extra) { if ($x -and $x -ne 'none') { $keep[$x] = 1 } }
+    $refs = @(Join-Path $Root 'contracts/current_scope.json') + @(Get-ChildItem -LiteralPath (Join-Path $Root 'contracts/candidates') -Filter '*.json' -File -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName })
+    foreach ($r in $refs) { if (Test-Path -LiteralPath $r) { $o = Get-Content -LiteralPath $r -Raw -Encoding UTF8 | ConvertFrom-Json; foreach ($k in @('task_id', 'parent_task_id', 'resume_task_id')) { if ($o.PSObject.Properties.Name -contains $k -and [string]$o.$k -and [string]$o.$k -ne 'none') { $keep[[string]$o.$k] = 1 } } } }
+    $cm = Get-FieldMap ([System.IO.File]::ReadAllText((Join-Path $Root 'contracts/current.md')))
+    if ($cm['task_id'] -and $cm['task_id'] -ne 'none') { $keep[[string]$cm['task_id']] = 1 }
+    $drop = $lines.Count - 100; $out = New-Object System.Collections.Generic.List[string]
+    foreach ($l in $lines) {
+        if ($drop -gt 0) { $id = [string]($l | ConvertFrom-Json).task_id; if (-not $keep.ContainsKey($id)) { $drop--; continue } }
+        $out.Add($l)
+    }
+    Write-Utf8 $path (($out -join $eol) + $eol)
+}
 function Get-Stamp {
     $tz = [TimeZoneInfo]::FindSystemTimeZoneById('China Standard Time')
     $t = [TimeZoneInfo]::ConvertTimeFromUtc([datetime]::UtcNow, $tz)
@@ -96,6 +115,7 @@ if ($scope -and $scope.PSObject.Properties.Name -contains 'resume_task_id') { $r
 $cursorIdle = ([string]$cursor['task_status'] -eq 'idle' -and [string]$cursor['task_id'] -eq 'none' -and [string]$cursor['active_profile'] -eq 'none' -and [string]$cursor['contract_ref'] -eq 'none' -and [string]$cursor['blocked'] -eq 'false' -and -not $cursor.Contains('blocker_reason') -and -not $cursor.Contains('blocker_owner') -and -not $cursor.Contains('isolated_source_root'))
 $contractIdle = ([string]$contract['contract_status'] -eq 'idle' -and [string]$contract['task_id'] -eq 'none' -and $contract.Count -eq 2)
 if ((Test-ScopeIdle $scope) -and $cursorIdle -and $contractIdle) {
+    Limit-TaskOutcomes $WorkspaceRoot @($resume)
     [ordered]@{ ok = $true; already_idle = $true } | ConvertTo-Json -Compress:$false
     exit 0
 }
@@ -125,6 +145,7 @@ Write-Utf8 $contractPath $contractText
 Write-Utf8 $cursorPath $cursorText
 Write-Utf8 $scopePath $scopeJson
 Update-CandidateIndex $WorkspaceRoot $stamp
+Limit-TaskOutcomes $WorkspaceRoot @($resume)
 
 $payload = [ordered]@{ ok = $true; already_idle = $false }
 if ($resume) { $payload['resume_task_id'] = $resume }

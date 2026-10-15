@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-15 10:40 UTC+8
-> 版本号：2.23.0
+> 最新修改时间：2026-10-15 10:50 UTC+8
+> 版本号：2.24.0
 > 文档状态：生效
 > 读取等级：L1（新增或修改 runtime 下脚本前必读）
 
@@ -42,7 +42,7 @@
   副作用：可 `svn add` 并 `svn commit` 该笔路径。无 `--all`。`--dry-run` 不提交。  
   入口：双击仓库根目录 `commit.cmd`。模型用 `py -3 runtime/commit-units.py --unit <id>`。窗口里 `r` 重新读取计划，`v` 验证 `Unity/Assets/Scripts` 是否还有漏提交或已标注文件。
 - [`idle.ps1`](./idle.ps1)  
-  职责：把活卡收成空闲。scope、游标任务段、契约一次写回最小形态。已是空闲则不写文件。不写版本历史。不删提交计划、不删候选、不 svn、不 promote。有 `resume_task_id` 时打印后清掉。收成空闲后重写候选索引的候选行。  
+  职责：把活卡收成空闲。scope、游标任务段、契约一次写回最小形态。已是空闲则不写文件。不写版本历史。不删提交计划、不删候选、不 svn、不 promote。有 `resume_task_id` 时打印后清掉。收成空闲后重写候选索引的候选行。收口账超过 125 行时删最旧的行留 100 行，活卡、`current.md` 与候选包（`task_id`/`parent_task_id`/`resume_task_id`）引用的号不删。  
   非独立入口，由 `etctl.ps1 idle` 调用。
 - [`guard.ps1`](./guard.ps1)  
   职责：源码写入门禁。`etctl guard <path>` 在写 `source_root` 或任一目标 `workspace_path` 下的文件前判定；不通过则退出码 2。不写文件、无 SVN。规则见 `global_rules/runtime_code.md`。  
@@ -60,8 +60,8 @@
 
 # 2. 版本历史
 
+- 2.24.0（2026-10-15）：`idle` 收口账超 125 行裁到 100 行，保留被引用的号。
 - 2.23.0（2026-10-15）：知识索引改查 `standards/_index.md`；撤回 knowledge 字段；删除未使用的 map_entry schema。
 - 2.22.0（2026-10-14）：机检改查 `cards/_index.md` 路由与 profile 覆盖；scope 新增 `knowledge_used`、`knowledge_gap`。
 - 2.21.0（2026-10-13）：候选 JSON 写入或删除后，钩子重写候选行。
 - 2.20.0（2026-10-13）：`promote`、`interrupt`、`idle` 重写候选索引的候选行。
-- 2.19.0（2026-10-13）：提新活卡前，未交完的提交计划拒绝；交完则重置为空计划。
