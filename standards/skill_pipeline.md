@@ -1,13 +1,15 @@
-> 最新修改时间：2026-10-14 23:40 UTC+8
-> 版本号：1.0.0
+> 最新修改时间：2026-10-15 10:40 UTC+8
+> 版本号：1.1.0
 > 文档状态：生效
 > 读取等级：L1（关键词命中技能管线 / 轨迹页 / 构建 Timeline / 碰撞导出时读取）
 
-# 0. 职责定位
+# 0. 速览
 
 > 速览：SkillEditor 里的本机提效窗口，一页从「输入→技能→动画→特效→碰撞体→输出」做出一条技能：写 playable、技能碰撞资产和弹道，输出交给 `skill_sync.md`。
 > 最大风险：发射点与烘焙原点算错（出生点、根位移、缺曲线时乱补），以及构建时破坏已打开的 Timeline 或共用资源。
 > 做对的标准：`skill_{id}[_N].playable` 与 `skill_{id}[_N]_colliderdata` 按规则生成，导出断言 Dict 与轨迹采样同帧一致，预览从红点出生、落点贴地。
+>
+> 门禁：`profiles/skill_pipeline.md`、`profiles/skill_collider.md`
 
 # 1. 怎么运转
 
@@ -31,22 +33,10 @@
 - 碰撞导出读 `csvdemo/*.bytes`：骨架 = MonsterSkillConfig.MonsterId → MonsterScalingLevelConfig.PrefabName；csvdemo 过期会「无法生成角色模型」。变体 N≥2 没配 launchPoint 时回退变体1形状、按当前 Timeline 烘发射点并弹提示。
 - 编辑器里不用 `GlobalConfig.instance`（会碰 GameManager 单例），只 `AssetDatabase` 读 globalconfig.asset；App.Comm 不能引用 Editor 程序集（如 SkillTimelineVariantUtil、MonsterPetConfigCsvReader）；`SkillPipelineActorKind` 必须 public。
 - 单文件软上限 500、硬顶 600 行，超限只拆私有方法。
+- 旧弹道窗 `BallisticPathEditorWindow` 保持 IMGUI，不整窗 Odin 化；csvdemo `.bytes` 只读不写回；管线任务对 `ControlColliderCS` 只反射调用。
 
-# 3. 边界
-
-- 门禁：`profiles/skill_pipeline.md`（管线目录、Bake、SkillSync、Headless、SpellConversion）；碰撞导出单独任务用 `profiles/skill_collider.md`。
-- 禁碰：`SkillEditor2.cs`、csvdemo `.bytes`（不写回）、`ControlColliderCS.cs` 源码（管线任务只反射）；旧弹道窗保留 IMGUI，不整窗 Odin 化；不写 Library / Res / Generate。
-
-# 4. 怎么验证
+# 3. 怎么验证
 
 - 构建或再点导出碰撞体时跑断言：Dict 与轨迹采样按 `Round(出手秒 × 采样帧率)` 比同一帧，缺曲线的行报「动画没有该挂点」，不拿空 launchPoints 判失败。
 - 预览：红点出生、末点 Y 相对红点（贴地时约为负的出手高度），地面爆炸能播；近战盒子在出手到出手+Life 之间跟随挂点。
 - 磁盘：`Assets/Resources/timeline/skills/skill_{id}[_N].playable`、`Assets/collider/skill_{id}[_N]_colliderdata` 存在且含 Launch Points Dict。
-
-# 5. 证据
-
-t012、t015、t027、t029、t030、t031、t033、t035。
-
-# 6. 版本历史
-
-- 1.0.0（2026-10-14）：由 profile skill_pipeline / skill_collider 与 skill_pipeline.json、skill_collider.json 合并提炼。

@@ -1,11 +1,11 @@
-> 最新修改时间：2026-10-14 23:40 UTC+8
+> 最新修改时间：2026-10-15 10:40 UTC+8
 > 版本号：1.1.0
 > 文档状态：生效
-> 读取等级：L2（脚本读取门禁；人和模型读 cards/yiui_joystick.md）
+> 读取等级：L2（脚本读取门禁；人和模型读 standards/yiui_joystick.md）
 
 # 0. 职责定位
 
-本文件只保存模块 `yiui_joystick` 的机器门禁（`allowed_write` 等键），由 `runtime/guard.ps1`、`begin-implement` 读取。怎么运转、坑和验证见 [`cards/yiui_joystick.md`](../cards/yiui_joystick.md)。不在这里写行为事实。
+本文件只保存模块 `yiui_joystick` 的机器门禁（`allowed_write` 等键），由 `runtime/guard.ps1`、`begin-implement` 读取。怎么运转、坑和验证见 [`standards/yiui_joystick.md`](../standards/yiui_joystick.md)。不在这里写行为事实。
 
 # 1. 模块字段
 

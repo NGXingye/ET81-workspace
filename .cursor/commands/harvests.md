@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-14 23:40 UTC+8
-> 版本号：2.0.0
+> 最新修改时间：2026-10-15 10:40 UTC+8
+> 版本号：2.1.0
 > 文档状态：生效
 > 读取等级：L2（用户发出 /harvests 时由 Cursor 注入）
 
@@ -11,22 +11,22 @@
 
 拒绝并留在当前阶段：`idle`；刚改编辑器源码且尚未验证（除非你明确只收分析）；仍 `blocked` 且未选择收口。「无新增知识」不是拒绝理由，照常记账收口。
 
-禁止读取：`project_pipeline.md`、`global_rules/`、runtime 源码、`archive/`、discovery 读序。本对话已有证据则不要重读游标。新窗口仅当 `phase` 为 `awaiting_verify`，或 `route=fast` 且你点名，或你点名只收分析时，只读游标与 `current_scope.json`。
+禁止读取：`global_rules/`、runtime 源码、discovery 读序。本对话已有证据则不要重读游标。新窗口仅当 `phase` 为 `awaiting_verify`，或 `route=fast` 且你点名，或你点名只收分析时，只读游标与 `current_scope.json`。
 
 # 1. 执行
 
-1. **知识**：按 [`harvest.md`](./harvest.md) §1 的三问和写入纪律处理 `cards/`。本单 `/harvest` 已收过的不重复；无新增就不改卡。
-2. **收口账** `standards/records/task_outcomes.jsonl`：一个 `task_id` 一行，已有则换掉该行，不改其它行。只写 `task_id`、`changed_targets`、`changed_paths`、`recorded_at`。`changed_paths` 记本单动过的全部路径（含 `cards/`、`profiles/`）。旧行保持原字段。
+1. **知识**：按 [`harvest.md`](./harvest.md) §1 处理 `standards/` 的模块卡。本单 `/harvest` 已收过的不重复；无新增就不改卡。
+2. **收口账** `standards/records/task_outcomes.jsonl`：一个 `task_id` 一行，已有则换掉该行，不改其它行。只写 `task_id`、`changed_targets`、`changed_paths`、`recorded_at`。`changed_paths` 记本单动过的全部路径（含 `standards/`、`profiles/`）。旧行保持原字段。
 3. **提交计划**：有可交脚本时，收回 idle 前按 [`contracts/_template_commit_plan.json`](../../contracts/_template_commit_plan.json) 覆盖写 `contracts/commit_plan.json`，不沿用文件里已有的 status。笔数以 10 为参考，按内容浮动。一笔最多 8 个 `.cs`；`.meta` 跟着对应脚本，不计入。单独行为只有一个脚本时保持一笔。同一行为的 `.cs` 与 `.meta` 同笔。`summary` 是本单总任务。每笔 `hook_task` 从该笔 `workspace_path` 对应的 `targets` JSON 的 `hook_tasks` 里选；目标没有这份清单就留空。`paths` 相对 `workspace_path`。没有可交脚本则不写该文件。写完后运行 `py -3 runtime/check-commit-plan.py --fill`。它只看 `Unity/Assets/Scripts` 的 `svn status`。和计划新增符号有交集的漏文件补进未提交笔；满 8 个 `.cs` 就新开一笔。没有交集的写入 `omitted`，不提交。
 4. 不 `svn commit`，不运行 `commit-units.py`。
-5. 以上写完，且用户没有再要补的内容：`powershell -File runtime/etctl.ps1 idle`。不手改游标、契约、scope。`--fill` 失败或用户还要补时先不要调用；下一轮补完 `cards/` 或 `commit_plan.json` 后再调用。脚本不删提交计划、不 svn、不 promote。
+5. 以上写完，且用户没有再要补的内容：`powershell -File runtime/etctl.ps1 idle`。不手改游标、契约、scope。`--fill` 失败或用户还要补时先不要调用；下一轮补完 `standards/` 或 `commit_plan.json` 后再调用。脚本不删提交计划、不 svn、不 promote。
 6. stdout 有 `resume_task_id` 时再 `powershell -File runtime/etctl.ps1 promote <resume_task_id>`。失败则停并报告候选仍在。还有未提交笔时 promote 会拒绝。promote 按勾住时的原阶段提回（含 implement）。
 7. idle 之后还能改什么，见 [`AGENTS.md`](../../AGENTS.md)。
 
 # 2. 版本历史
 
+- 2.1.0（2026-10-15）：卡收回 `standards/`。
 - 2.0.0（2026-10-14）：知识改按 harvest.md 三问提炼进 cards；无新增知识照常收口。
 - 1.10.0（2026-10-13）：写计划覆盖本单，不沿用上一单状态。
 - 1.9.0（2026-10-13）：提交钩子号改从目标的 `hook_tasks` 读取。
 - 1.8.0（2026-10-13）：收口账一个号一行，只写四个字段。
-- 1.7.0（2026-10-13）：收口不再给契约写版本历史。

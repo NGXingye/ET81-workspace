@@ -1,13 +1,15 @@
-> 最新修改时间：2026-10-14 23:40 UTC+8
-> 版本号：1.0.0
+> 最新修改时间：2026-10-15 10:40 UTC+8
+> 版本号：1.1.0
 > 文档状态：生效
 > 读取等级：L1（关键词命中根运动 / 技能无位移 / 姿态维持时读取）
 
-# 0. 职责定位
+# 0. 速览
 
 > 速览：技能的逻辑位移只来自烘焙的 RootMotionConfig 积分（Animator.applyRootMotion 关闭，动画只播骨骼）；由 SpellConfig 开关和 BT 节点共同决定是否积分。
 > 最大风险：开关没开或查找键不对，导致「动画在动、单位不动」。
 > 做对的标准：放技能时逻辑坐标随烘焙 TotalPosition 移动，不再报「没有找到根运动配置」。
+>
+> 门禁：无（开工时按任务新建或借用相近 profile）
 
 # 1. 怎么运转
 
@@ -25,20 +27,8 @@
 - Inspector「启用根运动」要独立勾选；bool 与 `ShowIf` 放同一 BoxGroup 会被 Odin 整组藏掉。
 - 烘焙器对纯位移攻击报 yaw≈0 红字是误报；总位移为 0 的攻击片段（转圈只在骨骼）SetRootMotion 也不会转单位。
 - 出手姿态维持到主 Buff 结束：`SpellConfig.AttackPoseFollowsBuff`（不在 BuffConfig），施法成功后等主 Buff 的 EntityRef 失效再清 UState.Attack；尾段短于后摇时姿态会先掉。
+- 不改 Animator.applyRootMotion=false 的全局约定。
 
-# 3. 边界
-
-- 门禁：暂无专用 profile，开工时按任务新建或借用相近 profile。
-- 不改 Animator.applyRootMotion 的全局约定。
-
-# 4. 怎么验证
+# 3. 怎么验证
 
 `Config/RootMotion/{bakerId}_attack.asset` 存在且 Id = hash("{bakerId}_attack")；勾开关后放技能单位有位移。
-
-# 5. 证据
-
-t005、t013、t029。
-
-# 6. 版本历史
-
-- 1.0.0（2026-10-14）：由 root_motion.json 提炼。

@@ -1,13 +1,15 @@
-> 最新修改时间：2026-10-14 23:40 UTC+8
-> 版本号：1.0.0
+> 最新修改时间：2026-10-15 10:40 UTC+8
+> 版本号：1.1.0
 > 文档状态：生效
 > 读取等级：L1（关键词命中弹道 / Copy / 枪口 / 定点延迟 / 二阶段时读取）
 
-# 0. 职责定位
+# 0. 速览
 
 > 速览：弹道从 SkillEditor 的 BallisticConfig（作者面）经 Bridge 转成 trunk 的 BallisticCopy，再由 SpellUnit 的 TrackMove 在两端按进度飞；弹体还可在中途「摘下」转成 AI 移动（二阶段）。
 > 最大风险：三处单位与原点不一致——Z 的单位（米 vs 米/D）、飞行时钟（Buff 时长 vs Copy.Time）、出生点（红点 vs 第 0 帧）。
 > 做对的标准：游戏里弹道与编辑器预览一致、不拉扯，落点贴地能触发地面爆炸，二阶段在指定进度接续同一发。
+>
+> 门禁：`profiles/playeffect.md`、`profiles/spell_unit_phase.md`
 
 # 1. 怎么运转
 
@@ -30,21 +32,10 @@
 - 二阶段不新建技能体（重开动画会停顿一帧）；前面不要挂「等待轨迹结束」。客端寿命结束特效靠同步字段在移除/预测超时时补放，同配置同节点约 0.5 米 500ms 内只放一次；不改共用的 `50_ai` 超时。
 - 二阶段动画沿用出生时的 Animator：拆轨迹动画组件再挂、交叉淡化一次；不走 AnimatorParamHelper，不调 `Animator.Update(0)`。
 - 怪物不走 ClampThrowPosAboveGround；SpellUnit 盒子有半高，Y 终点不扣会提前 OnHitGround。
+- 二阶段改动 trunk 与 BridgeEditor `ScriptsET` 成对改。
+- 不把 Play 选 Clip / Binder 当弹道作者入口，不把曲线图当编辑器（UseVelocityCurve 保持关）。
 
-# 3. 边界
-
-- 门禁：作者面任务 `profiles/playeffect.md`；二阶段 `profiles/spell_unit_phase.md`（Trunk 与 BridgeEditor `ScriptsET` 成对改）。
-- 禁碰：`Config/AI/50_ai.asset`、`Model/Generate/`、整份覆盖 `200017501` / `200017504`；不把 Play 选 Clip / Binder 当作者入口，不把曲线图当编辑器（UseVelocityCurve 保持关）。
-
-# 4. 怎么验证
+# 3. 怎么验证
 
 - 中段 Z ÷ animDistance 后与预览一致；关贴附后不再拉扯；四发水平方向跟客户端枪口。
 - 二阶段：进度 0.9 先飞再摘；进度 1 飞完进入追击、不在终点销毁；提前命中不炸寿命特效。
-
-# 5. 证据
-
-t003、t004、t006、t011、t029、t031、t032（示例配置：2000010 四发 1202/1203、海豹 50005、2000182/50030、2000175/50027）。
-
-# 6. 版本历史
-
-- 1.0.0（2026-10-14）：由 ballistic.json、playeffect.json、spell_unit_phase.json 与对应 profile 合并提炼。

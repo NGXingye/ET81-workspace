@@ -36,7 +36,7 @@ function Get-FieldMap([string]$Content) {
 }
 
 function Get-BaselineUnityVersion([string]$WorkspaceRoot) {
-    $path = Join-Path $WorkspaceRoot 'cards/framework.md'
+    $path = Join-Path $WorkspaceRoot 'standards/framework.md'
     if (-not (Test-Path -LiteralPath $path)) { return $null }
     $text = Get-Content -LiteralPath $path -Raw -Encoding UTF8
     $pattern = [regex]::Escape($script:UnityEditorLabel) + '\s*\|\s*`?([0-9]+\.[0-9]+\.[0-9]+f[0-9]+(?:c[0-9]+)?)`?'
@@ -68,15 +68,16 @@ function Test-MarkdownShape([hashtable]$State, [string]$Rel, [string]$Content) {
     foreach ($line in $lines) {
         if ($line.StartsWith('# ')) { $h1 += $line.Substring(2).Trim() }
     }
+    $cardMd = $Rel -match '^standards/[^/_][^/]*\.md$'
     $stateMd = $Rel -eq 'project_cursor.md' -or $Rel -eq 'contracts/current.md' -or $Rel -eq 'contracts/candidates/_index.md'
     if ($h1.Count -eq 0) {
         Add-CheckError $State 'MD_H1' ($Rel + ' no H1')
     } else {
         $hasHist = $h1[-1] -match [regex]::Escape($script:HHist)
-        if ($h1[0] -notlike ($script:H0Duty + '*')) { Add-CheckError $State 'MD_H0' ($Rel + ' first H1 must be duty section') }
+        if (-not $cardMd -and $h1[0] -notlike ($script:H0Duty + '*')) { Add-CheckError $State 'MD_H0' ($Rel + ' first H1 must be duty section') }
         if ($stateMd -and $hasHist) { Add-CheckError $State 'MD_HIST' ($Rel + ' state file must not have history') }
-        if (-not $stateMd -and -not $hasHist) { Add-CheckError $State 'MD_HIST' ($Rel + ' last H1 must be history') }
-        if (-not $stateMd -and $h1.Count -lt 2) { Add-CheckError $State 'MD_H1_MIN' ($Rel + ' need duty and history H1') }
+        if (-not $stateMd -and -not $cardMd -and -not $hasHist) { Add-CheckError $State 'MD_HIST' ($Rel + ' last H1 must be history') }
+        if (-not $stateMd -and -not $cardMd -and $h1.Count -lt 2) { Add-CheckError $State 'MD_H1_MIN' ($Rel + ' need duty and history H1') }
         if ($h1.Count -gt 8) { Add-CheckError $State 'MD_H1_MAX' ($Rel + ' H1 count ' + $h1.Count + ' > 8') }
     }
 
@@ -123,7 +124,7 @@ function Test-RequiredJsonProps([hashtable]$State, [string]$Code, [string]$Rel, 
 
 function Test-CurrentScopeJson([hashtable]$State, [string]$Rel, $Obj, $ContractFields, [string]$WorkspaceRoot) {
     if (-not (Test-RequiredJsonProps $State 'SCOPE_JSON' $Rel $Obj @('task_id', 'phase', 'scope_revision'))) { return }
-    $allowed = @('task_id', 'phase', 'scope_revision', 'intent', 'size', 'route', 'edit_ops', 'target_id', 'profile_id', 'seed_paths', 'read_paths', 'write_paths', 'editor_md_paths', 'evidence', 'risks', 'uncertain', 'validation', 'plan', 'goal', 'implement_round', 'verify_feedback', 'parent_task_id', 'resume_task_id', 'parked', 'parked_by', 'knowledge_used', 'knowledge_gap')
+    $allowed = @('task_id', 'phase', 'scope_revision', 'intent', 'size', 'route', 'edit_ops', 'target_id', 'profile_id', 'seed_paths', 'read_paths', 'write_paths', 'editor_md_paths', 'evidence', 'risks', 'uncertain', 'validation', 'plan', 'goal', 'implement_round', 'verify_feedback', 'parent_task_id', 'resume_task_id', 'parked', 'parked_by')
     foreach ($p in $Obj.PSObject.Properties.Name) {
         if ($allowed -notcontains $p) { Add-CheckError $State 'SCOPE_JSON' ($Rel + ' unknown field ' + $p) }
     }
@@ -141,7 +142,7 @@ function Test-CurrentScopeJson([hashtable]$State, [string]$Rel, $Obj, $ContractF
     }
     if ($phase -eq 'idle') {
         if ([int]$Obj.scope_revision -ne 0) { Add-CheckError $State 'SCOPE_JSON' ($Rel + ' idle scope_revision must be 0') }
-        foreach ($extra in @('intent', 'size', 'route', 'edit_ops', 'seed_paths', 'read_paths', 'write_paths', 'editor_md_paths', 'evidence', 'risks', 'uncertain', 'validation', 'plan', 'goal', 'implement_round', 'verify_feedback', 'parent_task_id', 'resume_task_id', 'parked', 'parked_by', 'knowledge_used', 'knowledge_gap')) {
+        foreach ($extra in @('intent', 'size', 'route', 'edit_ops', 'seed_paths', 'read_paths', 'write_paths', 'editor_md_paths', 'evidence', 'risks', 'uncertain', 'validation', 'plan', 'goal', 'implement_round', 'verify_feedback', 'parent_task_id', 'resume_task_id', 'parked', 'parked_by')) {
             if ($Obj.PSObject.Properties.Name -contains $extra) { Add-CheckError $State 'SCOPE_JSON' ($Rel + ' idle must omit ' + $extra) }
         }
         return
@@ -235,13 +236,12 @@ function Test-TargetJson([hashtable]$State, [string]$Rel, $Obj, [string]$ExpectI
     if (-not (Test-Path -LiteralPath ([string]$Obj.workspace_path))) { Add-CheckError $State 'TARGET_JSON' ($Rel + ' workspace_path missing') }
 }
 
-function Test-CardsIndex([hashtable]$State, [string]$WorkspaceRoot) {
-    $rel = 'cards/_index.md'; $path = Join-Path $WorkspaceRoot $rel
-    if (-not (Test-Path -LiteralPath $path)) { Add-CheckError $State 'CARDS' $rel; return }
-    $text = Get-Content -LiteralPath $path -Raw -Encoding UTF8
-    foreach ($m in [regex]::Matches($text, '\]\(\./([^)]+\.md)\)')) { if (-not (Test-Path -LiteralPath (Join-Path $WorkspaceRoot ('cards/' + $m.Groups[1].Value)))) { Add-CheckError $State 'CARDS' ($rel + ' link missing cards/' + $m.Groups[1].Value) } }
+function Test-StandardsIndex([hashtable]$State, [string]$WorkspaceRoot) {
+    $rel = 'standards/_index.md'; $path = Join-Path $WorkspaceRoot $rel
+    if (-not (Test-Path -LiteralPath $path)) { Add-CheckError $State 'STANDARDS' $rel; return }
+    foreach ($m in [regex]::Matches((Get-Content -LiteralPath $path -Raw -Encoding UTF8), '\]\(\./([^)]+)\)')) { if (-not (Test-Path -LiteralPath (Join-Path $WorkspaceRoot ('standards/' + $m.Groups[1].Value)))) { Add-CheckError $State 'STANDARDS' ($rel + ' link missing ' + $m.Groups[1].Value) } }
+    $cards = (Get-ChildItem -LiteralPath (Join-Path $WorkspaceRoot 'standards') -Filter '*.md' -File | Where-Object { $_.Name -notlike '_*' } | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw -Encoding UTF8 }) -join "`n"
     Get-ChildItem -LiteralPath (Join-Path $WorkspaceRoot 'profiles') -Filter '*.md' -File | Where-Object { $_.Name -notlike '_*' } | ForEach-Object {
-        $id = [System.IO.Path]::GetFileNameWithoutExtension($_.Name)
-        if ($text -notmatch ([regex]::Escape('`' + $id + '`'))) { Add-CheckError $State 'CARDS' ($rel + ' no card routes profile ' + $id) }
+        if ($cards -notmatch [regex]::Escape('profiles/' + $_.Name)) { Add-CheckError $State 'STANDARDS' ('no standards card names gate profiles/' + $_.Name) }
     }
 }

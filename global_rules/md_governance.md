@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-14 23:40 UTC+8
-> 版本号：1.7.0
+> 最新修改时间：2026-10-15 10:40 UTC+8
+> 版本号：1.8.0
 > 文档状态：生效
 > 读取等级：L1（创建、迁移、重命名、删除 Markdown 或改版头/章节时必读）
 
@@ -25,13 +25,13 @@
 | 文类 | 路径 | 写什么 |
 |---|---|---|
 | 硬约束 | `AGENTS.md` | 短规则 |
-| 导航 | `project_index.md`、`project_pipeline.md`、`*/_index.md` | 路径、读取时机、用户管线 |
+| 导航 | `project_index.md`、`*/_index.md` | 路径、读取时机；用户流程图在 `project_index.md` 末节 |
 | 文档法 | 本文件 | 如何写 md |
 | 键值预算 | `kv_budget.md` | 三种状态文件的键 |
 | 游标 / 门禁 / 契约 | `project_cursor.md`、`profiles/`、`contracts/current.md` | 现在 / 模块写入门禁（脚本读） / 这一单 |
-| 知识卡 | `cards/<module_id>.md`、`cards/pitfalls.md` | 模块怎么转、坑、验证；跨模块通用坑。按 `cards/_template.md` 六节，每卡目标约 80 行 |
+| 知识卡 | `standards/<模块>.md` | 速览 / 怎么运转 / 坑和不变量 / 怎么验证四节，约 80 行；格式与跨模块的坑见 `standards/_index.md` |
 | JSON 数据 | `contracts/current_scope.json`、`targets/` | 阶段、路径、证据、编辑目标 |
-| 账 / 审计 / 归档 | `standards/records/`、`standards/audit/`、`archive/` | 收口账；授权痕迹；退役文件只读 |
+| 账 / 审计 | `standards/records/`、`standards/audit/` | 收口账；授权痕迹 |
 
 # 2. 章节、篇幅与最小读取
 
@@ -39,7 +39,7 @@
 
 | 规则 | 要求 |
 |---|---|
-| 最小 | 正好包含 `# 0. 职责定位` 与最后一个 `# N. 版本历史`（至少 2 个一级标题）。`project_cursor.md`、`contracts/current.md`、`contracts/candidates/_index.md` 不设版本历史 |
+| 最小 | 正好包含 `# 0. 职责定位` 与最后一个 `# N. 版本历史`（至少 2 个一级标题）。知识卡 `standards/<模块>.md` 例外：首节为 `# 0. 速览`，不设版本历史（版头版本号照常）。`project_cursor.md`、`contracts/current.md`、`contracts/candidates/_index.md` 不设版本历史 |
 | 上限 | 一级标题总数 **≤ 8**（含 #0 与版本历史，即中间最多 6 节） |
 | 中间节 | 一节一事；不为和其他文件对齐而空号 |
 | 禁止重复 | 同一事实只出现在一个一级标题下；`# 0` 已写的职责/非职责不要再开「说明」「概述」「注意」节 |
@@ -108,8 +108,8 @@
 
 # 5. 版本历史
 
+- 1.8.0（2026-10-15）：知识卡收回 `standards/`，卡片不设版本历史；删 project_pipeline.md 与 archive。
 - 1.7.0（2026-10-14）：登记 `cards/` 知识卡文类；`standards/` 只留收口账与审计；`archive/` 只读。
 - 1.6.1（2026-10-13）：进度不写进状态文件，收口账另记。
 - 1.6.0（2026-10-13）：游标、活契约、候选索引不写版本历史。
 - 1.5.1（2026-09-14）：文类登记 `project_pipeline.md`。
-- 1.5.0（2026-09-12）：登记 JSON 命名；机检改走 etctl。

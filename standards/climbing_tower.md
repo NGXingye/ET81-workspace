@@ -1,13 +1,15 @@
-> 最新修改时间：2026-10-14 23:40 UTC+8
-> 版本号：1.0.0
+> 最新修改时间：2026-10-15 10:40 UTC+8
+> 版本号：1.1.0
 > 文档状态：生效
 > 读取等级：L1（关键词命中爬塔 / TowerView / 任务栏 / TowerWinView 时读取）
 
-# 0. 职责定位
+# 0. 速览
 
 > 速览：爬塔的 YIUI 界面（关卡分页、楼梯背景、主界面任务栏、胜利界面）加上客户端与服务端同一套的层解锁三闸和爬塔 GM。
 > 最大风险：手改 Gen / 运行时改预制体布局被 YIUI 数据绑定覆盖，以及只改客户端被服务端记账拒绝。
 > 做对的标准：第一页右下为第 1 层、两端滑动卡死；任务栏显示「已击杀/总数」；锁提示与服务端判定一致。
+>
+> 门禁：`profiles/climbing_tower.md`
 
 # 1. 怎么运转
 
@@ -28,20 +30,6 @@
 - PlayerData 不是 IHLSData，NotifySyncData 帧末会丢；进度写入走 Pack + M2C_SyncData 直推并 DBSave。新号进主线图会把 MaxStoryRaidId 写成当前 raidId（常为 1）。（GM 进度与三闸未验证）
 - GM 页签 `EGMType.ClimbingTower=13`（12 已被机械臂占用）；ServerGM 目录只加爬塔命令。GM 第二次打开同一胜利界面时点道具高亮不稳定（已知未收口）。
 
-# 3. 边界
-
-- 门禁：`profiles/climbing_tower.md`。
-- 可改：ClimbingTower 四件套、Main 任务栏手写文件、服务端 Tower、红点、爬塔 GM 与编辑器抽屉。
-- 禁碰：YIUI 插件、`Res/`、`Model/Generate/`、其它 GM 命令。
-
-# 4. 怎么验证
+# 3. 怎么验证
 
 第一页 1–5、第二页 6–10 有字；翻到第三组只有 Image_Bg 克隆；进关显示 0/b，杀一只 +1，total=0 的行不显示；倒计时归零离开；锁提示分「前置关卡 / 主线推图 / 前置任务」。
-
-# 5. 证据
-
-t007、t008、t009、t010、t018、t020、t021、t022、t023、t024。
-
-# 6. 版本历史
-
-- 1.0.0（2026-10-14）：由 profile climbing_tower 与 climbing_tower.json 合并提炼。

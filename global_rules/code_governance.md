@@ -1,4 +1,4 @@
-> 最新修改时间：2026-10-14 23:40 UTC+8
+> 最新修改时间：2026-10-15 10:40 UTC+8
 > 版本号：1.12.1
 > 文档状态：生效
 > 读取等级：L1（改 workspace 运行时或 trunk C# 前必读）
@@ -7,7 +7,7 @@
 
 本文件是代码读写的**全局门禁**。约束控制面运行时与 trunk C# 的读、写、SVN 更新/提交边界。
 
-不写 C# 命名、重构手法、业务文件行数；那些等第一个真实模块对着白名单源码再补。放置与验证见 [`../cards/framework.md`](../cards/framework.md)；路由见 [`../cards/_index.md`](../cards/_index.md)。
+不写 C# 命名、重构手法、业务文件行数；那些等第一个真实模块对着白名单源码再补。放置与验证见 [`../standards/framework.md`](../standards/framework.md)；路由见 [`../standards/_index.md`](../standards/_index.md)。
 
 # 1. 两棵树与工作副本
 

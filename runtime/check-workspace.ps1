@@ -6,7 +6,7 @@ $WorkspaceRoot = Split-Path -Parent $PSScriptRoot
 $State = New-CheckState
 
 $RequiredFiles = @(
-    'AGENTS.md', 'project_index.md', 'project_pipeline.md', 'project_cursor.md',
+    'AGENTS.md', 'project_index.md', 'project_cursor.md',
     'global_rules/_index.md', 'global_rules/md_governance.md', 'global_rules/kv_budget.md',
     'global_rules/code_governance.md', 'global_rules/runtime_code.md',
     'contracts/_index.md', 'contracts/_template.md', 'contracts/_template_scope.json',
@@ -14,13 +14,12 @@ $RequiredFiles = @(
     'contracts/current.md', 'contracts/current_scope.json', 'contracts/candidates/_index.md',
     'profiles/_index.md', 'profiles/_template.md', 'profiles/control.md',
     'standards/_index.md', 'standards/audit/source_import_record.md',
-    'standards/records/task_outcomes.jsonl', 'archive/_index.md',
-    'cards/_index.md', 'cards/_template.md', 'cards/pitfalls.md', 'cards/framework.md',
+    'standards/records/task_outcomes.jsonl', 'standards/framework.md',
     'runtime/_index.md', 'runtime/etctl.ps1', 'runtime/check-helpers.ps1',
     'runtime/check-workspace.ps1', 'runtime/begin-implement.ps1', 'runtime/promote.ps1',
     'runtime/interrupt.ps1', 'runtime/commit-units.py', 'runtime/check-commit-plan.py',
     'runtime/schema/current_scope.schema.json', 'runtime/schema/commit_plan.schema.json',
-    'runtime/schema/target.schema.json', 'runtime/schema/map_entry.schema.json',
+    'runtime/schema/target.schema.json',
     'targets/_index.md', 'targets/trunk.json', 'targets/SkillEditor.json',
     'targets/BridgeEditor.json', 'targets/ActionEditor.json',
     'active.code-workspace', '.cursor/rules/et81-cold-start.mdc', 'commit.cmd'
@@ -143,7 +142,7 @@ if (Test-Path -LiteralPath $ContractPath) {
     }
 }
 
-Test-CardsIndex $State $WorkspaceRoot
+Test-StandardsIndex $State $WorkspaceRoot
 
 $candDir = Join-Path $WorkspaceRoot 'contracts/candidates'
 if (Test-Path -LiteralPath $candDir) {

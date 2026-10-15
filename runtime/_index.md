@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-14 23:40 UTC+8
-> 版本号：2.22.0
+> 最新修改时间：2026-10-15 10:40 UTC+8
+> 版本号：2.23.0
 > 文档状态：生效
 > 读取等级：L1（新增或修改 runtime 下脚本前必读）
 
@@ -32,10 +32,10 @@
   副作用：写该索引。无 SVN。  
   非独立入口，由 `promote.ps1`、`interrupt.ps1`、`idle.ps1` dot-source。`.cursor/hooks/sync-candidate-index.ps1` 在候选 JSON 写入或删除后调用。机检调用其中的对照函数。
 - [`check-workspace.ps1`](./check-workspace.ps1)  
-  职责：机检实现（文档、游标、契约、JSON 范围、候选包、卡片索引、脚本登记与体积）。卡片索引检查：`cards/_index.md` 的链接都存在，且每个 `profiles/<id>.md` 都被某张卡登记。  
+  职责：机检实现（文档、游标、契约、JSON 范围、候选包、知识索引、脚本登记与体积）。知识索引检查：`standards/_index.md` 的链接都存在，且每个 `profiles/<id>.md` 都被某张 `standards/<模块>.md` 点名。  
   副作用：无。非独立入口，由 `etctl.ps1 check` 调用。
 - [`check-helpers.ps1`](./check-helpers.ps1)  
-  职责：机检函数库（版头、键值、行数、JSON、基线 Unity 版本（读 `cards/framework.md`）、候选包、卡片索引）。  
+  职责：机检函数库（版头、键值、行数、JSON、基线 Unity 版本（读 `standards/framework.md`）、候选包、知识索引）。  
   副作用：无。非独立入口，由 `check-workspace.ps1`、`begin-implement.ps1`、`promote.ps1`、`interrupt.ps1` dot-source。
 - [`commit-units.py`](./commit-units.py)  
   职责：命令行列出每笔，输入编号回车提交，已提交变灰并留在窗口。`--unit` 只交点名的那一笔。未入库路径先 `svn add`，说明写入 UTF-8 文件再 `svn commit -F --encoding utf-8`。  
@@ -54,16 +54,14 @@
 - [`schema/target.schema.json`](./schema/target.schema.json)  
   职责：`targets/<id>.json` 的字段契约。
 - [`schema/current_scope.schema.json`](./schema/current_scope.schema.json)  
-  职责：活卡 scope 与候选分析包的字段契约（候选另需 `goal`）。可选 `knowledge_used` / `knowledge_gap`（字符串数组）记录查卡结果，idle 时清掉。
+  职责：活卡 scope 与候选分析包的字段契约（候选另需 `goal`）。
 - [`schema/commit_plan.schema.json`](./schema/commit_plan.schema.json)  
   职责：`contracts/commit_plan.json` 的字段契约。笔数以 10 为参考；一笔最多 8 个 `.cs`。`omitted` 记录不纳入的 Scripts 改动。
-- [`schema/map_entry.schema.json`](./schema/map_entry.schema.json)  
-  职责：代码地图一行的字段契约（keyword/prefer/avoid/trust）。原 `source_code_map.md` 已归档，暂无现役使用者。
 
 # 2. 版本历史
 
+- 2.23.0（2026-10-15）：知识索引改查 `standards/_index.md`；撤回 knowledge 字段；删除未使用的 map_entry schema。
 - 2.22.0（2026-10-14）：机检改查 `cards/_index.md` 路由与 profile 覆盖；scope 新增 `knowledge_used`、`knowledge_gap`。
 - 2.21.0（2026-10-13）：候选 JSON 写入或删除后，钩子重写候选行。
 - 2.20.0（2026-10-13）：`promote`、`interrupt`、`idle` 重写候选索引的候选行。
 - 2.19.0（2026-10-13）：提新活卡前，未交完的提交计划拒绝；交完则重置为空计划。
-- 2.18.0（2026-10-13）：`idle` 不再给契约写版本历史。

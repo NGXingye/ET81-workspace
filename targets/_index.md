@@ -1,11 +1,11 @@
-> 最新修改时间：2026-10-14 23:40 UTC+8
+> 最新修改时间：2026-10-15 10:40 UTC+8
 > 版本号：1.3.1
 > 文档状态：生效
 > 读取等级：L1（查找或新增编辑目标时读取）
 
 # 0. 职责定位
 
-本文件登记可被任务选中的编辑目标。每个目标一个 JSON，字段契约见 `runtime/schema/target.schema.json`。`target_id` 与磁盘目录名一致。知识在 `cards/`（框架与编辑器工程见 `cards/framework.md`）。走提交计划的目标才写 `hook_tasks`。
+本文件登记可被任务选中的编辑目标。每个目标一个 JSON，字段契约见 `runtime/schema/target.schema.json`。`target_id` 与磁盘目录名一致。知识在 `standards/`（框架与编辑器工程见 `standards/framework.md`）。走提交计划的目标才写 `hook_tasks`。
 
 # 1. 文件索引
 
