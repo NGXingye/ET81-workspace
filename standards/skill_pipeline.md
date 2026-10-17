@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-15 10:40 UTC+8
-> 版本号：1.1.0
+> 最新修改时间：2026-10-17 12:20 UTC+8
+> 版本号：1.4.1
 > 文档状态：生效
 > 读取等级：L1（关键词命中技能管线 / 轨迹页 / 构建 Timeline / 碰撞导出时读取）
 
@@ -27,11 +27,13 @@
 - 烘焙起点是减过根位移的逻辑出手点；场景红点是钉发射那一帧含根位移的位置，只给预览出发；蓝点（第 0 帧）不参与反解。曲线第 0 帧偏移为 0，X/Y 米、Z = 多出的前向米 / D。
 - 弹道 Key 只在主页创建；发射页只绑定磁盘已有的专用 Key 或当前类型的公共 Key（怪物 `ballistics_mCom_{Key}`、召唤物 `ballistics_pCom_{Key}`），确定设置不新建资产。一把 Key = 一条空间路径（D、左右、上下、曲线），飞行时间不在 Key 上；路径不同不能共用公共 Key。同一专用 Key 只有一个发射点是「编辑」，其余「复用」只读。
 - Override 是怪物共用的：只有动画行「刷新」、构建、导出碰撞时才写 `{prefab}.overrideController` 对应槽。碰撞导出按 Timeline 状态名找 `placeholder_{状态}`，不用管线选中的 clip。
-- 近战（LaunchType.Damage）：可不选发射物，但必须钉出手点，否则不写近战片段；碰撞只烘盒子的偏移和缩放（按 30fps 写入已有碰撞资产，没有要先导出）；未烘焙的关键帧重载会丢。Life=0 表示不销毁，playable 至少 1/30 秒。
+- 近战（LaunchType.Damage）：可不选发射物，但必须钉出手点，否则不写近战片段；碰撞只烘盒子的偏移和缩放（按 30fps 写入已有碰撞资产，没有要先导出）。重载时多帧不一致或首帧 pos 非零要保留烘焙，只有全帧相同且首帧在原点才落成默认盒。烘焙在首键之前、末键之后保持该键，末键若是恢复默认的小盒，后段会一直是小盒。Life=0 表示不销毁，playable 至少 1/30 秒。
+- 发射页 HasBox 为假：不导出这份碰撞，不用默认尺寸再顶一份盒子。为真才导出。（未验证）
 - 预览：MotionClip 只给弹道根位移和时长；发射物预览动画用 PreviewClip。发射物根放在路径上再把蒙皮底面中心拉到该点，不改动画 RootT。
 - `DamageParameters.radius`（运行时球形触发器）与绿色盒子（`skill_{id}_colliderdata`）是两套，互不读取。
 - 碰撞导出读 `csvdemo/*.bytes`：骨架 = MonsterSkillConfig.MonsterId → MonsterScalingLevelConfig.PrefabName；csvdemo 过期会「无法生成角色模型」。变体 N≥2 没配 launchPoint 时回退变体1形状、按当前 Timeline 烘发射点并弹提示。
 - 编辑器里不用 `GlobalConfig.instance`（会碰 GameManager 单例），只 `AssetDatabase` 读 globalconfig.asset；App.Comm 不能引用 Editor 程序集（如 SkillTimelineVariantUtil、MonsterPetConfigCsvReader）；`SkillPipelineActorKind` 必须 public。
+- 动画面每行的根运动开关写入该行缓存。转技能树用当前行，不看 Timeline 片段上的 applyRootMotion。
 - 单文件拆分 / 合并按 `global_rules/code_governance.md` §5「本地工具代码」。
 - 旧弹道窗 `BallisticPathEditorWindow` 保持 IMGUI，不整窗 Odin 化；csvdemo `.bytes` 只读不写回；管线任务对 `ControlColliderCS` 只反射调用。
 

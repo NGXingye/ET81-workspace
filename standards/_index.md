@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-15 10:40 UTC+8
-> 版本号：5.0.0
+> 最新修改时间：2026-10-17 12:20 UTC+8
+> 版本号：5.3.0
 > 文档状态：生效
 > 读取等级：L1（每轮 /implement 开头、报错或新需求出现时按关键词路由）
 
@@ -12,8 +12,8 @@
 # 1. 卡片索引
 
 - [`framework.md`](./framework.md) — trunk ET8.1 框架与四个编辑器工程。关键词：框架、Core、Loader、Fiber、程序集、asmdef、放置、Generate、YIUI 落点、编译、验证、Combat、Numeric、背包、Quest、HLS。
-- [`skill_sync.md`](./skill_sync.md) — SkillEditor → Bridge 转化 → trunk Config 的本机同步与 SVN 提交。关键词：SkillSync、资源同步、转化到本地、预检叠入、提交原料、提交配置、ConfigET、资源对照、只转轨迹、Headless、job.json、task:15、task:32、E165001、timeline svn、playable 提交、external。
-- [`skill_pipeline.md`](./skill_pipeline.md) — SkillEditor 本地技能管线（一页管线、轨迹页、构建 Timeline、近战、碰撞导出）。关键词：技能管线、技能构建管线、SkillPipeline、弹道轨迹页、发射页、钉发射、构建 Timeline、调整 Timeline、召唤物、近战、Life、显示碰撞体、公共弹道、初始化为公共ID、弹道 Key、导出碰撞体、colliderdata、Launch Points Dict、launchPointsDict、csvdemo、变体、placeholder、Override。
+- [`skill_sync.md`](./skill_sync.md) — SkillEditor → Bridge 转化 → trunk Config 的本机同步与 SVN 提交。关键词：SkillSync、资源同步、转化到本地、转包围盒、SpellShape、HasBox、触发层级遮罩、BTCastShape、预检叠入、提交原料、提交配置、ConfigET、资源对照、只转轨迹、Headless、job.json、task:15、task:32、E165001、timeline svn、playable 提交、external。
+- [`skill_pipeline.md`](./skill_pipeline.md) — SkillEditor 本地技能管线（一页管线、轨迹页、构建 Timeline、近战、碰撞导出）。关键词：技能管线、技能构建管线、SkillPipeline、弹道轨迹页、发射页、HasBox、钉发射、构建 Timeline、调整 Timeline、召唤物、近战、Life、显示碰撞体、公共弹道、初始化为公共ID、弹道 Key、导出碰撞体、colliderdata、Launch Points Dict、launchPointsDict、csvdemo、变体、placeholder、Override。
 - [`ballistic.md`](./ballistic.md) — 弹道全链：SkillEditor 弹道作者面、Copy 转换、trunk 飞行、弹体二阶段。关键词：弹道、BallisticConfig、BallisticCopy、OffsetPositions、Directional、D、animDistance、useAnimDistance、视觉贴附、拉扯、枪口表、LaunchPoint、诡弹、红点、出生点、定点延迟、轨迹进度、二阶段、寿命结束、BTDelaySpellUnitAtPos、2000175、2000010、海豹头球。
 - [`skill_spec.md`](./skill_spec.md) — 技能流水线方向卡（目标、不变原则、覆盖范围、补丁清单）。关键词：技能规格、规格、补丁清单、转化器、零手改、回归样本、手改出口。
 - [`monster_ai.md`](./monster_ai.md) — 怪物 AI、BuffVM 技能图、召唤/孵化/被动死亡、受击 Buff 四槽。关键词：怪物、AI、current 为空、CharacterType、DetectionRange、ChaseRange、attack_range、min_attack_range、DistanceTrigger、MonsterSkillConfig、BuffVM、BTRepeat、OnExit、AlreadyRate、攻击圈、召唤、孵化、脱离母体、被动死亡、BindPoint、受击特效、SpellHitActionAddBuff、BuffId_2、2000182、100282、2000178。
@@ -42,6 +42,8 @@
 
 # 4. 版本历史
 
+- 5.3.0（2026-10-17）：登记 `skill_spec` 方向卡。
+- 5.2.0（2026-10-16）：`skill_sync` / `skill_pipeline` 关键词补 HasBox、触发层级遮罩、BTCastShape。
+- 5.1.0（2026-10-15）：`skill_sync` 关键词补转包围盒、SpellShape。
 - 5.0.0（2026-10-15）：知识卡从 `cards/` 收回本目录（平铺）；本文兼任路由与跨模块的坑；删除 archive。
 - 4.0.0（2026-10-14）：模块知识全量提炼进 `cards/`；旧 JSON 归档。
-- 3.34.0（2026-10-13）：收口账改为一个任务号一行。

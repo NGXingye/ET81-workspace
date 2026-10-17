@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-15 10:40 UTC+8
-> 版本号：1.1.0
+> 最新修改时间：2026-10-17 11:51 UTC+8
+> 版本号：1.2.0
 > 文档状态：生效
 > 读取等级：L1（关键词命中根运动 / 技能无位移 / 姿态维持时读取）
 
@@ -27,6 +27,7 @@
 - Inspector「启用根运动」要独立勾选；bool 与 `ShowIf` 放同一 BoxGroup 会被 Odin 整组藏掉。
 - 烘焙器对纯位移攻击报 yaw≈0 红字是误报；总位移为 0 的攻击片段（转圈只在骨骼）SetRootMotion 也不会转单位。
 - 出手姿态维持到主 Buff 结束：`SpellConfig.AttackPoseFollowsBuff`（不在 BuffConfig），施法成功后等主 Buff 的 EntityRef 失效再清 UState.Attack；尾段短于后摇时姿态会先掉。
+- 未勾该开关时，UState.Attack 按主 Buff 的 Duration 落下，不跟 01/02 的寿命。短于当前动作会提前放开位移和动画层，客户端动画重置并滑步；把导弹飞行算进时长会罚站。00 到期不连带清 01/02（子 Buff 没有 ParentRemoveRemove）。（未验证）
 - 不改 Animator.applyRootMotion=false 的全局约定。
 
 # 3. 怎么验证
