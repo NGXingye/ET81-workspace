@@ -32,7 +32,7 @@
 - `DamageParameters.radius`（运行时球形触发器）与绿色盒子（`skill_{id}_colliderdata`）是两套，互不读取。
 - 碰撞导出读 `csvdemo/*.bytes`：骨架 = MonsterSkillConfig.MonsterId → MonsterScalingLevelConfig.PrefabName；csvdemo 过期会「无法生成角色模型」。变体 N≥2 没配 launchPoint 时回退变体1形状、按当前 Timeline 烘发射点并弹提示。
 - 编辑器里不用 `GlobalConfig.instance`（会碰 GameManager 单例），只 `AssetDatabase` 读 globalconfig.asset；App.Comm 不能引用 Editor 程序集（如 SkillTimelineVariantUtil、MonsterPetConfigCsvReader）；`SkillPipelineActorKind` 必须 public。
-- 单文件软上限 500、硬顶 600 行，超限只拆私有方法。
+- 单文件拆分 / 合并按 `global_rules/code_governance.md` §5「本地工具代码」。
 - 旧弹道窗 `BallisticPathEditorWindow` 保持 IMGUI，不整窗 Odin 化；csvdemo `.bytes` 只读不写回；管线任务对 `ControlColliderCS` 只反射调用。
 
 # 3. 怎么验证
