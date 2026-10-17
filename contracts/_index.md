@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-15 10:40 UTC+8
-> 版本号：1.13.0
+> 最新修改时间：2026-10-17 12:10 UTC+8
+> 版本号：1.14.0
 > 文档状态：生效
 > 读取等级：L1（查找开工契约时读取）
 
@@ -26,15 +26,15 @@
   读取时机：`project_cursor.md` 的 `contract_ref` 指向本文件时。
 - [`current_scope.json`](./current_scope.json)  
   职责：机读范围（phase、路径、证据、`plan`、`editor_md_paths`）。implement 工作令由 `etctl begin-implement` / `packet` 从此导出。  
-  读取时机：与 `current.md` 同时；`/implement` 只消费命令 stdout，不要为开工手改本文件。
+  读取时机：与 `current.md` 同时；`/implement` 只消费命令 stdout，不要为开工手改本文件；同一 goal 下补需求按 `implement.md`「补活卡」只追加。
 - [`candidates/_index.md`](./candidates/_index.md)  
   职责：未开工分析包（最多 2）。活卡 idle 后用户点名 `etctl promote <task_id>`。热插队由 `etctl interrupt` 把活卡勾进本目录（可含 implement）。  
   读取时机：活卡占用时新开分析窗口。
 
 # 2. 版本历史
 
+- 1.14.0（2026-10-17）：`current_scope.json` 可按补活卡增量追加。
 - 1.13.0（2026-10-15）：撤回 `knowledge_used` / `knowledge_gap`。
 - 1.12.0（2026-10-14）：分析包模板加 `knowledge_used` / `knowledge_gap`。
 - 1.11.0（2026-10-13）：笔数为软参考；一笔最多 8 个 `.cs`。
 - 1.10.0（2026-10-13）：提交计划上限改为 10 笔。
-- 1.9.0（2026-10-13）：登记提交计划模板。
