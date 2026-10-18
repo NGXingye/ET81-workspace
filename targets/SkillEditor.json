@@ -7,7 +7,10 @@
   "forbidden": ["Library/", "Logs/", "Temp/"],
   "local_only": [
     "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/",
-    "Assets/Scripts/App/Comm/EditorTools/SkillSync/"
+    "Assets/Scripts/App/Comm/EditorTools/SkillSync/",
+    "Assets/Scripts/App/Comm/EditorTools/BallisticPathBake.cs",
+    "Assets/Scripts/App/Comm/EditorTools/BallisticPathEditorWindow.cs",
+    "Assets/Scripts/App/Comm/EditorTools/DirectionalPathPreviewBinder.cs"
   ],
   "validation": {},
   "hook_tasks": [
