@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-17 11:51 UTC+8
-> 版本号：1.5.0
+> 最新修改时间：2026-10-18 13:20 UTC+8
+> 版本号：1.5.1
 > 文档状态：生效
 > 读取等级：L1（关键词命中 SkillSync / 转化 / 提交原料或配置时读取）
 
@@ -27,7 +27,7 @@ SkillEditor 管线输出格 → 预检叠入（提交原料：timeline + collide
 - 改或建弹道 Key 前先 `svn update` SkillEditor 的 globalconfig.asset，只改索引那一行，由预检同笔提交；转行为树前在 EditorAssetsComm 拉同一份。近战和召唤不提交轨迹和 globalconfig。（未验证）
 - 顺序固定：原料 → 转化 → 配置 → 对齐 ConfigET。转化必须在预检成功之后；原料仍有 diff 时配置钮禁用；ConfigET 只在配置提交成功后对齐，不与 trunk 同批提交。
 - 预检会对磁盘已删的旧变体做 `svn delete`；Headless 只按精确后缀导入 `skill_{id}` 与 `skill_{id}_N`，避免长 ID 前缀误伤。
-- 本地专用文件永不 `svn add`：`SkillSync/`、`SkillPipeline/`（父目录 svn:ignore 两者都要有）、`SkillSyncHeadless`、`SkillPipelineBridge`、`SkillPipelineShapeSign`。
+- 本地专用以 svn 忽略为准：本机 global-ignores（`%APPDATA%\Subversion\config` 的 `[miscellany]`）加 SkillEditor `EditorTools/` 目录的 svn:ignore（SkillPipeline、SkillSync）。新加本地工具文件同单补进本机 global-ignores；`svn status --no-ignore` 显示 `I` 才算生效，`commit-units.py` 遇 `I` 拒绝 add。
 - 转化不切到 Bridge 点确定，不开 SkillSyncJobWindow；引擎不能拷进 SkillEditor（SkillEditor 没有 SpellConfig）。
 - Unity 对象取名先用 `!= null` 判空，不用 `?.name`（见 `_index.md` 跨模块的坑）；角色受击槽挂地面特效是合法数据，不能让转化中断；两条发射物按 effectPrefab 名分开。
 - 共享窗口：`vfxmodel_c_projectile_{N}` 的 SpellUnit Id N 被别的 Prefab 占用时 `PrepareSpellUnitConfig` 抛错，整次 Convert 取消、不覆盖。本地转技能树不写 SpellUnit，不受影响。本地转包围盒以这个名字为权威：只移开这一份旧资产再写，写完放回，控制台提示手删，不因此失败。移开时不要 `AssetDatabase.Refresh()` 整库，否则 Bridge 卡死、`result.json` 写不出。

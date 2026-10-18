@@ -70,6 +70,10 @@ def add_unversioned(root, paths):
         info = subprocess.run(["svn", "info", rel], cwd=str(root), capture_output=True, text=True, encoding="utf-8", errors="replace")
         if info.returncode == 0:
             continue
+        # svn add 会无视忽略规则强行加入；本地专用文件以 svn 忽略为准，遇 I 就拒绝
+        st = run_svn(root, ["status", "--no-ignore", "--depth", "empty", rel]).stdout
+        if st[:1] == "I":
+            raise SystemExit("local-only path is svn-ignored, refuse add: " + rel)
         run_svn(root, ["add", "--parents", rel])
 
 

@@ -5,7 +5,7 @@
 
 # 0. 职责定位
 
-本文件只保存模块 `skill_sync` 的机器门禁（`allowed_write` 等键），由 `runtime/guard.ps1`、`begin-implement` 读取。怎么运转、坑和验证见 [`standards/skill_sync.md`](../standards/skill_sync.md)。不在这里写行为事实。
+本文件只保存模块 `skill_sync` 的门禁键。脚本只读 `allowed_write` 是否为 `workspace_only`（guard）；实际可写以活卡 `write_paths` 为准，其余键给人核对范围。本地专用文件以 svn 忽略为准，不在这里列。怎么运转、坑和验证见 [`standards/skill_sync.md`](../standards/skill_sync.md)。不在这里写行为事实。
 
 # 1. 模块字段
 
@@ -14,7 +14,7 @@
 - `profile_status`：`draft`
 - `allowed_write`：`Assets/Scripts/App/Comm/EditorTools/SkillSync/; Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineWindow.cs; Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineTableView.cs; Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineBallisticAssets.cs; Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineBallisticKeys.cs; Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineTrajectoryPage.cs; Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineLaunchPose.cs; Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineTrajectoryPreview.cs; C:/myProject/BridgeEditor/Assets/Scripts/Editor/SkillSyncHeadless.cs; C:/myProject/BridgeEditor/Assets/Scripts/Editor/SkillPipelineBridge.cs; C:/myProject/BridgeEditor/Assets/Scripts/Editor/SkillPipelineShapeSign.cs; C:/myProject/BridgeEditor/Assets/Scripts/Editor/SpellConversion/; Assets/Scripts/App/Comm/Battle/Scripts/TimelineTracks/Battle/PlayAnimation/PlayAnimationBehaviour.cs`
 - `allowed_read`：`Assets/Scripts/App/Comm/EditorTools/SkillPipeline/; Assets/Resources/timeline/skills; Assets/collider/`
-- `extra_forbidden`：`svn add SkillSync; svn add SkillSyncHeadless; svn add SkillPipelineBridge; svn add SkillPipelineShapeSign; Assets/Scripts/App/Comm/EditorTools/BallisticPathEditorWindow.cs; Assets/Editor/SkillEditor/SkillEditor2.cs; C:/myProject/BridgeEditor/Assets/Scripts/Editor/TimelineToSpellConverterV2.cs`
+- `extra_forbidden`：`Assets/Scripts/App/Comm/EditorTools/BallisticPathEditorWindow.cs; Assets/Editor/SkillEditor/SkillEditor2.cs; C:/myProject/BridgeEditor/Assets/Scripts/Editor/TimelineToSpellConverterV2.cs`
 
 # 2. 版本历史
 

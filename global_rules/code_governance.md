@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-16 22:55 UTC+8
-> 版本号：1.13.0
+> 最新修改时间：2026-10-18 13:20 UTC+8
+> 版本号：1.14.0
 > 文档状态：生效
 > 读取等级：L1（改 workspace 运行时或 trunk C# 前必读）
 
@@ -30,7 +30,7 @@
 1. discovery 或改 runtime：读本文件与当前契约、`current_scope.json`、模块配置（若有）。`/implement` 以 `etctl begin-implement` 的 stdout 为准，不要为开工重读本文件。
 2. 改源码按 [`.cursor/commands/implement.md`](../.cursor/commands/implement.md)。禁止对目标工程全树搜索。禁止读 runtime 源码。
 3. 运行时：只打开 `runtime/_index.md` 已登记文件。
-4. 仅当 `write_paths` 非空、`allowed_write` 不是 `workspace_only`，且契约为 `active` 或（`route=fast` 且用户已授权）时，按 §3 对 `write_paths` 做 `svn update`；失败则停止。其它 discovery 禁止 svn update。
+4. 仅当 `write_paths` 非空、`allowed_write` 不是 `workspace_only`，且契约为 `active` 或（`route=fast` 且用户已授权）时，按 §3 对 `write_paths` 做 `svn update`；status 为 `?`、`I` 的本地路径与 `add_file` 新文件不做 update，不算失败；其余失败则停止。其它 discovery 禁止 svn update。
 5. 再改文件。源码树内的写入须通过 `etctl guard <path>`（规则在 `runtime_code.md`）。Cursor 钩子会代跑，不通过则写不进去。
 6. `powershell -File runtime/etctl.ps1 check`。
 7. 同步地图、`runtime/_index.md` 或 `targets/`（若路径/脚本/目标集合变了）。
@@ -77,16 +77,8 @@ C# 细规未定时：只改白名单内现有文件或按基线放置新建；�
 
 # 5. 本地工具代码
 
-适用：SkillPipeline、SkillSync、Bridge 本地编辑器工具等本机工具代码。以下阈值都是软参考。
+本地工具代码（SkillPipeline、SkillSync、Bridge 本地编辑器工具）的拆 / 合 / 不动、注释与文件职责表见 [`../standards/code_structure.md`](../standards/code_structure.md)。本地专用文件以 svn 忽略为准（见 [`../standards/skill_sync.md`](../standards/skill_sync.md)），`commit-units.py` 遇 `I` 拒绝 add。
 
-- **原则**：改到哪、整理到哪。只处理本次 `write_paths` 里的文件，不顺手重构无关部分，不单独开大重构。
-- **拆的信号**（满足两条以上）：约 1200 行以上且仍在增长；混着两件以上不相干的事；改一个功能要在同文件多处不相关位置来回改；几乎每次需求都改它。
-- **合的信号**（一条即可考虑）：约 150 行以下且只有一处调用；几个小文件总是一起改；只是转手的壳。
-- **不动**：大但职责单一、很少改；本次没碰到。
-- **粒度**：一件事一个文件，拆出文件宜 300–1000 行，避免碎片。优先用 partial 类按职责分文件，对外接口不变；新功能优先放新文件，沿用现有命名。
-- **步骤**：先挪后改——纯移动、行为不变、编译通过后再加新功能。拆出的新文件要在白名单内，必要时按现有流程扩 `write_paths` / profile。
-- **注释**：文件头 3–5 行（负责什么、不负责什么、上下游）；方法内只写「为什么」，不写「做了什么」；坑类注释可指向 `standards/` 卡片，不重复长篇；不要求每个方法都写。改到的无头注释文件顺手补头注释。
-- **定位**：对应卡片「怎么运转」维护简短的文件职责表（一文件一行），拆合后收割时补一行。
 # 6. 违规处置
 
 | 违规 | 只允许 |
@@ -102,8 +94,8 @@ C# 细规未定时：只改白名单内现有文件或按基线放置新建；�
 
 # 7. 版本历史
 
+- 1.14.0（2026-10-18）：本地工具代码规则移到 `standards/code_structure.md`；`?`、`I` 本地路径与新文件不做 update。
 - 1.13.0（2026-10-16）：新增「本地工具代码」：拆 / 合 / 不动的软信号、先挪后改、注释与文件职责表。
 - 1.12.1（2026-10-14）：放置与路由改链到 `cards/`。
 - 1.12.0（2026-10-13）：提交工单号改取目标上的 `hook_tasks`。
 - 1.11.0（2026-10-13）：写权限与 svn 基准改链到 `AGENTS.md`，开工步骤改链到 `/implement`。
-- 1.10.0（2026-10-13）：源码树写入须通过 `etctl guard`。
