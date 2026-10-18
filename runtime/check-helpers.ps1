@@ -224,18 +224,6 @@ function Test-CandidateJson([hashtable]$State, [string]$Rel, $Obj, [string]$Expe
     Test-CurrentScopeJson $State $Rel $Obj $null $WorkspaceRoot
 }
 
-function Test-TargetJson([hashtable]$State, [string]$Rel, $Obj, [string]$ExpectId) {
-    if (-not (Test-RequiredJsonProps $State 'TARGET_JSON' $Rel $Obj @('target_id', 'display_name', 'workspace_path', 'vcs', 'editor'))) { return }
-    if ([string]$Obj.target_id -ne $ExpectId) { Add-CheckError $State 'TARGET_JSON' ($Rel + ' target_id must match file stem') }
-    if (@('svn', 'git') -notcontains [string]$Obj.vcs -or @('unity', 'other') -notcontains [string]$Obj.editor) { Add-CheckError $State 'TARGET_JSON' ($Rel + ' invalid vcs/editor') }
-    if ($Obj.PSObject.Properties.Name -contains 'hook_tasks') {
-        foreach ($h in @($Obj.hook_tasks)) {
-            if ([string]$h.id -notmatch '^\d+$' -or -not [string]$h.for) { Add-CheckError $State 'TARGET_JSON' ($Rel + ' hook_tasks need digit id and for') }
-        }
-    }
-    if (-not (Test-Path -LiteralPath ([string]$Obj.workspace_path))) { Add-CheckError $State 'TARGET_JSON' ($Rel + ' workspace_path missing') }
-}
-
 function Test-StandardsIndex([hashtable]$State, [string]$WorkspaceRoot) {
     $rel = 'standards/_index.md'; $path = Join-Path $WorkspaceRoot $rel
     if (-not (Test-Path -LiteralPath $path)) { Add-CheckError $State 'STANDARDS' $rel; return }

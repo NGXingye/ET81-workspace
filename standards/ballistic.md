@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-15 10:40 UTC+8
-> 版本号：1.1.0
+> 最新修改时间：2026-10-18 17:52 UTC+8
+> 版本号：1.1.1
 > 文档状态：生效
 > 读取等级：L1（关键词命中弹道 / Copy / 枪口 / 定点延迟 / 二阶段时读取）
 
@@ -29,7 +29,7 @@
 - 枪口表按开火 Buff 的 AlreadyRate 采样（子 Buff 继承父的 AlreadyRate）；开火层 Duration 必须 = `1000 × 挂点总帧 / 采样帧率`，不要把表垫到 Timeline 帧数。排队用的等待若推进相位，后续开火会从动画中段取枪口。
 - 骨架挂点轨道按 `RootMotionComponent.motionType` 现取，动作切换后还在飞的子弹会跟新轨道。
 - 二阶段：轨迹未 Awake / startTimeStamp=0 / totalTime 无效时进度「不可读」，只盖章，不能当成 1。进度 1 与 Buff 到期同帧，必须在结束分支 DelayDispose 之前处理；找到节点后再置 fired；盖章时按剩余飞行 + LifeTimeMs 延长创建 Buff 与根 Buff。
-- 二阶段不新建技能体（重开动画会停顿一帧）；前面不要挂「等待轨迹结束」。客端寿命结束特效靠同步字段在移除/预测超时时补放，同配置同节点约 0.5 米 500ms 内只放一次；不改共用的 `50_ai` 超时。
+- 二阶段不新建技能体（重开动画会停顿一帧）；前面不要挂「等待轨迹结束」。客端寿命结束特效靠同步字段在移除/预测超时时补放，同配置同节点约 0.5 米 500ms 内只放一次；不改共用的 `50_ai` 超时，也不改 `Config/Spell/2000175-正步炸弹鸟-炸弹小鸟/` 的 200017501、200017504 两份行为树。
 - 二阶段动画沿用出生时的 Animator：拆轨迹动画组件再挂、交叉淡化一次；不走 AnimatorParamHelper，不调 `Animator.Update(0)`。
 - 怪物不走 ClampThrowPosAboveGround；SpellUnit 盒子有半高，Y 终点不扣会提前 OnHitGround。
 - 二阶段改动 trunk 与 BridgeEditor `ScriptsET` 成对改。

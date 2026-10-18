@@ -1,10 +1,11 @@
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('check', 'status', 'packet', 'begin-implement', 'promote', 'interrupt', 'guard', 'idle')]
+    [ValidateSet('check', 'status', 'packet', 'begin-implement', 'promote', 'interrupt', 'guard', 'idle', 'sync-ignores')]
     [string]$Command = 'check',
     [Parameter(Position = 1)]
     [string]$TaskId,
-    [switch]$Strict
+    [switch]$Strict,
+    [switch]$DryRun
 )
 $ErrorActionPreference = 'Stop'
 $RuntimeRoot = $PSScriptRoot
@@ -150,6 +151,10 @@ switch ($Command) {
             exit 1
         }
         & (Join-Path $RuntimeRoot 'guard.ps1') -Path $TaskId
+        exit $LASTEXITCODE
+    }
+    'sync-ignores' {
+        & (Join-Path $RuntimeRoot 'sync-svn-ignores.ps1') -DryRun:$DryRun
         exit $LASTEXITCODE
     }
     'idle' {

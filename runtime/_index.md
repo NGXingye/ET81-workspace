@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-15 10:50 UTC+8
-> 版本号：2.24.0
+> 最新修改时间：2026-10-18 17:53 UTC+8
+> 版本号：2.25.0
 > 文档状态：生效
 > 读取等级：L1（新增或修改 runtime 下脚本前必读）
 
@@ -12,11 +12,11 @@
 # 1. 文件索引
 
 - [`etctl.ps1`](./etctl.ps1)  
-  职责：运行时调度入口（`check`、`status`、`packet`、`begin-implement`、`promote`、`interrupt`、`guard`、`idle`）。  
-  副作用：无 SVN。`packet` 只读导出活卡工作令。`begin-implement` 只升活卡。`promote <task_id>` 仅 idle 时把候选写入活卡。`interrupt <task_id>` 把活卡勾进 candidates，新号升活卡。这两条和 `idle` 写完后重写候选索引的候选行。  
+  职责：运行时调度入口（`check`、`status`、`packet`、`begin-implement`、`promote`、`interrupt`、`guard`、`idle`、`sync-ignores`）。  
+  副作用：不调 svn；`sync-ignores` 只写本机 svn 配置（先备份）。`packet` 只读导出活卡工作令。`begin-implement` 只升活卡。`promote <task_id>` 仅 idle 时把候选写入活卡。`interrupt <task_id>` 把活卡勾进 candidates，新号升活卡。这两条和 `idle` 写完后重写候选索引的候选行。  
   入口：`powershell -File runtime/etctl.ps1 <command> [<task_id>]`
 - [`begin-implement.ps1`](./begin-implement.ps1)  
-  职责：把活卡升到 implement，再导出 packet。  
+  职责：把活卡升到 implement，再导出 packet。`write_paths` 越出 profile `allowed_write` 前缀时警告。  
   副作用：写游标、`current.md`、`current_scope.json`。无 SVN。  
   非独立入口，由 `etctl.ps1 begin-implement` 调用。
 - [`promote.ps1`](./promote.ps1)  
@@ -32,13 +32,20 @@
   副作用：写该索引。无 SVN。  
   非独立入口，由 `promote.ps1`、`interrupt.ps1`、`idle.ps1` dot-source。`.cursor/hooks/sync-candidate-index.ps1` 在候选 JSON 写入或删除后调用。机检调用其中的对照函数。
 - [`check-workspace.ps1`](./check-workspace.ps1)  
-  职责：机检实现（文档、游标、契约、JSON 范围、候选包、知识索引、脚本登记与体积）。知识索引检查：`standards/_index.md` 的链接都存在，且每个 `profiles/<id>.md` 都被某张 `standards/<模块>.md` 点名。  
+  职责：机检实现（文档、游标、契约、JSON 范围、候选包、知识索引、脚本登记与体积）。知识索引检查：`standards/_index.md` 的链接都存在，且每个 `profiles/<id>.md` 都被某张 `standards/<模块>.md` 点名。边界：目标 `local_only` 不在本机 svn global-ignores 里（`IGNORE_DRIFT`）、`write_paths` 越出 profile 前缀（`PROFILE_MENU`）时警告。  
   副作用：无。非独立入口，由 `etctl.ps1 check` 调用。
 - [`check-helpers.ps1`](./check-helpers.ps1)  
   职责：机检函数库（版头、键值、行数、JSON、基线 Unity 版本（读 `standards/framework.md`）、候选包、知识索引）。  
   副作用：无。非独立入口，由 `check-workspace.ps1`、`begin-implement.ps1`、`promote.ps1`、`interrupt.ps1` dot-source。
+- [`boundary.ps1`](./boundary.ps1)  
+  职责：边界函数库（目标 JSON 与 `local_only` 校验、本地专用名单、本机 svn `global-ignores` 解析、profile 前缀菜单比对）。`$script:ProfilePrefixStrict` 改为 `$true` 则越出前缀由警告变为拒绝。  
+  副作用：无。非独立入口，由 `check-workspace.ps1`、`begin-implement.ps1`、`sync-svn-ignores.ps1` dot-source。
+- [`sync-svn-ignores.ps1`](./sync-svn-ignores.ps1)  
+  职责：把所有目标 `local_only` 的文件名或目录名（连同 `.meta`）补进本机 `%APPDATA%\Subversion\config` 的 `global-ignores`（TortoiseSVN 同读）；已有记号保留，只补缺的。`-DryRun` 只打印差异。  
+  副作用：写该配置，写前备份为 `config.bak-<时间>`。不调 svn。  
+  非独立入口，由 `etctl.ps1 sync-ignores [-DryRun]` 调用。
 - [`commit-units.py`](./commit-units.py)  
-  职责：命令行列出每笔，输入编号回车提交，已提交变灰并留在窗口。`--unit` 只交点名的那一笔。未入库路径先 `svn add`，说明写入 UTF-8 文件再 `svn commit -F --encoding utf-8`。  
+  职责：命令行列出每笔，输入编号回车提交，已提交变灰并留在窗口。`--unit` 只交点名的那一笔。路径命中目标 `local_only`（含 `.meta`）直接拒绝；未入库路径遇 svn `I` 拒绝，否则先 `svn add`；说明写入 UTF-8 文件再 `svn commit -F --encoding utf-8`。  
   副作用：可 `svn add` 并 `svn commit` 该笔路径。无 `--all`。`--dry-run` 不提交。  
   入口：双击仓库根目录 `commit.cmd`。模型用 `py -3 runtime/commit-units.py --unit <id>`。窗口里 `r` 重新读取计划，`v` 验证 `Unity/Assets/Scripts` 是否还有漏提交或已标注文件。
 - [`idle.ps1`](./idle.ps1)  
@@ -60,8 +67,8 @@
 
 # 2. 版本历史
 
+- 2.25.0（2026-10-18）：新增 `boundary.ps1`、`sync-svn-ignores.ps1`（`etctl sync-ignores`）；commit-units 按 `local_only` 拒绝；机检与 begin-implement 加边界警告。
 - 2.24.0（2026-10-15）：`idle` 收口账超 125 行裁到 100 行，保留被引用的号。
 - 2.23.0（2026-10-15）：知识索引改查 `standards/_index.md`；撤回 knowledge 字段；删除未使用的 map_entry schema。
 - 2.22.0（2026-10-14）：机检改查 `cards/_index.md` 路由与 profile 覆盖；scope 新增 `knowledge_used`、`knowledge_gap`。
 - 2.21.0（2026-10-13）：候选 JSON 写入或删除后，钩子重写候选行。
-- 2.20.0（2026-10-13）：`promote`、`interrupt`、`idle` 重写候选索引的候选行。

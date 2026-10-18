@@ -3,6 +3,7 @@ $ErrorActionPreference = 'Stop'
 $RuntimeRoot = $PSScriptRoot
 $WorkspaceRoot = Split-Path -Parent $RuntimeRoot
 . (Join-Path $RuntimeRoot 'check-helpers.ps1')
+. (Join-Path $RuntimeRoot 'boundary.ps1')
 
 function Write-BeginError([string]$Msg) {
     [ordered]@{ ok = $false; error = $Msg } | ConvertTo-Json -Compress:$false
@@ -114,6 +115,10 @@ if ($needWrite) {
     if (-not $profileId -or $profileId -eq 'none') { Write-BeginError 'profile_id required to activate' }
     $pref = 'profiles/' + $profileId + '.md'
     if (-not (Test-Path -LiteralPath (Join-Path $WorkspaceRoot $pref))) { Write-BeginError ('missing ' + $pref) }
+    $menu = New-CheckState
+    Test-ProfileMenu $menu $WorkspaceRoot $scope $profileId
+    if ($menu.Errors.Count -gt 0) { Write-BeginError $menu.Errors[0] }
+    $menu.Warnings | ForEach-Object { Write-Warning $_ }
 
     $mode = [string]$contract['source_root_mode']
     if (-not $mode) { $mode = [string]$cursor['source_root_mode'] }

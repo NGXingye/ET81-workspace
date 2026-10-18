@@ -23,7 +23,7 @@ alwaysApply: false
 5. `standards/_index.md`：按 `active_profile` 与需求关键词命中 1–2 张卡，读其「速览」与「坑和不变量」；再扫文末「跨模块的坑」
 6. `target_id` 非 none：`targets/<id>.json`
 7. 仍缺框架事实：`standards/framework.md`
-8. `profiles/<id>.md` 是脚本门禁，只在判断能否写某路径时打开
+8. 选 `write_paths` 时打开 `profiles/<id>.md`：`allowed_write` 是目录前缀菜单，从中挑；越出须用户同意（`/harvest` 放宽），否则开工与机检会警告
 
 写权限见 `AGENTS.md`。discovery：活卡 idle 才写 `current_scope.json`；活卡非 idle 且本对话就是该 `task_id`，按 `implement.md`「补活卡」只追加；活卡非 idle 且本对话不是该 `task_id` 则写入 `contracts/candidates/<task_id>.json`（最多 2），禁止改 current。未选模块不打开业务源码，除非用户给了 seed。
 

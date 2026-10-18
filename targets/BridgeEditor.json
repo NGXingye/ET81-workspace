@@ -5,5 +5,14 @@
   "vcs": "svn",
   "editor": "unity",
   "forbidden": ["Library/", "Logs/", "Temp/"],
-  "validation": {}
+  "local_only": [
+    "Assets/Scripts/Editor/SkillPipelineBridge.cs",
+    "Assets/Scripts/Editor/SkillPipelineShapeSign.cs",
+    "Assets/Scripts/Editor/SkillPipelineCollisionBuff.cs",
+    "Assets/Scripts/Editor/SkillSyncHeadless.cs"
+  ],
+  "validation": {},
+  "hook_tasks": [
+    {"id": "15", "for": "技能 Timeline、碰撞体原料与编辑器脚本"}
+  ]
 }

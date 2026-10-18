@@ -2,6 +2,7 @@ param([switch]$Strict)
 $ErrorActionPreference = 'Stop'
 $WorkspaceRoot = Split-Path -Parent $PSScriptRoot
 . (Join-Path $PSScriptRoot 'check-helpers.ps1')
+. (Join-Path $PSScriptRoot 'boundary.ps1')
 . (Join-Path $PSScriptRoot 'candidate-index.ps1')
 $State = New-CheckState
 
@@ -139,6 +140,9 @@ if (Test-Path -LiteralPath $ContractPath) {
                 if ($want -ne $have) { Add-CheckError $State 'SOURCE_ROOT' ('must equal targets/' + $tid + '.json workspace_path') }
             }
         }
+        $prof = [string]$scopeObj.profile_id
+        if (-not $prof -or $prof -eq 'none') { $prof = [string]$cursorFields['active_profile'] }
+        if ([string]$scopeObj.phase -ne 'idle' -and $prof -and $prof -ne 'none') { Test-ProfileMenu $State $WorkspaceRoot $scopeObj $prof }
     }
 }
 
@@ -175,13 +179,14 @@ if (Test-Path -LiteralPath $targetsDir) {
         $stem = [System.IO.Path]::GetFileNameWithoutExtension($_.Name)
         Test-TargetJson $State $rel (Get-JsonObject $_.FullName) $stem
     }
+    Test-IgnoreDrift $State $WorkspaceRoot
 }
 
 Get-ChildItem -LiteralPath (Join-Path $WorkspaceRoot 'profiles') -Filter '*.md' -File | Where-Object {
     $_.Name -ne '_index.md' -and $_.Name -ne '_template.md'
 } | ForEach-Object {
     $pf = Get-FieldMap (Get-Content -LiteralPath $_.FullName -Raw -Encoding UTF8)
-    Test-FieldBudget $State ('profiles/' + $_.Name) $pf @('module_id', 'module_name', 'profile_status', 'allowed_write') 10
+    Test-FieldBudget $State ('profiles/' + $_.Name) $pf @('module_id', 'module_name', 'profile_status', 'allowed_write') 4
 }
 
 if (Test-Path -LiteralPath (Join-Path $WorkspaceRoot 'tools')) {

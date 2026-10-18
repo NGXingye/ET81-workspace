@@ -77,6 +77,25 @@ def add_unversioned(root, paths):
         run_svn(root, ["add", "--parents", rel])
 
 
+def local_only_of(root):
+    for path in (ROOT / "targets").glob("*.json"):
+        target = json.loads(path.read_text(encoding="utf-8"))
+        if Path(str(target.get("workspace_path") or "")).resolve() == root.resolve():
+            return [str(p).replace("\\", "/").lower() for p in target.get("local_only") or []]
+    return []
+
+
+def refuse_local_only(root, paths):
+    # 不依赖本机 svn 配置：命中目标 local_only（/ 结尾为目录，含 Unity .meta）就拒绝
+    entries = local_only_of(root)
+    for rel in paths:
+        key = rel.replace("\\", "/").lower()
+        for entry in entries:
+            base = entry.rstrip("/")
+            if key in (base, base + ".meta") or (entry.endswith("/") and key.startswith(entry)):
+                raise SystemExit("local-only path (targets local_only), refuse commit: " + rel)
+
+
 def commit_unit(plan, unit, dry):
     if unit.get("status") == "committed":
         raise SystemExit(unit["id"] + " already committed")
@@ -89,6 +108,7 @@ def commit_unit(plan, unit, dry):
     missing = [p for p in paths if not (root / p).exists()]
     if missing:
         raise SystemExit("missing files: " + ", ".join(missing))
+    refuse_local_only(root, paths)
     text = message_of(plan, unit)
     if dry:
         print(text)

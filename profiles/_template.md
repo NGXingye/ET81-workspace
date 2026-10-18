@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-15 10:40 UTC+8
-> 版本号：1.3.0
+> 最新修改时间：2026-10-18 17:52 UTC+8
+> 版本号：1.4.0
 > 文档状态：草案
 > 读取等级：L2（复制为本模块配置后读取）
 
@@ -7,28 +7,17 @@
 
 本文件是模块配置模板。只填门禁键。预算见 [`../global_rules/kv_budget.md`](../global_rules/kv_budget.md) §3。何时新建见 [`.cursor/commands/harvest.md`](../.cursor/commands/harvest.md)。
 
-# 1. 最小必要（必须 4 项）
+# 1. 键（只有 4 项）
 
 - `module_id`：`（与文件名一致）`
 - `module_name`：`（中文名）`
 - `profile_status`：`draft`
-- `allowed_write`：`（相对 source_root 的路径，分号分隔）`
+- `allowed_write`：`（目录前缀菜单，相对目标 workspace_path，跨工程写绝对路径，分号分隔；控制面写 workspace_only）`
 
-# 2. 可选（缺省可整节删除）
+# 2. 版本历史
 
-仅当不等于缺省时才写，总数不得超过 10：
-
-- `allowed_read`：读范围宽于写时才写
-- `extra_forbidden`：相对全局禁止的额外禁止或例外
-- `assemblies`：跨层且需要显式提醒
-- `validation`：超出「View→Unity / Share·Server→dotnet」时
-- 风险提示不写这里，写进 `standards/<模块>.md` 的「坑和不变量」
-- `workspace_folders`：与允许读的顶层目录不一致时
-
-# 3. 版本历史
-
+- 1.4.0（2026-10-18）：只留 4 个键；`allowed_write` 改为目录前缀菜单；删可选键。
 - 1.3.0（2026-10-14）：`extra_risk` 不再使用，风险写进对应卡片 `# 2`。
 - 1.2.0（2026-10-13）：收口说明改链到 `/harvest`。
 - 1.1.2（2026-09-16）：只填门禁键；事实写 standards。
 - 1.1.1（2026-09-12）：discovery 不建配置；harvest 时才复制。
-- 1.1.0（2026-09-07）：改为最小 4 字段 + 可选省略，上限 10。

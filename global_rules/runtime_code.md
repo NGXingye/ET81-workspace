@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-17 12:10 UTC+8
-> 版本号：2.19.0
+> 最新修改时间：2026-10-18 17:52 UTC+8
+> 版本号：2.20.0
 > 文档状态：生效
 > 读取等级：L1（新增或修改 `runtime/` 脚本或 schema 前必读）
 
@@ -29,7 +29,7 @@
 - **收回空闲**：`etctl idle`。把 scope、游标任务段、契约收成空闲最小形态；游标不改 `source_root`。已是空闲则不写文件。不写版本历史，不升版本号。不删 `commit_plan.json`、不删候选、不 svn、不 promote。scope 里的 `resume_task_id` 打印后清掉。任何非空闲阶段都可调用。
 - **源码拦截**：`etctl guard <path>`。路径不在游标 `source_root` 与任一 `targets/*.json` 的 `workspace_path` 之下则放行。在其下必须同时满足：`phase` 与 `task_status` 都不是 `idle`，且 `task_status` 为 `in_progress`；`phase=implement` 且契约 `active`，或 `phase=discovery` 且 `route=fast`；路径与 `write_paths` 某一项是同一文件（相对路径相对该目标 `workspace_path`，无目标则相对 `source_root`）；活动 profile 的 `allowed_write` 不是 `workspace_only`。否则退出码 2。`.cursor/hooks.json` 在写文件工具和会改文件的 shell 之前调用它。
 - **一事一入口**：机检与将来的 SVN 预检不得写进同一脚本。
-- **数据位置**：活卡范围 → `contracts/current_scope.json`；未开工分析 → `contracts/candidates/<task_id>.json`（最多 2）；提交计划 → `contracts/commit_plan.json`；编辑目标 → `targets/<id>.json`；长期知识 → `standards/<模块>.md`；收口账 → `standards/records/task_outcomes.jsonl`（上限 125 行，`etctl idle` 裁到最新 100 行，被契约或候选引用的号保留）；schema → `runtime/schema/`。`promote`、`interrupt`、`idle` 改完候选或活卡号后重写候选索引的候选行与版头时间，不升该索引版本号。写入或删除 `contracts/candidates/*.json` 后，`.cursor/hooks/sync-candidate-index.ps1` 同样重写。候选行不手改。
+- **数据位置**：活卡范围 → `contracts/current_scope.json`；未开工分析 → `contracts/candidates/<task_id>.json`（最多 2）；提交计划 → `contracts/commit_plan.json`；编辑目标与本地专用路径 → `targets/<id>.json`（`local_only` 由 `etctl sync-ignores` 同步进本机 svn 忽略）；长期知识 → `standards/<模块>.md`；收口账 → `standards/records/task_outcomes.jsonl`（上限 125 行，`etctl idle` 裁到最新 100 行，被契约或候选引用的号保留）；schema → `runtime/schema/`。`promote`、`interrupt`、`idle` 改完候选或活卡号后重写候选索引的候选行与版头时间，不升该索引版本号。写入或删除 `contracts/candidates/*.json` 后，`.cursor/hooks/sync-candidate-index.ps1` 同样重写。候选行不手改。
 - **共享解析**：仅当两个入口都要用时，才允许已登记的非入口文件。禁止为尚未存在的命令先建空框架。
 - 入口只编排：参数 → 调用检查/读写 JSON → 退出码。
 
@@ -44,7 +44,7 @@
 - 游标 `task_status` 必须与 phase 对齐：idle；discovery/implement/harvest→`in_progress`；awaiting_scope/awaiting_verify→`awaiting_approval`；blocked→`blocked`。
 - `edit_ops`：`in_place` / `add_file` / `delete` / `move`。删除与移动必须写进契约，禁止快路径。
 - 快路径 `route=fast` 仅当 size=trivial、intent 为 bug 或 feature、edit_ops 只有 in_place、write_paths≤2。跳过 `awaiting_scope` 与 `/implement`；不跳过分析包、用户授权、用户验证、`etctl check`。契约可保持 discovery。候选包即使 fast 也不能改 trunk。重构、首次无模块探索禁止快路径。
-- `allowed_write` 为 `workspace_only` 时禁止改编辑器源码。
+- `allowed_write` 为 `workspace_only` 时禁止改编辑器源码；否则是目录前缀菜单，`write_paths` 越出时 `begin-implement` 与机检警告（开关在 `boundary.ps1`）。
 - `editor_md_paths`：discovery 允许读的目标编辑器 Markdown，必须是已点名路径。implement 忽略该字段。
 - `plan`：分析模型提炼的改法，一行一项，指向 `write_paths`，不粘贴源码。`evidence.note` 写用户关键信息与观察结论。禁止让用户手填。进入 `awaiting_scope` 或 `route=fast` 且 `write_paths` 非空时 `plan` 必填。
 - `scope_revision`：活卡范围修订号。建卡取分析包的值（模板为 1），idle 归 0；每次补活卡 +1，并在 `evidence` 记 `amend rN`。goal、`target_id`、`profile_id` 不随补活卡改变，变了就是新任务。脚本只读它，不自增。
@@ -64,8 +64,8 @@
 
 # 5. 版本历史
 
+- 2.20.0（2026-10-18）：目标 `local_only` 与 `sync-ignores`；profile 前缀菜单越出警告。
 - 2.19.0（2026-10-17）：`scope_revision` 记补活卡修订。
 - 2.18.0（2026-10-15）：收口账上限 125 行，idle 裁到 100。
 - 2.17.1（2026-10-14）：长期知识位置改为 `cards/`。
 - 2.17.0（2026-10-13）：写入或删除候选 JSON 后由钩子重写候选行，不手改。
-- 2.16.0（2026-10-13）：`promote`、`interrupt`、`idle` 重写候选索引的候选行。

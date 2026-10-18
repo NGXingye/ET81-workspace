@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-15 10:40 UTC+8
-> 版本号：2.0.0
+> 最新修改时间：2026-10-18 17:52 UTC+8
+> 版本号：2.1.0
 > 文档状态：生效
 > 读取等级：L1（改游标、模块配置或开工契约的键值项时必读）
 
@@ -17,10 +17,10 @@
 - 条件：`isolated_source_root`（isolated 时）；`blocker_reason`、`blocker_owner`（blocked 时）。
 - 空闲时 `task_id`、`active_profile`、`contract_ref` 为 `none` 且无条件项。不写目标、验收、白名单。
 
-# 3. 模块门禁 `profiles/<id>.md`（上限 10）
+# 3. 模块门禁 `profiles/<id>.md`（正好 4 项）
 
-- 必要：`module_id`、`module_name`、`profile_status`（draft / active）、`allowed_write`（相对 `source_root`；`workspace_only` 表示禁写源码）。
-- 可选：`allowed_read`、`extra_forbidden`、`assemblies`、`validation`、`workspace_folders`。风险与行为写进 `standards/<模块>.md`。
+- 必要：`module_id`、`module_name`、`profile_status`（draft / active）、`allowed_write`（目录前缀菜单，相对目标 `workspace_path`，跨工程写绝对路径；`workspace_only` 表示禁写源码）。
+- 不设可选键：禁区与本地专用写 `targets/<id>.json`，禁改的具体文件、风险与行为写进 `standards/<模块>.md`。
 
 # 4. 开工契约 `contracts/current.md`（上限 10）
 
@@ -31,5 +31,6 @@
 
 # 5. 版本历史
 
+- 2.1.0（2026-10-18）：模块门禁只留 4 个键，`allowed_write` 为目录前缀菜单。
 - 2.0.0（2026-10-15）：压缩为要点；`extra_risk` 移除。
 - 1.5.0（2026-09-17）：discovery 默认禁改 trunk；fast 授权例外。

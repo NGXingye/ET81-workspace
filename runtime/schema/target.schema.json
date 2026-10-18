@@ -15,6 +15,10 @@
       "type": "array",
       "items": { "type": "string" }
     },
+    "local_only": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
     "validation": {
       "type": "object",
       "additionalProperties": { "type": "string" }

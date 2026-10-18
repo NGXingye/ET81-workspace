@@ -1,4 +1,4 @@
-> 最新修改时间：2026-10-15 10:40 UTC+8
+> 最新修改时间：2026-10-18 17:52 UTC+8
 > 版本号：1.1.0
 > 文档状态：生效
 > 读取等级：L1（关键词命中摇杆 / 扇形 / IsDraging 时读取）
@@ -18,6 +18,7 @@
 # 2. 坑和不变量
 
 - 左右摇杆 `IsDynamic=false`；旧的 Panel_Range 绿区与铺满的红区方案已废。
+- 不改 zFrame 摇杆本体 `Unity/Assets/3party/Comm/Joystick/`，扇形只转发事件。
 - 尖角不要用 `parent.rect` 推窗口角。
 - 不改 MainPanel、WASD 和左右监听：左/WASD 管移动，右管 SetTurnDirection + Aiming；只有左时朝向跟移动。
 - 命中组件放 ModelView：Hotfix 不能声明实例字段，静态字段要 `[StaticField]`。

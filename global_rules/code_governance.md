@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-18 13:20 UTC+8
-> 版本号：1.14.0
+> 最新修改时间：2026-10-18 17:52 UTC+8
+> 版本号：1.15.0
 > 文档状态：生效
 > 读取等级：L1（改 workspace 运行时或 trunk C# 前必读）
 
@@ -77,7 +77,7 @@ C# 细规未定时：只改白名单内现有文件或按基线放置新建；�
 
 # 5. 本地工具代码
 
-本地工具代码（SkillPipeline、SkillSync、Bridge 本地编辑器工具）的拆 / 合 / 不动、注释与文件职责表见 [`../standards/code_structure.md`](../standards/code_structure.md)。本地专用文件以 svn 忽略为准（见 [`../standards/skill_sync.md`](../standards/skill_sync.md)），`commit-units.py` 遇 `I` 拒绝 add。
+本地工具代码（SkillPipeline、SkillSync、Bridge 本地编辑器工具）的拆 / 合 / 不动、注释与文件职责表见 [`../standards/code_structure.md`](../standards/code_structure.md)。本地专用文件以目标 `targets/<id>.json` 的 `local_only` 为准，`etctl sync-ignores` 同步进本机 svn 忽略（见 [`../standards/skill_sync.md`](../standards/skill_sync.md)）；`commit-units.py` 命中 `local_only` 或遇 `I` 都拒绝。
 
 # 6. 违规处置
 
@@ -94,8 +94,8 @@ C# 细规未定时：只改白名单内现有文件或按基线放置新建；�
 
 # 7. 版本历史
 
+- 1.15.0（2026-10-18）：本地专用改以目标 `local_only` 为准，`etctl sync-ignores` 同步本机 svn 忽略。
 - 1.14.0（2026-10-18）：本地工具代码规则移到 `standards/code_structure.md`；`?`、`I` 本地路径与新文件不做 update。
 - 1.13.0（2026-10-16）：新增「本地工具代码」：拆 / 合 / 不动的软信号、先挪后改、注释与文件职责表。
 - 1.12.1（2026-10-14）：放置与路由改链到 `cards/`。
 - 1.12.0（2026-10-13）：提交工单号改取目标上的 `hook_tasks`。
-- 1.11.0（2026-10-13）：写权限与 svn 基准改链到 `AGENTS.md`，开工步骤改链到 `/implement`。

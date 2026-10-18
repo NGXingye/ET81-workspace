@@ -1,4 +1,4 @@
-> 最新修改时间：2026-10-18 13:20 UTC+8
+> 最新修改时间：2026-10-18 17:52 UTC+8
 > 版本号：1.4.2
 > 文档状态：生效
 > 读取等级：L1（关键词命中技能管线 / 轨迹页 / 构建 Timeline / 碰撞导出时读取）
@@ -35,7 +35,7 @@
 - 编辑器里不用 `GlobalConfig.instance`（会碰 GameManager 单例），只 `AssetDatabase` 读 globalconfig.asset；App.Comm 不能引用 Editor 程序集（如 SkillTimelineVariantUtil、MonsterPetConfigCsvReader）；`SkillPipelineActorKind` 必须 public。
 - 动画面每行的根运动开关写入该行缓存。转技能树用当前行，不看 Timeline 片段上的 applyRootMotion。
 - 单文件拆分 / 合并按 `code_structure.md`。
-- 旧弹道窗 `BallisticPathEditorWindow` 保持 IMGUI，不整窗 Odin 化；csvdemo `.bytes` 只读不写回；管线任务对 `ControlColliderCS` 只反射调用。
+- 旧弹道窗 `BallisticPathEditorWindow` 保持 IMGUI，不整窗 Odin 化；csvdemo `.bytes` 只读不写回；管线任务对 `ControlColliderCS` 只反射调用，不改 `SkillEditor2.cs`。
 
 # 3. 怎么验证
 
