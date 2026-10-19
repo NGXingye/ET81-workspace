@@ -20,6 +20,11 @@
 - **时长单一时钟**：烘焙、形状、Buff 时长用同一套采样帧率换算，不各自取 Timeline 或缺省值。
 - **转出配置只读**：trunk 上的转化产物不手改；必须手改的登记进补丁清单，并写明重转会被覆盖。
 
+- 规格载体：`SkillEditor/LocalAuthor/skill_{id}.author.json`，只由工具生成（保存时按界面状态整份重写），禁手改；本地专用不入 svn，丢失无法从已提交内容重建。
+- 字段以 `SkillPipelineAuthorFile.Doc/MotionRef/FireRef` 为准；读取镜像 `SkillPipelineBridge.AuthorDoc/AuthorFire`。
+- 新增或改名字段：写入与读取两侧同任务改；JsonUtility 未知字段静默丢弃、缺失字段读为 0/空。
+- 代号：`Launch` 0 近战 / 1 弹道 / 2 召唤 / 3 未设（转树只认 0、1）；`Carrier` 0 未设 / 1 形状 / 2 单位。
+
 # 2. 覆盖范围与补丁清单
 
 已有：单动画；随机变体（Buff 01/03/05）；逻辑 / 表现发射物（按 HasBox 区分，t038 进行中）。
