@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-18 17:52 UTC+8
-> 版本号：2.20.0
+> 最新修改时间：2026-10-21 12:22 UTC+8
+> 版本号：2.21.0
 > 文档状态：生效
 > 读取等级：L1（新增或修改 `runtime/` 脚本或 schema 前必读）
 
@@ -47,7 +47,7 @@
 - `allowed_write` 为 `workspace_only` 时禁止改编辑器源码；否则是目录前缀菜单，`write_paths` 越出时 `begin-implement` 与机检警告（开关在 `boundary.ps1`）。
 - `editor_md_paths`：discovery 允许读的目标编辑器 Markdown，必须是已点名路径。implement 忽略该字段。
 - `plan`：分析模型提炼的改法，一行一项，指向 `write_paths`，不粘贴源码。`evidence.note` 写用户关键信息与观察结论。禁止让用户手填。进入 `awaiting_scope` 或 `route=fast` 且 `write_paths` 非空时 `plan` 必填。
-- `scope_revision`：活卡范围修订号。建卡取分析包的值（模板为 1），idle 归 0；每次补活卡 +1，并在 `evidence` 记 `amend rN`。goal、`target_id`、`profile_id` 不随补活卡改变，变了就是新任务。脚本只读它，不自增。
+- `scope_revision`：活卡范围修订号。建卡取分析包的值（模板为 1），idle 归 0；每次补活卡 +1，并在 `evidence` 记 `amend rN`；`/harvest` 收紧活卡不加。goal、`target_id`、`profile_id` 不随补活卡改变，变了就是新任务。脚本只读它，不自增。
 - `implement` 的执行步骤见 [`.cursor/commands/implement.md`](../.cursor/commands/implement.md)。缺 `read_paths` 时等于 `write_paths`；缺 `implement_round` 时视为 1。
 
 # 4. 体积与处置
@@ -64,8 +64,8 @@
 
 # 5. 版本历史
 
+- 2.21.0（2026-10-18）：`/harvest` 收紧活卡不升 `scope_revision`。
 - 2.20.0（2026-10-18）：目标 `local_only` 与 `sync-ignores`；profile 前缀菜单越出警告。
 - 2.19.0（2026-10-17）：`scope_revision` 记补活卡修订。
 - 2.18.0（2026-10-15）：收口账上限 125 行，idle 裁到 100。
 - 2.17.1（2026-10-14）：长期知识位置改为 `cards/`。
-- 2.17.0（2026-10-13）：写入或删除候选 JSON 后由钩子重写候选行，不手改。

@@ -25,7 +25,7 @@ alwaysApply: false
 7. 仍缺框架事实：`standards/framework.md`
 8. 选 `write_paths` 时打开 `profiles/<id>.md`：`allowed_write` 是目录前缀菜单，从中挑；越出须用户同意（`/harvest` 放宽），否则开工与机检会警告
 
-写权限见 `AGENTS.md`。discovery：活卡 idle 才写 `current_scope.json`；活卡非 idle 且本对话就是该 `task_id`，按 `implement.md`「补活卡」只追加；活卡非 idle 且本对话不是该 `task_id` 则写入 `contracts/candidates/<task_id>.json`（最多 2），禁止改 current。未选模块不打开业务源码，除非用户给了 seed。
+写权限见 `AGENTS.md`。discovery：活卡 idle 才写 `current_scope.json`；活卡非 idle 且本对话就是该 `task_id`，按 `implement.md`「补活卡」只追加（`scope_revision` 约超过 20 或 `plan` 约超过 30 行时，先建议用户收尾、新需求开新任务，用户决定）；活卡非 idle 且本对话不是该 `task_id` 则写入 `contracts/candidates/<task_id>.json`（最多 2），禁止改 current。未选模块不打开业务源码，除非用户给了 seed。
 
 # 3. 分析读序（仅 discovery）
 
