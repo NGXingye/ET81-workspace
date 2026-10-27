@@ -1,4 +1,4 @@
-"""Commit one unit from contracts/commit_plan.json. UTF-8 message file. No --all."""
+"""Commit one unit from contracts/commit_plan.json (or --held). UTF-8 message file. No --all."""
 import argparse
 import json
 import os
@@ -10,18 +10,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PLAN = ROOT / "contracts" / "commit_plan.json"
+HELD = ROOT / "contracts" / "held_commit_plan.json"
 TEMPLATE = ROOT / "contracts" / "_template_commit_plan.json"
-
 
 def load_plan(path):
     if not path.is_file():
         raise SystemExit("missing " + str(path))
     return json.loads(path.read_text(encoding="utf-8"))
 
-
 def save_plan(path, plan):
     path.write_text(json.dumps(plan, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
 
 def check_plan(plan):
     units = plan.get("units") or []
@@ -46,6 +44,23 @@ def check_plan(plan):
                 raise SystemExit("path must stay inside workspace: " + rel)
             seen.add(key)
 
+def pending_path_keys(plan):
+    keys = set()
+    for unit in plan.get("units") or []:
+        if unit.get("status") == "committed":
+            continue
+        ws = str(unit.get("workspace_path") or "").rstrip("\\/")
+        for rel in unit.get("paths") or []:
+            keys.add(ws + "|" + str(rel).replace("\\", "/").lower())
+    return keys
+
+def refuse_slot_overlap(plan, other_path, label):
+    if not other_path.is_file():
+        return
+    other = load_plan(other_path)
+    hits = sorted(pending_path_keys(plan) & pending_path_keys(other))
+    if hits:
+        raise SystemExit("path overlap with " + label + ": " + ", ".join(hits))
 
 def message_of(plan, unit):
     hook = str(unit.get("hook_task") or "").strip()
@@ -55,7 +70,6 @@ def message_of(plan, unit):
     title = str(unit["title"]).strip()
     return "task:" + hook + " " + summary + "；" + title
 
-
 def run_svn(root, args):
     done = subprocess.run(["svn", *args], cwd=str(root), capture_output=True, text=True, encoding="utf-8", errors="replace")
     if done.returncode != 0:
@@ -63,7 +77,6 @@ def run_svn(root, args):
         sys.stderr.write(done.stderr or "")
         raise SystemExit("svn " + args[0] + " failed")
     return done
-
 
 def add_unversioned(root, paths):
     for rel in paths:
@@ -76,14 +89,12 @@ def add_unversioned(root, paths):
             raise SystemExit("local-only path is svn-ignored, refuse add: " + rel)
         run_svn(root, ["add", "--parents", rel])
 
-
 def local_only_of(root):
     for path in (ROOT / "targets").glob("*.json"):
         target = json.loads(path.read_text(encoding="utf-8"))
         if Path(str(target.get("workspace_path") or "")).resolve() == root.resolve():
             return [str(p).replace("\\", "/").lower() for p in target.get("local_only") or []]
     return []
-
 
 def refuse_local_only(root, paths):
     # 不依赖本机 svn 配置：命中目标 local_only（/ 结尾为目录，含 Unity .meta）就拒绝
@@ -94,7 +105,6 @@ def refuse_local_only(root, paths):
             base = entry.rstrip("/")
             if key in (base, base + ".meta") or (entry.endswith("/") and key.startswith(entry)):
                 raise SystemExit("local-only path (targets local_only), refuse commit: " + rel)
-
 
 def commit_unit(plan, unit, dry):
     if unit.get("status") == "committed":
@@ -124,7 +134,6 @@ def commit_unit(plan, unit, dry):
         unit["committed_rev"] = found.group(1)
     return found.group(1) if found else ""
 
-
 def enable_gray():
     if sys.platform != "win32":
         return True
@@ -139,14 +148,12 @@ def enable_gray():
     except OSError:
         return False
 
-
 def show_verify(path):
     script = ROOT / "runtime" / "check-commit-plan.py"
     done = subprocess.run([sys.executable, str(script), "--verify", "--plan", str(path)])
     if done.returncode not in (0, 1):
         print("验证失败")
     input("回车继续")
-
 
 def run_menu(path, dry):
     use_gray = enable_gray()
@@ -194,17 +201,23 @@ def run_menu(path, dry):
             continue
         save_plan(path, plan)
 
-
 def main():
     parser = argparse.ArgumentParser(description="commit one plan unit")
     parser.add_argument("--unit", help="commit this unit id")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--demo", action="store_true", help="load the template")
+    parser.add_argument("--held", action="store_true", help="use contracts/held_commit_plan.json")
     args = parser.parse_args()
-    path = TEMPLATE if args.demo else PLAN
+    if args.demo and args.held:
+        raise SystemExit("cannot combine --demo and --held")
+    path = TEMPLATE if args.demo else (HELD if args.held else PLAN)
+    other = PLAN if args.held else HELD
+    other_label = "active commit_plan" if args.held else "held_commit_plan"
     if args.unit:
         plan = load_plan(path)
         check_plan(plan)
+        if not args.demo:
+            refuse_slot_overlap(plan, other, other_label)
         unit = next((item for item in plan["units"] if item["id"] == args.unit), None)
         if not unit:
             raise SystemExit("no unit " + args.unit)
@@ -215,10 +228,15 @@ def main():
     if args.dry_run and not sys.stdin.isatty():
         plan = load_plan(path)
         check_plan(plan)
+        if not args.demo:
+            refuse_slot_overlap(plan, other, other_label)
         print("units " + str(len(plan["units"])))
         return
+    if not args.demo:
+        plan = load_plan(path)
+        check_plan(plan)
+        refuse_slot_overlap(plan, other, other_label)
     run_menu(path, args.dry_run or args.demo)
-
 
 if __name__ == "__main__":
     main()

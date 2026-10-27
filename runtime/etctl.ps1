@@ -1,6 +1,6 @@
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('check', 'status', 'packet', 'begin-implement', 'promote', 'interrupt', 'guard', 'idle', 'sync-ignores')]
+    [ValidateSet('check', 'status', 'packet', 'begin-implement', 'promote', 'interrupt', 'guard', 'idle', 'sync-ignores', 'hold-plan', 'restore-plan')]
     [string]$Command = 'check',
     [Parameter(Position = 1)]
     [string]$TaskId,
@@ -67,6 +67,17 @@ switch ($Command) {
             }
         }
         $payload['candidates'] = $cands
+        foreach ($slot in @(@{ key = 'commit_plan'; rel = 'contracts/commit_plan.json' }, @{ key = 'held_commit_plan'; rel = 'contracts/held_commit_plan.json' })) {
+            $p = Get-JsonFile $slot.rel
+            if ($p) {
+                $units = @()
+                if ($p.PSObject.Properties.Name -contains 'units' -and $null -ne $p.units) { $units = @($p.units) }
+                $pending = @($units | Where-Object { [string]$_.status -ne 'committed' } | ForEach-Object { [string]$_.id })
+                $payload[$slot.key] = [ordered]@{ task_id = [string]$p.task_id; units = $units.Count; pending = $pending }
+            } else {
+                $payload[$slot.key] = $null
+            }
+        }
         $payload | ConvertTo-Json -Compress:$false -Depth 5
         exit 0
     }
@@ -159,6 +170,14 @@ switch ($Command) {
     }
     'idle' {
         & (Join-Path $RuntimeRoot 'idle.ps1')
+        exit $LASTEXITCODE
+    }
+    'hold-plan' {
+        & (Join-Path $RuntimeRoot 'hold-plan.ps1') -Action hold
+        exit $LASTEXITCODE
+    }
+    'restore-plan' {
+        & (Join-Path $RuntimeRoot 'hold-plan.ps1') -Action restore
         exit $LASTEXITCODE
     }
 }

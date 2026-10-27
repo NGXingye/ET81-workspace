@@ -1,4 +1,4 @@
-# Non-entry. Invoked by etctl.ps1 promote. Live card must be idle. No SVN.
+# Non-entry. Invoked by etctl.ps1 promote. Live card must be idle. Gates on active commit_plan only; held_commit_plan does not block. No SVN.
 param([Parameter(Mandatory = $true)][string]$TaskId)
 $ErrorActionPreference = 'Stop'
 $RuntimeRoot = $PSScriptRoot
@@ -89,7 +89,7 @@ if (Test-Path -LiteralPath $planPath) {
             $pending += $uid
         }
     }
-    if ($pending.Count -gt 0) { Write-PromoteError ('commit plan pending: ' + ($pending -join ', ')) }
+    if ($pending.Count -gt 0) { Write-PromoteError ('active commit plan pending: ' + ($pending -join ', ') + '; etctl hold-plan to defer, or commit first') }
     if (-not ([string]$plan.task_id -eq 'none' -and $units.Count -eq 0)) {
         Write-Utf8 $planPath "{`n  `"task_id`": `"none`",`n  `"summary`": `"`",`n  `"units`": []`n}`n"
     }
