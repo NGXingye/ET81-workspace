@@ -122,6 +122,7 @@ function Test-RequiredJsonProps([hashtable]$State, [string]$Code, [string]$Rel, 
     return $true
 }
 
+
 function Test-CurrentScopeJson([hashtable]$State, [string]$Rel, $Obj, $ContractFields, [string]$WorkspaceRoot) {
     if (-not (Test-RequiredJsonProps $State 'SCOPE_JSON' $Rel $Obj @('task_id', 'phase', 'scope_revision'))) { return }
     $allowed = @('task_id', 'phase', 'scope_revision', 'intent', 'size', 'route', 'edit_ops', 'target_id', 'profile_id', 'seed_paths', 'read_paths', 'write_paths', 'editor_md_paths', 'evidence', 'risks', 'uncertain', 'validation', 'plan', 'goal', 'implement_round', 'verify_feedback', 'parent_task_id', 'resume_task_id', 'parked', 'parked_by')
@@ -134,6 +135,10 @@ function Test-CurrentScopeJson([hashtable]$State, [string]$Rel, $Obj, $ContractF
     }
     if ($ContractFields) {
         if ([string]$Obj.task_id -ne $ContractFields['task_id']) { Add-CheckError $State 'SCOPE_JSON' ($Rel + ' task_id mismatch contract') }
+        if ($WorkspaceRoot -and $phase -ne 'idle' -and [string]$Obj.task_id -and [string]$Obj.task_id -ne 'none') {
+            $op = Join-Path $WorkspaceRoot 'standards/records/task_outcomes.jsonl'
+            if ((Test-Path -LiteralPath $op) -and ((Get-Content -LiteralPath $op -Encoding UTF8) | Where-Object { $_ -match ('"task_id"\s*:\s*"' + [regex]::Escape([string]$Obj.task_id) + '"') })) { Add-CheckError $State 'ID_REUSED' ($Rel + ' task_id already in task_outcomes') }
+        }
         $cStatus = $ContractFields['contract_status']
         if ($cStatus -eq 'idle' -and $phase -ne 'idle') { Add-CheckError $State 'SCOPE_JSON' ($Rel + ' phase must be idle when contract idle') }
         if ($cStatus -eq 'discovery' -and @('discovery', 'awaiting_scope', 'blocked') -notcontains $phase) { Add-CheckError $State 'SCOPE_JSON' ($Rel + ' discovery contract phase mismatch') }
@@ -213,6 +218,10 @@ function Test-CandidateJson([hashtable]$State, [string]$Rel, $Obj, [string]$Expe
     if ($okPh -notcontains [string]$Obj.phase) { Add-CheckError $State 'CANDIDATE' ($Rel + ' invalid candidate phase') }
     if ($LiveTaskId -and $LiveTaskId -ne 'none' -and [string]$Obj.task_id -eq $LiveTaskId) {
         Add-CheckError $State 'CANDIDATE' ($Rel + ' task_id duplicates live card')
+    }
+    if ($WorkspaceRoot) {
+        $op = Join-Path $WorkspaceRoot 'standards/records/task_outcomes.jsonl'
+        if ((Test-Path -LiteralPath $op) -and ((Get-Content -LiteralPath $op -Encoding UTF8) | Where-Object { $_ -match ('"task_id"\s*:\s*"' + [regex]::Escape([string]$Obj.task_id) + '"') })) { Add-CheckError $State 'ID_REUSED' ($Rel + ' task_id already in task_outcomes') }
     }
     if (-not $parked -and $Obj.PSObject.Properties.Name -contains 'implement_round') {
         Add-CheckError $State 'CANDIDATE' ($Rel + ' must not have implement_round')

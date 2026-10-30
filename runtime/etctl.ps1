@@ -1,6 +1,6 @@
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('check', 'status', 'packet', 'begin-implement', 'promote', 'interrupt', 'guard', 'idle', 'sync-ignores', 'hold-plan', 'restore-plan')]
+    [ValidateSet('check', 'status', 'packet', 'begin-implement', 'promote', 'interrupt', 'guard', 'idle', 'sync-ignores', 'hold-plan', 'restore-plan', 'next-id')]
     [string]$Command = 'check',
     [Parameter(Position = 1)]
     [string]$TaskId,
@@ -178,6 +178,10 @@ switch ($Command) {
     }
     'restore-plan' {
         & (Join-Path $RuntimeRoot 'hold-plan.ps1') -Action restore
+        exit $LASTEXITCODE
+    }
+    'next-id' {
+        & (Join-Path $RuntimeRoot 'next-id.ps1')
         exit $LASTEXITCODE
     }
 }

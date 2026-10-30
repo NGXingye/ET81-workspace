@@ -39,4 +39,4 @@ alwaysApply: false
 
 # 4. 写（discovery）
 
-游标 `in_progress`；分析包从 `contracts/_template_scope.json` 复制。活卡非 idle 且不是本对话的任务时改为写入 `contracts/candidates/<task_id>.json` 并加上 `goal`，不改游标与 current。默认禁止 svn update。`route=fast` 且用户明确同意时：对 `write_paths` scoped `svn update`，基准见 `AGENTS.md`，再按 `plan` 改。契约保持 discovery。需要用户看范围则 `awaiting_scope`。高风险（Core/Loader、协议生成、跨模块批量）先 `blocked`。第二工作副本仅用户点名。路径/阶段/证据只写 JSON。仅当本步改受管理 md、键值或 runtime 时才打开对应 `global_rules/` 文件。
+填 `task_id` 前先跑 `powershell -File runtime/etctl.ps1 next-id`，只用 stdout 的 `task_id`；禁止用对话上下文或收口账手推下一号。游标 `in_progress`；分析包从 `contracts/_template_scope.json` 复制。活卡非 idle 且不是本对话的任务时改为写入 `contracts/candidates/<task_id>.json` 并加上 `goal`，不改游标与 current。默认禁止 svn update。`route=fast` 且用户明确同意时：对 `write_paths` scoped `svn update`，基准见 `AGENTS.md`，再按 `plan` 改。契约保持 discovery。需要用户看范围则 `awaiting_scope`。高风险（Core/Loader、协议生成、跨模块批量）先 `blocked`。第二工作副本仅用户点名。路径/阶段/证据只写 JSON。仅当本步改受管理 md、键值或 runtime 时才打开对应 `global_rules/` 文件。

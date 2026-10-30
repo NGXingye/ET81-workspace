@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-28 00:11 UTC+8
-> 版本号：2.26.0
+> 最新修改时间：2026-10-30 22:05 UTC+8
+> 版本号：2.27.0
 > 文档状态：生效
 > 读取等级：L1（新增或修改 runtime 下脚本前必读）
 
@@ -12,7 +12,7 @@
 # 1. 文件索引
 
 - [`etctl.ps1`](./etctl.ps1)  
-  职责：运行时调度入口（`check`、`status`、`packet`、`begin-implement`、`promote`、`interrupt`、`guard`、`idle`、`sync-ignores`、`hold-plan`、`restore-plan`）。  
+  职责：运行时调度入口（`check`、`status`、`packet`、`begin-implement`、`promote`、`interrupt`、`guard`、`idle`、`sync-ignores`、`hold-plan`、`restore-plan`、`next-id`）。  
   副作用：不调 svn；`sync-ignores` 只写本机 svn 配置（先备份）。`packet` 只读导出活卡工作令。`begin-implement` 只升活卡。`promote <task_id>` 仅 idle 时把候选写入活卡。`interrupt <task_id>` 把活卡勾进 candidates，新号升活卡。这两条和 `idle` 写完后重写候选索引的候选行。  
   入口：`powershell -File runtime/etctl.ps1 <command> [<task_id>]`
 - [`begin-implement.ps1`](./begin-implement.ps1)  
@@ -48,6 +48,9 @@
   职责：`hold` 把活动提交计划挪到 `contracts/held_commit_plan.json` 并清空活动槽；`restore` 在活动槽空时把暂留挪回活动槽。同时只允许一笔暂留。活动/暂留未交笔路径重叠则拒绝。  
   副作用：只写两个计划 JSON。无 SVN。  
   非独立入口，由 `etctl.ps1 hold-plan` / `restore-plan` 调用。
+- [`next-id.ps1`](./next-id.ps1)  
+  职责：只读算出下一活卡号。占用集 = `task_outcomes` ∪ 活卡（游标/契约/scope）∪ 候选文件名 ∪ `commit_plan`/`held_commit_plan` 的 `task_id`（跳过 `none`）；取 `t`+数字最大号 +1，三位补零。  
+  副作用：无。非独立入口，由 `etctl.ps1 next-id` 调用。
 - [`commit-units.py`](./commit-units.py)  
   职责：命令行列出每笔，输入编号回车提交，已提交变灰并留在窗口。`--unit` 只交点名的那一笔。`--held` 交暂留槽。路径命中目标 `local_only`（含 `.meta`）直接拒绝；未入库路径遇 svn `I` 拒绝，否则先 `svn add`；活动/暂留未交笔路径重叠则拒绝；说明写入 UTF-8 文件再 `svn commit -F --encoding utf-8`。  
   副作用：可 `svn add` 并 `svn commit` 该笔路径。无 `--all`。`--dry-run` 不提交。  

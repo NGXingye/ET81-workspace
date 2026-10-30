@@ -1,5 +1,89 @@
 {
-  "task_id": "none",
-  "phase": "idle",
-  "scope_revision": 0
+  "task_id": "t051",
+  "phase": "implement",
+  "scope_revision": 1,
+  "intent": "feature",
+  "size": "medium",
+  "route": "normal",
+  "verify_feedback": [],
+  "edit_ops": ["in_place"],
+  "target_id": "SkillEditor",
+  "profile_id": "skill_pipeline",
+  "seed_paths": [
+    "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineBallisticKeys.cs",
+    "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelinePhaseSections.cs",
+    "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineFxView.cs",
+    "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineLaunchPose.cs"
+  ],
+  "read_paths": [
+    "C:/myProject/ET81-workspace/standards/skill_pipeline.md",
+    "C:/myProject/ET81-workspace/standards/skill_spec.md",
+    "C:/myProject/ET81-workspace/standards/code_structure.md"
+  ],
+  "write_paths": [
+    "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineBallisticKeys.cs",
+    "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelinePhaseSections.cs",
+    "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineFireSections.cs",
+    "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineTrajectoryPage.cs",
+    "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineSessionPrefs.cs",
+    "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineAuthorFile.cs",
+    "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineFxView.cs",
+    "Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineLaunchPose.cs",
+    "C:/myProject/BridgeEditor/Assets/Scripts/Editor/SkillPipelineBridgeAuthor.cs",
+    "C:/myProject/BridgeEditor/Assets/Scripts/Editor/SkillPipelineBridgePhase.cs",
+    "C:/myProject/BridgeEditor/Assets/Scripts/Editor/SkillPipelineBridgeShots.cs"
+  ],
+  "editor_md_paths": [],
+  "evidence": [
+    {
+      "path": "user",
+      "note": "打开管线就报缓存 Key 1 没有 ballistics_m100292_1。接入特效挂点是 Vfxpoint，转出也要这个点。接入骨骼挂点独立，不跟不变区挂点。不变区挂点在是逻辑或是阶段时是轨迹出生点，要烘焙发射表。发射页要有阶段槽或事件槽，不要默认表现槽。阶段碰撞断言看接入轨迹打帧，不看红帧。",
+      "status": "observed"
+    },
+    {
+      "path": "C:/myProject/SkillEditor/Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineBallisticKeys.cs",
+      "note": "打开时 Reconcile 发现 Key 在磁盘上没有资产就 Report 错误，但不改 Key，所以每次打开都弹。",
+      "status": "observed"
+    },
+    {
+      "path": "C:/myProject/SkillEditor/Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelinePhaseSections.cs",
+      "note": "接入骨骼行只显示 slot.Hang，没有自己的挂点。接入特效已有 StageVfxPoint 下拉。",
+      "status": "observed"
+    },
+    {
+      "path": "C:/myProject/BridgeEditor/Assets/Scripts/Editor/SkillPipelineBridgePhase.cs",
+      "note": "接入骨骼 CasterPoint 用发射点 Hang。接入特效 Point 用 StageVfxHang，解析失败就保持 None。",
+      "status": "observed"
+    },
+    {
+      "path": "C:/myProject/SkillEditor/Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineFxView.cs",
+      "note": "没勾是逻辑就归表现槽。是阶段会清掉 HasBox，所以阶段点显示成表现槽。",
+      "status": "observed"
+    },
+    {
+      "path": "C:/myProject/SkillEditor/Assets/Scripts/App/Comm/EditorTools/SkillPipeline/SkillPipelineLaunchPose.cs",
+      "note": "碰撞断言用红帧 fire.Time 取帧，阶段接入轨迹打在更晚的时刻时仍显示第 0 帧。",
+      "status": "observed"
+    }
+  ],
+  "risks": [
+    "旧技能没有单独的接入骨骼挂点。第一次载入时把当时的不变区挂点抄进新字段并记住，之后改不变区不再带动它。"
+  ],
+  "uncertain": [],
+  "validation": [
+    "打开技能管线时，磁盘上没有资产的缓存弹道 Key 被清掉，不再弹出「缓存 Key … 在磁盘上没有」。",
+    "接入特效选了挂点后，转出的接入特效阶段挂点就是这个点。",
+    "接入骨骼挂点可以单独改。改不变区挂点不会改它。是逻辑或是阶段时，不变区挂点仍是轨迹出生点，并参与发射表烘焙。",
+    "是阶段的发射点在发射页显示阶段槽，是事件的显示事件槽，不再显示成表现槽。",
+    "是阶段且接入轨迹已打帧时，碰撞体断言按接入轨迹时刻的帧比对，不按红帧。"
+  ],
+  "plan": [
+    "打开时对不上磁盘资产、也没有资产 GUID 的缓存弹道 Key 清成 0，不再报错。SkillPipelineBallisticKeys 就地改，不拆。",
+    "接入骨骼增加自己的挂点，存在发射点上，会话和作者文件都记下。界面上下拉只改这个字段。第一次没有该字段时，把当时的不变区挂点抄过来并记住，之后两边不再互相同步。SkillPipelineTrajectoryPage 只加字段，不拆。",
+    "转出时接入骨骼的施法者挂点用这个独立字段，不再用不变区挂点。接入特效继续用接入特效自己的挂点写入阶段挂点；名字对 BindPoint 时忽略大小写，对上就写上。",
+    "不变区挂点保持原样。是逻辑或是阶段时，它仍是轨迹出生点，发射表烘焙仍按这个挂点采样，不改成接入骨骼的挂点。",
+    "发射页槽位：是阶段归阶段槽，是事件归事件槽，其余没勾逻辑的仍是表现槽。SkillPipelineFxView 就地改，不拆。",
+    "是阶段且接入轨迹已打帧时，碰撞断言的取样时刻改为红帧加上接入轨迹的毫秒，帧号和「第 N 帧」都按这个时刻。没打接入轨迹帧时仍用红帧。SkillPipelineLaunchPose 就地改，不拆。",
+    "规格：阶段接入骨骼挂点改为显式字段，不再从发射挂点推断。不新增运行时补丁，不改位移公式。"
+  ]
 }
