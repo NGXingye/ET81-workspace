@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-17 12:20 UTC+8
-> 版本号：5.3.0
+> 最新修改时间：2026-11-03 18:30 UTC+8
+> 版本号：5.23.0
 > 文档状态：生效
 > 读取等级：L1（每轮 /implement 开头、报错或新需求出现时按关键词路由）
 
@@ -25,7 +25,7 @@
 
 # 2. 账与审计
 
-- [`records/task_outcomes.jsonl`](./records/task_outcomes.jsonl) — 收口账，一个 `task_id` 一行，只由 `/harvests` 写。旧行里的 `promoted` 路径指向已删除的旧 JSON，保持原样。
+- [`records/task_outcomes.jsonl`](./records/task_outcomes.jsonl) — 收口账（占用 + interrupt 父足迹）：一个 `task_id` 一行，只由 `/harvests` 写；字段仅 `task_id` / `changed_targets` / `changed_paths` / `recorded_at`。`changed_paths` 只留源码/配置路径，不含控制面。
 - [`audit/source_import_record.md`](./audit/source_import_record.md) — trunk Markdown 授权审计；discovery 用到 `editor_md_paths` 后登记。
 
 # 3. 跨模块的坑
@@ -43,8 +43,8 @@
 
 # 4. 版本历史
 
+- 5.23.0（2026-11-03）：收口账瘦身为占用+interrupt 足迹四字段；过滤控制面路径。
 - 5.3.0（2026-10-17）：登记 `skill_spec` 方向卡。
 - 5.2.0（2026-10-16）：`skill_sync` / `skill_pipeline` 关键词补 HasBox、触发层级遮罩、BTCastShape。
 - 5.1.0（2026-10-15）：`skill_sync` 关键词补转包围盒、SpellShape。
 - 5.0.0（2026-10-15）：知识卡从 `cards/` 收回本目录（平铺）；本文兼任路由与跨模块的坑；删除 archive。
-- 4.0.0（2026-10-14）：模块知识全量提炼进 `cards/`；旧 JSON 归档。
