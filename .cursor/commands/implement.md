@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-21 12:22 UTC+8
-> 版本号：1.19.0
+> 最新修改时间：2026-11-04 14:40 UTC+8
+> 版本号：1.20.0
 > 文档状态：生效
 > 读取等级：L2（用户发出 /implement 时由 Cursor 注入）
 
@@ -9,11 +9,11 @@
 
 本对话已有分析包或 packet 时：不要重读游标、契约、冷启动、蓝图。直接跑命令。
 
-拒绝并留在当前阶段：无活任务；任务只在 `contracts/candidates/`（先 `etctl promote`）；`write_paths` 或 `plan` 为空；goal、target 或 profile 要变（换目标：新开候选，`/harvests` → idle → promote）；只改表（改走 `/harvests`）；`implement_round` 已 3 且 `blocked`。promote 后范围只在 `current_scope.json`（候选文件已删）；scope 只有 `task_id`、`phase`、`scope_revision` 三键是空闲形态，不是被重置。
+拒绝并留在当前阶段：无活任务；任务只在 `contracts/candidates/`（先 `etctl promote`）；`write_paths` 或 `plan` 为空；target 或 profile 要变（换目标：新开候选，`/harvests` → idle → promote）；只改表（改走 `/harvests`）；`implement_round` 已 3 且 `blocked`。promote 后范围只在 `current_scope.json`（候选文件已删）；scope 只有 `task_id`、`phase`、`scope_revision` 三键是空闲形态，不是被重置。
 
 禁止读取：`global_rules/`、`contracts/_template*`、`runtime/*.ps1` 源码、`runtime/schema/`、`profiles/`（门禁由脚本读）、`targets/*.json`。不要手改契约/游标/scope 来开工（补活卡除外，见下）。禁止重开 discovery。
 
-补活卡（同一 goal 下用户细化或补充需求，阶段为 discovery / implement / awaiting_verify）：活卡是合法执行的平台，冷启动建立后增量推进，不因需求细化而重置重写。直接改 `current_scope.json` 与 `current.md`，只追加：`plan` 与 `validation` 加项（`current.md` 的 `acceptance` 不再追加，保持非空，可以是一句指向 `validation`），被新需求推翻的旧项原地改；`write_paths` 加项须用户本轮同意（guard 实时读它，加上即可写源码）；加完跑 `etctl check`，报 `PROFILE_MENU` 说明越出 profile 前缀，放宽 profile 须用户同意，由 `/harvest` 改。每次 `scope_revision` +1，并在 `evidence` 追加 `{"path": "user", "note": "amend rN：<用户需求摘要>", "status": "observed"}`（N 为新修订号，一行写短）。不覆盖 goal、target、profile；不在 `current.md` 写自由文本（idle 会保留）；不升 `current.md` 版本号。`implement_round` 不因细化重置；plan 原本没有的新需求可重置为 1。goal、target 或 profile 要变就是换目标，走新任务。
+补活卡（同 `target_id`+`profile_id`，且用户本轮明确说继续本卡——如「补进当前卡」「继续这张」「同类补上」；阶段为 discovery / implement / awaiting_verify）：活卡是合法执行的平台，冷启动建立后增量推进，不因同类补充而重置重写。禁止模型自行判定「同类」后补卡。直接改 `current_scope.json` 与 `current.md`，只追加：`plan` 与 `validation` 加项（`current.md` 的 `acceptance` 不再追加，保持非空，可以是一句指向 `validation`），被新需求推翻的旧项原地改；`goal` 可改写成一句更概括的表述（盖住原需求+新需求），不算换目标；`write_paths` 加项须用户本轮同意（guard 实时读它，加上即可写源码）；加完跑 `etctl check`，报 `PROFILE_MENU` 说明越出 profile 前缀，放宽 profile 须用户同意，由 `/harvest` 改。每次 `scope_revision` +1，并在 `evidence` 追加 `{"path": "user", "note": "amend rN：<用户需求摘要>", "status": "observed"}`（N 为新修订号，一行写短）。不改 `target_id`/`profile_id`；不在 `current.md` 写自由文本（idle 会保留）；不升 `current.md` 版本号。`implement_round` 不因细化重置；plan 原本没有的新需求可重置为 1。`target_id` 或 `profile_id` 要变就是换目标，走新任务。
 
 # 1. 查卡（按需）
 
@@ -53,8 +53,8 @@ Trunk 上动手分析前先做廉价检查：对关键文件 `svn status` 加 `s
 
 # 4. 版本历史
 
+- 1.20.0（2026-11-04）：补活卡放宽：同 target+profile 且用户明确继续本卡即可；goal 可概括改写；target/profile 变仍新开。
 - 1.19.0（2026-10-18）：补活卡只追加 `plan` 与 `validation`，`acceptance` 不再追加；amend 记录一行写短。
 - 1.18.0（2026-10-18）：补活卡加 `write_paths` 后用机检核对 profile 前缀。
 - 1.17.0（2026-10-18）：plan 要求改为开工核对、缺了不拒绝；结构规则改读 `code_structure` 卡；`?`、`I` 路径与新文件不 update；说明 promote 后范围位置。
 - 1.16.0（2026-10-17）：新增补活卡：同一 goal 下增量追加并记 amend；换目标走新任务。
-- 1.15.0（2026-10-17）：技能流水线任务的 plan 说明规格进度与新增补丁，补丁登记进 skill_spec。
