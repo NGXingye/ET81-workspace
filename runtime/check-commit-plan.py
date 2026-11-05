@@ -8,6 +8,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PLAN = ROOT / "contracts" / "commit_plan.json"
+HELD = ROOT / "contracts" / "held_commit_plan.json"
+TARGETS = ROOT / "targets"
 SCRIPTS = "Unity/Assets/Scripts"
 TOKEN = re.compile(r"\b[A-Za-z_][A-Za-z0-9_]{5,}\b")
 KEEP = {"added", "modified", "deleted", "unversioned", "missing", "replaced", "conflicted"}
@@ -76,6 +78,56 @@ def change_text(root, rel, rev, item):
 
 def covered(plan):
     return {norm(rel) for unit in plan.get("units") or [] for rel in unit.get("paths") or []}
+
+
+def held_covered_paths():
+    # 暂留槽未交笔 paths：活动槽 fill/verify 视同已覆盖，不写进活动 omitted、不算漏提交
+    if not HELD.is_file():
+        return set()
+    held = load_plan(HELD)
+    if not held.get("task_id") or str(held.get("task_id")) == "none":
+        return set()
+    found = set()
+    for unit in held.get("units") or []:
+        if unit.get("status") == "committed":
+            continue
+        for rel in unit.get("paths") or []:
+            found.add(norm(rel))
+    return found
+
+
+def local_only_of(root):
+    # 与 commit-units.py 同语义：命中目标 local_only（/ 结尾为目录，含 Unity .meta）
+    root = Path(root).resolve()
+    for path in TARGETS.glob("*.json"):
+        target = json.loads(path.read_text(encoding="utf-8"))
+        if Path(str(target.get("workspace_path") or "")).resolve() == root:
+            return [str(p).replace("\\", "/").lower() for p in target.get("local_only") or []]
+    return []
+
+
+def match_local_only(key, entries):
+    for entry in entries:
+        base = entry.rstrip("/")
+        if key in (base, base + ".meta") or (entry.endswith("/") and key.startswith(entry)):
+            return True
+    return False
+
+
+def is_local_only(root, rel):
+    key = norm(rel).replace("\\", "/").lower()
+    return match_local_only(key, local_only_of(root))
+
+
+def is_local_only_any(rel):
+    # omitted 清理用：不绑 workspace，命中任一目标 local_only 即静默丢掉
+    key = norm(rel).replace("\\", "/").lower()
+    for path in TARGETS.glob("*.json"):
+        target = json.loads(path.read_text(encoding="utf-8"))
+        entries = [str(p).replace("\\", "/").lower() for p in target.get("local_only") or []]
+        if match_local_only(key, entries):
+            return True
+    return False
 
 
 def workspaces(plan):
@@ -164,11 +216,23 @@ def fill(path):
     bags = unit_symbols(plan)
     known = set().union(*bags.values()) if bags else set()
     added, marked = [], []
-    omitted = [item for item in (plan.get("omitted") or []) if norm(item.get("path") or "") not in covered(plan)]
-    seen = {norm(item.get("path") or "") for item in omitted}
+    held = held_covered_paths()
+    plan_covered = covered(plan)
+    skipped_held, skipped_local = [], []
+    omitted = []
+    seen = set()
+    for item in plan.get("omitted") or []:
+        rel = norm(item.get("path") or "")
+        if not rel or rel in plan_covered or rel in held or is_local_only_any(rel) or rel in seen:
+            continue
+        omitted.append(item)
+        seen.add(rel)
     for root in workspaces(plan):
         dirty = dirty_map(root)
-        pending = [rel for rel in dirty if rel not in covered(plan) and not rel.endswith(".meta")]
+        pending = [
+            rel for rel in dirty
+            if rel not in plan_covered and rel not in held and not is_local_only(root, rel) and not rel.endswith(".meta")
+        ]
         for _ in range(6):
             moved = False
             for rel in list(pending):
@@ -179,6 +243,7 @@ def fill(path):
                 if not hit:
                     continue
                 place(plan, bags, root, rel, dirty, fresh, hit)
+                plan_covered = covered(plan)
                 known |= fresh
                 pending.remove(rel)
                 added.append(rel)
@@ -187,6 +252,12 @@ def fill(path):
                 break
         for rel in dirty:
             if rel in covered(plan) or rel in seen:
+                continue
+            if rel in held:
+                skipped_held.append(rel)
+                continue
+            if is_local_only(root, rel):
+                skipped_local.append(rel)
                 continue
             cs = rel[:-5] if rel.endswith(".meta") else ""
             owner = owner_unit(plan, cs) if cs else None
@@ -206,17 +277,32 @@ def fill(path):
     print("标注 " + str(len(marked)) + " 个")
     for rel in marked:
         print("  " + rel)
+    if skipped_held:
+        print("暂留已覆盖 " + str(len(skipped_held)) + " 个（不写 omitted）")
+        for rel in skipped_held:
+            print("  " + rel)
+    if skipped_local:
+        print("local_only 跳过 " + str(len(skipped_local)) + " 个")
+        for rel in skipped_local:
+            print("  " + rel)
 
 
 def verify(path):
     plan = load_plan(path)
     pending = [unit["id"] for unit in plan.get("units") or [] if unit.get("status") != "committed"]
-    missed, marked = [], []
+    missed, marked, held_hit, local_hit = [], [], [], []
     notes = {norm(item.get("path") or ""): str(item.get("note") or "") for item in plan.get("omitted") or []}
     seen = covered(plan)
+    held = held_covered_paths()
     for root in workspaces(plan):
         for rel in dirty_map(root):
             if rel in seen:
+                continue
+            if rel in held:
+                held_hit.append(rel)
+                continue
+            if is_local_only(root, rel):
+                local_hit.append(rel)
                 continue
             marked.append(rel + "  " + notes[rel]) if rel in notes else missed.append(rel)
     if pending:
@@ -225,6 +311,10 @@ def verify(path):
     print("  无" if not missed else "\n".join("  " + rel for rel in missed))
     print("已标注")
     print("  无" if not marked else "\n".join("  " + rel for rel in marked))
+    print("暂留已覆盖")
+    print("  无" if not held_hit else "\n".join("  " + rel for rel in held_hit))
+    if local_hit:
+        print("local_only 跳过 " + str(len(local_hit)) + " 个")
     if not missed and not marked:
         print("Scripts 范围内没有漏提交")
     return 1 if missed or marked else 0
