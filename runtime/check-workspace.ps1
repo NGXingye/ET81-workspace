@@ -21,6 +21,7 @@ $RequiredFiles = @(
     'runtime/check-workspace.ps1', 'runtime/begin-implement.ps1', 'runtime/promote.ps1',
     'runtime/interrupt.ps1', 'runtime/hold-plan.ps1', 'runtime/commit-units.py', 'runtime/check-commit-plan.py',
     'runtime/schema/current_scope.schema.json', 'runtime/schema/commit_plan.schema.json',
+    'runtime/schema/held_work.schema.json',
     'runtime/schema/target.schema.json',
     'targets/_index.md', 'targets/trunk.json', 'targets/SkillEditor.json',
     'targets/BridgeEditor.json', 'targets/ActionEditor.json',

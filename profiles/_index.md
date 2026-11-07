@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-18 17:52 UTC+8
-> 版本号：1.11.0
+> 最新修改时间：2026-10-27 22:55 UTC+8
+> 版本号：1.12.0
 > 文档状态：生效
 > 读取等级：L1（查找模块配置时读取）
 
@@ -36,11 +36,14 @@
 - [`spell_unit_phase.md`](./spell_unit_phase.md)  
   职责：弹体二阶段；写轨迹摘下与客端寿命特效，Trunk 与 Bridge ScriptsET 成对改。  
   读取时机：`active_profile` 为 `spell_unit_phase` 时。
+- [`pet_locomotion.md`](./pet_locomotion.md)  
+  职责：宠物跟随的客户端起步动画；写 Unit 运动表现目录。  
+  读取时机：`active_profile` 为 `pet_locomotion` 时。
 
 # 2. 版本历史
 
+- 1.12.0（2026-10-27）：登记 `pet_locomotion`（t049）。
 - 1.11.0（2026-10-18）：`allowed_write` 改为目录前缀菜单，配置只留 4 个键；行描述去掉已移走的禁区。
 - 1.10.0（2026-10-18）：更正脚本实际读取的键；本地专用改以 svn 忽略为准。
 - 1.9.0（2026-10-14）：本目录降为脚本门禁；行为与风险移入 `cards/`。
 - 1.8.4（2026-10-09）：登记 `spell_unit_phase`（t032）。
-- 1.8.3（2026-10-08）：skill_sync 白名单加上 PlayAnimationBehaviour，转化要读根运动开关。

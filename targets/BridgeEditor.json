@@ -4,15 +4,27 @@
   "workspace_path": "C:\\myProject\\BridgeEditor",
   "vcs": "svn",
   "editor": "unity",
-  "forbidden": ["Library/", "Logs/", "Temp/"],
+  "forbidden": [
+    "Library/",
+    "Logs/",
+    "Temp/"
+  ],
   "local_only": [
     "Assets/Scripts/Editor/SkillPipelineBridge.cs",
     "Assets/Scripts/Editor/SkillPipelineShapeSign.cs",
     "Assets/Scripts/Editor/SkillPipelineCollisionBuff.cs",
-    "Assets/Scripts/Editor/SkillSyncHeadless.cs"
+    "Assets/Scripts/Editor/SkillSyncHeadless.cs",
+    "Assets/Scripts/Editor/SkillPipelineBridgeAuthor.cs",
+    "Assets/Scripts/Editor/SkillPipelineBridgeShots.cs",
+    "Assets/Scripts/Editor/SkillPipelineBridgePhase.cs",
+    "Assets/Scripts/Editor/SkillPipelineBridgeBoxes.cs",
+    "Assets/Scripts/Editor/SkillPipelineBridgeLaunch.cs"
   ],
   "validation": {},
   "hook_tasks": [
-    {"id": "15", "for": "技能 Timeline、碰撞体原料与编辑器脚本"}
+    {
+      "id": "15",
+      "for": "技能 Timeline、碰撞体原料与编辑器脚本"
+    }
   ]
 }

@@ -1,0 +1,95 @@
+{
+  "task_id": "t059",
+  "summary": "共享转化引擎已退回 SVN。ScriptsET 技能脚本对齐 r8922。没有待交批次。",
+  "units": [],
+  "omitted": [
+    {
+      "path": "Assets/Scripts/Editor/SkillPipelineBridge.cs",
+      "note": "local_only：Bridge SkillPipelineBridge 不进 SVN"
+    },
+    {
+      "path": "Assets/Scripts/Editor/SkillPipelineBridgeAuthor.cs",
+      "note": "local_only：不进 SVN"
+    },
+    {
+      "path": "Assets/Scripts/Editor/SkillPipelineBridgeShots.cs",
+      "note": "local_only：不进 SVN"
+    },
+    {
+      "path": "Assets/Scripts/Editor/SkillPipelineBridgePhase.cs",
+      "note": "local_only：不进 SVN"
+    },
+    {
+      "path": "Assets/Scripts/Editor/SkillPipelineBridgeBoxes.cs",
+      "note": "local_only：不进 SVN"
+    },
+    {
+      "path": "Assets/Scripts/Editor/SkillPipelineBridgeLaunch.cs",
+      "note": "local_only：不进 SVN"
+    },
+    {
+      "path": "Assets/Scripts/Editor/SkillPipelineCollisionBuff.cs",
+      "note": "local_only：不进 SVN"
+    },
+    {
+      "path": "Assets/Scripts/Editor/SkillPipelineShapeSign.cs",
+      "note": "local_only：不进 SVN"
+    },
+    {
+      "path": "Assets/Scripts/Editor/SkillSyncHeadless.cs",
+      "note": "local_only：不进 SVN"
+    },
+    {
+      "path": "SkillEditor/Assets/Scripts/App/Comm/EditorTools/SkillPipeline",
+      "note": "SkillEditor 管线不在 svn 工作副本里，本单不交"
+    },
+    {
+      "path": "SkillEditor/Assets/Editor/SkillEditor/ControlColliderCS.cs",
+      "note": "碰撞导出改动在 SkillEditor，本单不交"
+    },
+    {
+      "path": "Unity/Assets/Config/Spell/Ballistics/BallisticCopy50054.asset",
+      "note": "临时把 50054 改到正前并抬高后半段，测试用，不进提交；下次烘焙导出会覆盖"
+    },
+    {
+      "path": "contracts/commit_plan.json",
+      "note": "控制面不进 trunk svn"
+    },
+    {
+      "path": "Assets/ScriptsET/Hotfix/Share/Module/Spell/BT/BTDelaySpellUnitAtPosHandler.cs.meta",
+      "note": "只有 .meta 改动，没有对应脚本正文，不进这批"
+    },
+    {
+      "path": "Assets/ScriptsET/Hotfix/Share/Module/Spell/BuffVM/BuffVMDelaySpellUnitAtPosHandler.cs.meta",
+      "note": "只有 .meta 改动，不进这批"
+    },
+    {
+      "path": "Assets/ScriptsET/HotfixView/Client/Demo/Spell/BT/BTPlaySpellUnitAnimHandler.cs.meta",
+      "note": "只有 .meta 改动，不进这批"
+    },
+    {
+      "path": "Assets/ScriptsET/Model/Share/Module/Spell/BT/Action/BTDelaySpellUnitAtPos.cs.meta",
+      "note": "只有 .meta 改动，不进这批"
+    },
+    {
+      "path": "Assets/ScriptsET/Model/Share/Module/Spell/BT/Action/BTPlaySpellUnitAnim.cs.meta",
+      "note": "只有 .meta 改动，不进这批"
+    },
+    {
+      "path": "Unity/Assets/Scripts/Hotfix/Server/Module/Unit/PlayerSaveDataComponentSystem.cs",
+      "note": "相对 r8699 只剩 UTF-8 BOM，没有逻辑差，不进这批"
+    },
+    {
+      "path": "Assets/Scripts/Editor",
+      "note": "目录 svn:ignore 只盖住白名单 SkillSyncHeadless，目录属性不单开一笔"
+    },
+    {
+      "path": "Assets/ScriptsET/Hotfix/Share/Module/Spell/SpellUnitCreatePhaseHelper.cs.t206bak",
+      "note": "备份，不进 SVN"
+    },
+    {
+      "path": "Assets/ScriptsET/Hotfix/Share/Module/Unit/SpellUnit/SpellUnitFollowLaunchPointHelper.cs.t206bak",
+      "note": "备份，不进 SVN"
+    }
+  ]
+}

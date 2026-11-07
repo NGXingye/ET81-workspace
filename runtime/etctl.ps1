@@ -67,17 +67,20 @@ switch ($Command) {
             }
         }
         $payload['candidates'] = $cands
-        foreach ($slot in @(@{ key = 'commit_plan'; rel = 'contracts/commit_plan.json' }, @{ key = 'held_commit_plan'; rel = 'contracts/held_commit_plan.json' })) {
-            $p = Get-JsonFile $slot.rel
-            if ($p) {
-                $units = @()
-                if ($p.PSObject.Properties.Name -contains 'units' -and $null -ne $p.units) { $units = @($p.units) }
-                $pending = @($units | Where-Object { [string]$_.status -ne 'committed' } | ForEach-Object { [string]$_.id })
-                $payload[$slot.key] = [ordered]@{ task_id = [string]$p.task_id; units = $units.Count; pending = $pending }
-            } else {
-                $payload[$slot.key] = $null
-            }
-        }
+        $activePlan = Get-JsonFile 'contracts/commit_plan.json'
+        if ($activePlan) {
+            $units = @()
+            if ($activePlan.PSObject.Properties.Name -contains 'units' -and $null -ne $activePlan.units) { $units = @($activePlan.units) }
+            $pending = @($units | Where-Object { [string]$_.status -ne 'committed' } | ForEach-Object { [string]$_.id })
+            $payload['commit_plan'] = [ordered]@{ task_id = [string]$activePlan.task_id; units = $units.Count; pending = $pending }
+        } else { $payload['commit_plan'] = $null }
+        $heldPlan = Get-JsonFile 'contracts/held_commit_plan.json'
+        if ($heldPlan) {
+            $mods = @()
+            if ($heldPlan.PSObject.Properties.Name -contains 'modules' -and $null -ne $heldPlan.modules) { $mods = @($heldPlan.modules) }
+            $ids = @($mods | ForEach-Object { if ($_) { [string]$_.id } })
+            $payload['held_commit_plan'] = [ordered]@{ modules = $ids.Count; ids = $ids }
+        } else { $payload['held_commit_plan'] = $null }
         $payload | ConvertTo-Json -Compress:$false -Depth 5
         exit 0
     }

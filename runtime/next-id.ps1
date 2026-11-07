@@ -1,5 +1,5 @@
 # Non-entry. Invoked by etctl.ps1 next-id. Read-only. No SVN.
-# Occupancy = outcomes ∪ live ∪ candidate stems ∪ commit_plan ∪ held_commit_plan (skip none).
+# Occupancy = outcomes ∪ live ∪ candidate stems ∪ commit_plan task_id ∪ held source_task (skip none).
 $ErrorActionPreference = 'Stop'
 $RuntimeRoot = $PSScriptRoot
 $WorkspaceRoot = Split-Path -Parent $RuntimeRoot
@@ -55,12 +55,20 @@ if (Test-Path -LiteralPath $candDir) {
     }
 }
 
-foreach ($rel in @('contracts/commit_plan.json', 'contracts/held_commit_plan.json')) {
-    $p = Join-Path $WorkspaceRoot $rel
-    if (-not (Test-Path -LiteralPath $p)) { continue }
+$planPath = Join-Path $WorkspaceRoot 'contracts/commit_plan.json'
+if (Test-Path -LiteralPath $planPath) {
     try {
-        $plan = Get-Content -LiteralPath $p -Raw -Encoding UTF8 | ConvertFrom-Json
+        $plan = Get-Content -LiteralPath $planPath -Raw -Encoding UTF8 | ConvertFrom-Json
         Add-Occupied $occupied ([string]$plan.task_id)
+    } catch { }
+}
+$heldPath = Join-Path $WorkspaceRoot 'contracts/held_commit_plan.json'
+if (Test-Path -LiteralPath $heldPath) {
+    try {
+        $held = Get-Content -LiteralPath $heldPath -Raw -Encoding UTF8 | ConvertFrom-Json
+        $mods = @()
+        if ($held.PSObject.Properties.Name -contains 'modules' -and $null -ne $held.modules) { $mods = @($held.modules) }
+        foreach ($m in $mods) { if ($m) { Add-Occupied $occupied ([string]$m.source_task) } }
     } catch { }
 }
 

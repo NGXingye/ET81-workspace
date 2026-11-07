@@ -1,104 +1,156 @@
-# Non-entry. Invoked by etctl.ps1 hold-plan / restore-plan. No SVN.
-param(
-    [Parameter(Mandatory = $true)]
-    [ValidateSet('hold', 'restore')]
-    [string]$Action
-)
-$ErrorActionPreference = 'Stop'
-$RuntimeRoot = $PSScriptRoot
-$WorkspaceRoot = Split-Path -Parent $RuntimeRoot
-
-function Write-HoldError([string]$Msg) {
-    [ordered]@{ ok = $false; error = $Msg } | ConvertTo-Json -Compress:$false
-    exit 1
-}
-function Write-Utf8([string]$Path, [string]$Text) {
-    $enc = New-Object System.Text.UTF8Encoding $false
-    [System.IO.File]::WriteAllText($Path, $Text, $enc)
-}
-function Read-Plan([string]$Path) {
-    if (-not (Test-Path -LiteralPath $Path)) { Write-HoldError ('missing ' + $Path) }
-    return (Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json)
-}
-function Test-PlanVacant($Plan) {
-    $units = @()
-    if ($Plan.PSObject.Properties.Name -contains 'units' -and $null -ne $Plan.units) { $units = @($Plan.units) }
-    if ($units.Count -eq 0 -and [string]$Plan.task_id -eq 'none') { return $true }
-    foreach ($u in $units) {
-        if ([string]$u.status -ne 'committed') { return $false }
-    }
-    return $true
-}
-function Get-PendingPathKeys($Plan) {
-    $keys = New-Object System.Collections.Generic.List[string]
-    $units = @()
-    if ($Plan.PSObject.Properties.Name -contains 'units' -and $null -ne $Plan.units) { $units = @($Plan.units) }
-    foreach ($u in $units) {
-        if ([string]$u.status -eq 'committed') { continue }
-        $ws = [string]$u.workspace_path
-        foreach ($rel in @($u.paths)) {
-            $norm = ($rel -replace '\\', '/').ToLowerInvariant()
-            $keys.Add(($ws.TrimEnd('\', '/') + '|' + $norm))
-        }
-    }
-    return ,$keys
-}
-function Test-PathOverlap($PlanA, $PlanB) {
-    $set = @{}
-    foreach ($k in (Get-PendingPathKeys $PlanA)) { $set[$k] = $true }
-    $hits = New-Object System.Collections.Generic.List[string]
-    foreach ($k in (Get-PendingPathKeys $PlanB)) {
-        if ($set.ContainsKey($k)) { $hits.Add($k) }
-    }
-    return ,$hits
-}
-function Format-EmptyPlan {
-    return "{`n  `"task_id`": `"none`",`n  `"summary`": `"`",`n  `"units`": []`n}`n"
-}
-function Format-PlanJson($Plan) {
-    $json = $Plan | ConvertTo-Json -Compress:$false -Depth 8
-    $json = [regex]::Replace($json, '\\u([0-9a-fA-F]{4})', { param($m) [char][int]('0x' + $m.Groups[1].Value) })
-    return ($json.TrimEnd() + "`n")
-}
-
-$activePath = Join-Path $WorkspaceRoot 'contracts/commit_plan.json'
-$heldPath = Join-Path $WorkspaceRoot 'contracts/held_commit_plan.json'
-$active = Read-Plan $activePath
-$held = Read-Plan $heldPath
-
-if ($Action -eq 'hold') {
-    if (Test-PlanVacant $active) { Write-HoldError 'active commit plan is empty; nothing to hold' }
-    if (-not (Test-PlanVacant $held)) {
-        Write-HoldError ('held slot occupied by ' + [string]$held.task_id + '; restore or commit held first')
-    }
-    $overlap = Test-PathOverlap $active $held
-    if ($overlap.Count -gt 0) { Write-HoldError ('path overlap with held: ' + ($overlap -join ', ')) }
-    Write-Utf8 $heldPath (Format-PlanJson $active)
-    Write-Utf8 $activePath (Format-EmptyPlan)
-    $pending = @()
-    foreach ($u in @($active.units)) {
-        if ([string]$u.status -ne 'committed') { $pending += [string]$u.id }
-    }
-    [ordered]@{
-        ok = $true
-        action = 'hold'
-        held_task_id = [string]$active.task_id
-        pending_units = $pending
-    } | ConvertTo-Json -Compress:$false
-    exit 0
-}
-
-if (Test-PlanVacant $held) { Write-HoldError 'held commit plan is empty; nothing to restore' }
-if (-not (Test-PlanVacant $active)) {
-    Write-HoldError ('active slot occupied by ' + [string]$active.task_id + '; commit or hold active first')
-}
-$overlap = Test-PathOverlap $active $held
-if ($overlap.Count -gt 0) { Write-HoldError ('path overlap with active: ' + ($overlap -join ', ')) }
-Write-Utf8 $activePath (Format-PlanJson $held)
-Write-Utf8 $heldPath (Format-EmptyPlan)
-[ordered]@{
-    ok = $true
-    action = 'restore'
-    active_task_id = [string]$held.task_id
-} | ConvertTo-Json -Compress:$false
-exit 0
+﻿# Non-entry. Invoked by etctl.ps1 hold-plan / restore-plan. No SVN.
+# hold folds pending units into held modules. restore does not rebuild a commit plan.
+param(
+    [Parameter(Mandatory = $true)]
+    [ValidateSet('hold', 'restore')]
+    [string]$Action
+)
+$ErrorActionPreference = 'Stop'
+$RuntimeRoot = $PSScriptRoot
+$WorkspaceRoot = Split-Path -Parent $RuntimeRoot
+
+function Write-HoldError([string]$Msg) {
+    [ordered]@{ ok = $false; error = $Msg } | ConvertTo-Json -Compress:$false
+    exit 1
+}
+function Write-Utf8([string]$Path, [string]$Text) {
+    $enc = New-Object System.Text.UTF8Encoding $false
+    [System.IO.File]::WriteAllText($Path, $Text, $enc)
+}
+function Read-Json([string]$Path) {
+    if (-not (Test-Path -LiteralPath $Path)) { Write-HoldError ('missing ' + $Path) }
+    return (Get-Content -LiteralPath $Path -Raw -Encoding UTF8 | ConvertFrom-Json)
+}
+function Json-Str([string]$Text) {
+    if ($null -eq $Text) { $Text = '' }
+    $Text = $Text.Replace('\', '\\').Replace('"', '\"').Replace("`r", '').Replace("`n", '\n').Replace("`t", '\t')
+    return '"' + $Text + '"'
+}
+function Format-EmptyPlan {
+    return "{`n  `"task_id`": `"none`",`n  `"summary`": `"`",`n  `"units`": []`n}`n"
+}
+function Get-TargetId([string]$Workspace) {
+    $want = $Workspace.TrimEnd('\', '/').ToLowerInvariant()
+    $dir = Join-Path $WorkspaceRoot 'targets'
+    foreach ($file in (Get-ChildItem -LiteralPath $dir -Filter '*.json' -File)) {
+        $target = Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+        $wp = [string]$target.workspace_path
+        if ($wp.TrimEnd('\', '/').ToLowerInvariant() -eq $want) { return [string]$target.target_id }
+    }
+    return 'unknown'
+}
+function Read-Modules($Held) {
+    if ($Held.PSObject.Properties.Name -contains 'task_id' -and -not ($Held.PSObject.Properties.Name -contains 'modules')) {
+        Write-HoldError 'held file is still a commit plan; migrate it before hold'
+    }
+    $list = New-Object System.Collections.Generic.List[object]
+    $mods = @()
+    if ($Held.PSObject.Properties.Name -contains 'modules' -and $null -ne $Held.modules) { $mods = @($Held.modules) }
+    foreach ($m in $mods) {
+        if (-not $m) { continue }
+        $paths = @()
+        if ($m.paths) { $paths = @($m.paths | ForEach-Object { [string]$_ }) }
+        $list.Add([ordered]@{
+            id = [string]$m.id
+            target_id = [string]$m.target_id
+            workspace_path = [string]$m.workspace_path
+            paths = $paths
+            intent = [string]$m.intent
+            blocker = [string]$m.blocker
+            source_task = [string]$m.source_task
+        })
+    }
+    return ,$list
+}
+function Format-Held($Modules) {
+    $blocks = New-Object System.Collections.Generic.List[string]
+    foreach ($m in $Modules) {
+        $pathLines = @($m.paths | ForEach-Object { '        ' + (Json-Str $_) })
+        $pathBody = if ($pathLines.Count -eq 0) { '' } else { ($pathLines -join ",`n") + "`n      " }
+        $blocks.Add(@"
+    {
+      "id": $(Json-Str $m.id),
+      "target_id": $(Json-Str $m.target_id),
+      "workspace_path": $(Json-Str $m.workspace_path),
+      "paths": [
+$pathBody],
+      "intent": $(Json-Str $m.intent),
+      "blocker": $(Json-Str $m.blocker),
+      "source_task": $(Json-Str $m.source_task)
+    }
+"@)
+    }
+    $body = if ($blocks.Count -eq 0) { '' } else { ($blocks -join ",`n") + "`n" }
+    return "{`n  `"modules`": [`n$body  ]`n}`n"
+}
+function Path-Key([string]$Workspace, [string]$Rel) {
+    return ($Workspace.TrimEnd('\', '/') + '|' + ($Rel -replace '\\', '/').ToLowerInvariant())
+}
+
+if ($Action -eq 'restore') {
+    Write-HoldError 'held is a module index, not a commit plan; write commit_plan for the slice to commit, and remove those paths only after svn success'
+}
+
+$activePath = Join-Path $WorkspaceRoot 'contracts/commit_plan.json'
+$heldPath = Join-Path $WorkspaceRoot 'contracts/held_commit_plan.json'
+$active = Read-Json $activePath
+$held = Read-Json $heldPath
+$units = @()
+if ($active.PSObject.Properties.Name -contains 'units' -and $null -ne $active.units) { $units = @($active.units) }
+$pending = @($units | Where-Object { $_ -and [string]$_.status -ne 'committed' })
+if ($pending.Count -eq 0) { Write-HoldError 'active commit plan has no pending units; nothing to hold' }
+$taskId = [string]$active.task_id
+if (-not $taskId -or $taskId -eq 'none') { Write-HoldError 'active commit plan needs a task_id' }
+$modules = Read-Modules $held
+$summary = [string]$active.summary
+$groups = @{}
+foreach ($u in $pending) {
+    $ws = [string]$u.workspace_path
+    if (-not $groups.ContainsKey($ws)) { $groups[$ws] = New-Object System.Collections.Generic.List[object] }
+    $groups[$ws].Add($u)
+}
+$ids = New-Object System.Collections.Generic.List[string]
+foreach ($ws in @($groups.Keys)) {
+    $tid = Get-TargetId $ws
+    $id = $taskId + '-' + $tid
+    $paths = New-Object System.Collections.Generic.List[string]
+    $titles = New-Object System.Collections.Generic.List[string]
+    foreach ($u in $groups[$ws]) {
+        $titles.Add([string]$u.title)
+        foreach ($rel in @($u.paths)) {
+            $text = [string]$rel
+            if ($text -and -not $paths.Contains($text)) { $paths.Add($text) }
+        }
+    }
+    $keys = @{}
+    foreach ($rel in $paths) { $keys[(Path-Key $ws $rel)] = $true }
+    foreach ($m in $modules) {
+        if ([string]$m.id -eq $id) { continue }
+        foreach ($rel in @($m.paths)) {
+            if ($keys.ContainsKey((Path-Key ([string]$m.workspace_path) ([string]$rel)))) {
+                Write-HoldError ('path overlap with held module ' + $m.id + ': ' + $rel)
+            }
+        }
+    }
+    $intent = $summary
+    if ($titles.Count -gt 0) { $intent = $summary + '；' + ($titles -join '；') }
+    $fresh = [ordered]@{
+        id = $id
+        target_id = $tid
+        workspace_path = $ws
+        paths = @($paths)
+        intent = $intent
+        blocker = ''
+        source_task = $taskId
+    }
+    $replaced = $false
+    for ($i = 0; $i -lt $modules.Count; $i++) {
+        if ([string]$modules[$i].id -eq $id) { $modules[$i] = $fresh; $replaced = $true }
+    }
+    if (-not $replaced) { $modules.Add($fresh) }
+    $ids.Add($id)
+}
+Write-Utf8 $heldPath (Format-Held $modules)
+Write-Utf8 $activePath (Format-EmptyPlan)
+[ordered]@{ ok = $true; action = 'hold'; source_task = $taskId; modules = @($ids) } | ConvertTo-Json -Compress:$false
+exit 0

@@ -1,5 +1,5 @@
-> 最新修改时间：2026-11-05 10:20 UTC+8
-> 版本号：2.25.0
+> 最新修改时间：2026-11-07 19:40 UTC+8
+> 版本号：2.26.0
 > 文档状态：生效
 > 读取等级：L1（新增或修改 `runtime/` 脚本或 schema 前必读）
 
@@ -25,11 +25,11 @@
 
 # 2. 架构
 
-- **调度**：`etctl.ps1` 只解析子命令并调用已登记入口，不内嵌机检政策或 SVN 步骤。`packet` 只读导出工作令，不写文件、不做 `svn update`。`begin-implement` 把活卡升到 implement 后打印 packet，无 SVN。`promote` 仅当活卡 idle 时把候选包写入活卡，无 SVN。**活动槽** `commit_plan.json` 还有未交笔则拒绝（可先 `etctl hold-plan`）；每笔都已提交则先把活动槽重置为空。`held_commit_plan.json` 不拦 promote。`hold-plan`/`restore-plan` 在活动与暂留槽之间搬迁计划（同时只一笔暂留；路径重叠则拒绝）。`guard` 只读判定，不写文件。
+- **调度**：`etctl.ps1` 只解析子命令并调用已登记入口，不内嵌机检政策或 SVN 步骤。`packet` 只读导出工作令，不写文件、不做 `svn update`。`begin-implement` 把活卡升到 implement 后打印 packet，无 SVN。`promote` 仅当活卡 idle 时把候选包写入活卡，无 SVN。**活动槽** `commit_plan.json` 还有未交笔则拒绝（可先 `etctl hold-plan`）；每笔都已提交则先把活动槽重置为空。`held_commit_plan.json` 是按模块的本地未交索引，不拦 promote，不能直接提交。`hold-plan` 把活动槽未交笔合入模块并清空活动槽；`restore-plan` 不再整份还原。`guard` 只读判定，不写文件。
 - **收回空闲**：`etctl idle`。把 scope、游标任务段、契约收成空闲最小形态；游标不改 `source_root`。已是空闲则不写文件。不写版本历史，不升版本号。不删 `commit_plan.json`、不删候选、不 svn、不 promote。scope 里的 `resume_task_id` 打印后清掉。任何非空闲阶段都可调用。
 - **源码拦截**：`etctl guard <path>`。路径不在游标 `source_root` 与任一 `targets/*.json` 的 `workspace_path` 之下则放行。在其下必须同时满足：`phase` 与 `task_status` 都不是 `idle`，且 `task_status` 为 `in_progress`；`phase=implement` 且契约 `active`，或 `phase=discovery` 且 `route=fast`；路径与 `write_paths` 某一项是同一文件（相对路径相对该目标 `workspace_path`，无目标则相对 `source_root`）；活动 profile 的 `allowed_write` 不是 `workspace_only`。否则退出码 2。`.cursor/hooks.json` 在写文件工具和会改文件的 shell 之前调用它。
 - **一事一入口**：机检与将来的 SVN 预检不得写进同一脚本。
-- **数据位置**：活卡范围 → `contracts/current_scope.json`；未开工分析 → `contracts/candidates/<task_id>.json`（最多 2；新号只经 `etctl next-id`）；活动提交计划 → `contracts/commit_plan.json`；暂留提交计划 → `contracts/held_commit_plan.json`（同时最多一笔、固定一个 `task_id`；`commit-units --held`；活动槽 `--fill`/`--verify` 把其未交笔 paths 视同已覆盖，不镜像进活动 `omitted`）；编辑目标与本地专用路径 → `targets/<id>.json`（`local_only` 由 `etctl sync-ignores` 同步进本机 svn 忽略）；长期知识 → `standards/<模块>.md`；收口账 → `standards/records/task_outcomes.jsonl`（占用+interrupt 足迹；仅四字段；`changed_paths` 不含控制面；上限 125 行，`etctl idle` 裁到最新 100 行，被契约或候选引用的号保留）；schema → `runtime/schema/`。`promote`、`interrupt`、`idle` 改完候选或活卡号后重写候选索引的候选行与版头时间，不升该索引版本号。写入或删除 `contracts/candidates/*.json` 后，`.cursor/hooks/sync-candidate-index.ps1` 同样重写。候选行不手改。
+- **数据位置**：活卡范围 → `contracts/current_scope.json`；未开工分析 → `contracts/candidates/<task_id>.json`（最多 2；新号只经 `etctl next-id`）；活动提交计划 → `contracts/commit_plan.json`；本地未交索引 → `contracts/held_commit_plan.json`（按模块，无总 `task_id`、无提交状态；`hold-plan` 合入；不直接提交；活动槽 `--fill`/`--verify` 把模块 paths 视同已覆盖，不镜像进活动 `omitted`）；编辑目标与本地专用路径 → `targets/<id>.json`（`local_only` 由 `etctl sync-ignores` 同步进本机 svn 忽略）；长期知识 → `standards/<模块>.md`；收口账 → `standards/records/task_outcomes.jsonl`（占用+interrupt 足迹；仅四字段；`changed_paths` 不含控制面；上限 125 行，`etctl idle` 裁到最新 100 行，被契约或候选引用的号保留）；schema → `runtime/schema/`。`promote`、`interrupt`、`idle` 改完候选或活卡号后重写候选索引的候选行与版头时间，不升该索引版本号。写入或删除 `contracts/candidates/*.json` 后，`.cursor/hooks/sync-candidate-index.ps1` 同样重写。候选行不手改。
 - **共享解析**：仅当两个入口都要用时，才允许已登记的非入口文件。禁止为尚未存在的命令先建空框架。
 - 入口只编排：参数 → 调用检查/读写 JSON → 退出码。
 
@@ -64,10 +64,9 @@
 
 # 5. 版本历史
 
+- 2.26.0（2026-11-07）：held 改为模块索引；不再直接提交或整份还原。
 - 2.25.0（2026-11-05）：`--fill`/`--verify` 认 held 未交笔覆盖与 targets `local_only` 静默跳过。
 - 2.24.0（2026-11-04）：补活卡可概括改写 goal；target/profile 变仍新开。
 - 2.23.0（2026-11-03）：收口账定位占用+interrupt 足迹；四字段与路径过滤。
 - 2.22.0（2026-10-28）：活动/暂留提交计划分槽；promote 只拦活动槽；`hold-plan`/`restore-plan`。
-- 2.21.0（2026-10-18）：`/harvest` 收紧活卡不升 `scope_revision`。
-- 2.20.0（2026-10-18）：目标 `local_only` 与 `sync-ignores`；profile 前缀菜单越出警告。
 

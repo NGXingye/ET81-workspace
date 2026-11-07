@@ -10,7 +10,8 @@
     "Assets/Scripts/App/Comm/EditorTools/SkillSync/",
     "Assets/Scripts/App/Comm/EditorTools/BallisticPathBake.cs",
     "Assets/Scripts/App/Comm/EditorTools/BallisticPathEditorWindow.cs",
-    "Assets/Scripts/App/Comm/EditorTools/DirectionalPathPreviewBinder.cs"
+    "Assets/Scripts/App/Comm/EditorTools/DirectionalPathPreviewBinder.cs",
+    "LocalAuthor"
   ],
   "validation": {},
   "hook_tasks": [

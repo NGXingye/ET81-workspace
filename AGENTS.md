@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-15 10:40 UTC+8
-> 版本号：1.28.0
+> 最新修改时间：2026-11-07 19:51 UTC+8
+> 版本号：1.29.0
 > 文档状态：生效
 > 读取等级：L0（每次冷启动必读；正文只保留硬约束）
 
@@ -10,7 +10,7 @@
 # 1. 不变量
 
 1. 同时只有一张活卡：`contracts/current.md` 与 `contracts/current_scope.json`。未开工分析最多 2 份，放在 `contracts/candidates/`，不能改源码。
-2. 无契约不改源码，不新建权威 Markdown。`route=fast` 且用户明确同意时，可按 `plan` 改活卡 `write_paths`。其它改源码必须本轮 `/implement`。源码树写入由钩子拦截。卡 idle 后仍可改 `standards/` 与 `contracts/commit_plan.json`。
+2. 无契约不改源码，不新建权威 Markdown。`route=fast` 且用户明确同意时，可按 `plan` 改活卡 `write_paths`。其它改源码必须本轮 `/implement`。源码树写入由钩子拦截。卡 idle 后仍可改 `standards/`、`contracts/commit_plan.json` 与 `contracts/held_commit_plan.json`。
 3. 改源码前对白名单路径 `svn update`。以拉下的提交为基准，把本地未提交改动改上去；对不齐则停下说明。
 4. 未经明确授权不 `svn commit`。一次只提交一笔，只经 `runtime/commit-units.py`。
 
@@ -27,8 +27,8 @@
 
 # 4. 版本历史
 
+- 1.29.0（2026-11-07）：idle 后可直接改 held 模块。
 - 1.28.0（2026-10-15）：知识卡收回 `standards/`。
 - 1.27.0（2026-10-14）：知识层改为 `cards/`；idle 后可改 cards，standards 只留收口账与审计。
 - 1.26.0（2026-10-13）：口令步骤改由 `.cursor/commands/` 独占；本文只留不变量。
 - 1.25.0（2026-10-13）：`/harvests` 收口只跑 `etctl idle`；idle 后仍可改 standards 与提交计划。
-- 1.24.0（2026-10-13）：源码树写入由钩子跑 `etctl guard`，不通过则拒绝。

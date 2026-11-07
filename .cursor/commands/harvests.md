@@ -1,5 +1,5 @@
-> 最新修改时间：2026-11-05 18:25 UTC+8
-> 版本号：2.5.0
+> 最新修改时间：2026-11-07 19:51 UTC+8
+> 版本号：2.8.0
 > 文档状态：生效
 > 读取等级：L2（用户发出 /harvests 时由 Cursor 注入）
 
@@ -17,7 +17,7 @@
 
 1. **知识**：按 [`harvest.md`](./harvest.md) §1 处理 `standards/` 的模块卡。本单 `/harvest` 已收过的不重复；无新增就不改卡。改了模块卡或 `_index` 关键词/跨模块坑时，按 harvest.md §1 热更 `_index` §4（滚动 ≤5）。
 2. **收口账** `standards/records/task_outcomes.jsonl`：占用账 + interrupt 父足迹索引（不是知识库）。一个 `task_id` 一行，已有则换掉该行，不改其它行。只写四字段：`task_id`、`changed_targets`、`changed_paths`、`recorded_at`。`changed_paths` 只记本单动过的**源码/配置**路径（供 interrupt 校验 `write_paths` ⊆ 父足迹）；不记控制面路径（`standards/`、`profiles/`、`targets/`、`contracts/`、`runtime/`、`.cursor/`、`global_rules/` 及 `project_cursor.md` / `AGENTS.md` 等工作区控制文件）。过滤后可为 `[]`，行仍保留占号。不写 `intent`/`promoted`/`discarded` 等旧字段；知识只进模块卡。路径条数不硬截断（约 >20 时可自检是否范围过大，不拒绝收口）。
-3. **提交计划**：有可交脚本时，收回 idle 前按 [`contracts/_template_commit_plan.json`](../../contracts/_template_commit_plan.json) 覆盖写**活动槽** `contracts/commit_plan.json`，不沿用文件里已有的 status。若还要本地测且不想挡下一任务 promote，先 `etctl hold-plan` 把当前活动计划挪到 `held_commit_plan.json`（同时只一笔暂留）；暂留仍走 `commit-units --held`，不手拷。笔数以 10 为参考，按内容浮动。一笔最多 8 个 `.cs`；`.meta` 跟着对应脚本，不计入。单独行为只有一个脚本时保持一笔。同一行为的 `.cs` 与 `.meta` 同笔。`summary` 是本单总任务。每笔 `hook_task` 从该笔 `workspace_path` 对应的 `targets` JSON 的 `hook_tasks` 里选；目标没有这份清单就留空。`paths` 相对 `workspace_path`。没有可交脚本则不写该文件。写完后运行 `py -3 runtime/check-commit-plan.py --fill`。它只看 `Unity/Assets/Scripts` 的 `svn status`。和计划新增符号有交集的漏文件补进未提交笔；满 8 个 `.cs` 就新开一笔。`held_commit_plan` 未交笔 paths 与目标 `local_only` 不写进活动 `omitted`（前者视同暂留已覆盖，后者静默跳过）；活动 `omitted` 只留真排除。`--verify` 同口径，不算漏提交。
+3. **提交计划**：写计划前按 SVN 仓库身份和仓库相对路径认同源文件，不按本地路径重复列单。同一改动只安排一处提交；源头已提交、外链副本只是版本落后时，只提示同步，不再列一笔。外链副本若还有额外本地改动，先辨明，不直接忽略，也不自动 update、revert 或覆盖。有可交脚本时，收回 idle 前按 [`contracts/_template_commit_plan.json`](../../contracts/_template_commit_plan.json) 覆盖写**活动槽** `contracts/commit_plan.json`，不沿用文件里已有的 status。准备提交的只写入活动计划。还留在本地的，直接改 `held_commit_plan.json`：同一目标且同一件事则更新该模块的路径和现状，不新开；换目标或另一件事才新开模块。不要把留下的先写进计划。这一单全部还不交，才 `etctl hold-plan`（它会把活动槽未交笔全部合入并清空活动槽）。held 不提交、不整份还原。与模块路径重叠则 `commit-units` 拒绝。提交成功后再从模块划掉已交路径，没成功不删。笔数以 10 为参考，按内容浮动。一笔最多 8 个 `.cs`；`.meta` 跟着对应脚本，不计入。单独行为只有一个脚本时保持一笔。同一行为的 `.cs` 与 `.meta` 同笔。`summary` 是本单总任务。每笔 `hook_task` 从该笔 `workspace_path` 对应的 `targets` JSON 的 `hook_tasks` 里选；目标没有这份清单就留空。`paths` 相对 `workspace_path`。没有可交脚本则不写该文件。写完后运行 `py -3 runtime/check-commit-plan.py --fill`。它只看 `Unity/Assets/Scripts` 的 `svn status`。和计划新增符号有交集的漏文件补进未提交笔；满 8 个 `.cs` 就新开一笔。`held_commit_plan` 模块 paths 与目标 `local_only` 不写进活动 `omitted`（前者视同暂留已覆盖，后者静默跳过）；活动 `omitted` 只留真排除。`--verify` 同口径，不算漏提交。
 4. 不 `svn commit`，不运行 `commit-units.py`。
 5. 以上写完，且用户没有再要补的内容：`powershell -File runtime/etctl.ps1 idle`。不手改游标、契约、scope。`--fill` 失败或用户还要补时先不要调用；下一轮补完 `standards/` 或 `commit_plan.json` 后再调用。脚本不删提交计划、不 svn、不 promote。
 6. stdout 有 `resume_task_id` 时再 `powershell -File runtime/etctl.ps1 promote <resume_task_id>`。失败则停并报告候选仍在。还有未提交笔时 promote 会拒绝。promote 按勾住时的原阶段提回（含 implement）。
@@ -25,8 +25,8 @@
 
 # 2. 版本历史
 
+- 2.8.0（2026-11-07）：留下的工作直接改 held 模块；整单不交才 hold-plan。
+- 2.7.0（2026-11-07）：held 改为按模块的本地未交索引，不再直接提交或整份还原。
+- 2.6.0（2026-11-07）：写计划前按 SVN 仓库认同源，外链落后只提示同步。
 - 2.5.0（2026-11-05）：知识步半行指针：改模块卡/`_index` 时热更 `_index` §4（滚动 ≤5）。
 - 2.4.0（2026-11-05）：`--fill`/`--verify` 认 held 覆盖与 local_only 静默跳过；活动 omitted 只留真排除。
-- 2.3.0（2026-11-03）：收口账定位为占用+interrupt 足迹；四字段；`changed_paths` 过滤控制面路径。
-- 2.2.0（2026-10-28）：提交计划写活动槽；需推迟 SVN 时先 `hold-plan`，暂留走 `commit-units --held`。
-- 2.1.0（2026-10-15）：卡收回 `standards/`。

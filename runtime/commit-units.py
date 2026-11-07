@@ -1,4 +1,4 @@
-"""Commit one unit from contracts/commit_plan.json (or --held). UTF-8 message file. No --all."""
+"""Commit one unit from contracts/commit_plan.json. UTF-8 message file. No --all. held is not a commit slot."""
 import argparse
 import json
 import os
@@ -53,12 +53,19 @@ def pending_path_keys(plan):
         for rel in unit.get("paths") or []:
             keys.add(ws + "|" + str(rel).replace("\\", "/").lower())
     return keys
-
+def module_path_keys(held):
+    keys = set()
+    for mod in held.get("modules") or []:
+        ws = str(mod.get("workspace_path") or "").rstrip("\\/")
+        for rel in mod.get("paths") or []:
+            keys.add(ws + "|" + str(rel).replace("\\", "/").lower())
+    return keys
 def refuse_slot_overlap(plan, other_path, label):
     if not other_path.is_file():
         return
     other = load_plan(other_path)
-    hits = sorted(pending_path_keys(plan) & pending_path_keys(other))
+    other_keys = module_path_keys(other) if isinstance(other.get("modules"), list) else pending_path_keys(other)
+    hits = sorted(pending_path_keys(plan) & other_keys)
     if hits:
         raise SystemExit("path overlap with " + label + ": " + ", ".join(hits))
 
@@ -206,13 +213,13 @@ def main():
     parser.add_argument("--unit", help="commit this unit id")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--demo", action="store_true", help="load the template")
-    parser.add_argument("--held", action="store_true", help="use contracts/held_commit_plan.json")
+    parser.add_argument("--held", action="store_true", help="rejected: held is a module index")
     args = parser.parse_args()
-    if args.demo and args.held:
-        raise SystemExit("cannot combine --demo and --held")
-    path = TEMPLATE if args.demo else (HELD if args.held else PLAN)
-    other = PLAN if args.held else HELD
-    other_label = "active commit_plan" if args.held else "held_commit_plan"
+    if args.held:
+        raise SystemExit("held_commit_plan is a module index, not a commit slot; commit contracts/commit_plan.json")
+    path = TEMPLATE if args.demo else PLAN
+    other = HELD
+    other_label = "held_commit_plan"
     if args.unit:
         plan = load_plan(path)
         check_plan(plan)

@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-15 10:40 UTC+8
-> 版本号：1.1.0
+> 最新修改时间：2026-10-18 12:22 UTC+8
+> 版本号：1.2.0
 > 文档状态：生效
 > 读取等级：L1（需要框架、程序集、放置或验证事实时读取）
 
@@ -35,6 +35,7 @@
 - trunk 内 `Documents/ET框架/Unity工程架构.md` 写的 Unity/C# 版本已过时，不采用。
 - 全局禁碰：`**/Generate/`、`Unity/Library/`、`Unity/Assets/Res/`、`Unity/Bundles/`、`Bin/`、`obj/`、`Share/Share.SourceGenerator/`、`Share/joltc/`。
 - Core / Loader / 协议生成 / 跨模块批量改动属高风险，先标 `blocked` 再与用户商量。
+- 要在游戏里看见的脚本，写正在打开的那份工程。Trunk 与 BridgeEditor 是两份工作副本，写到没运行的那份，GM 列表和场景里都没有。
 
 # 3. 怎么验证
 

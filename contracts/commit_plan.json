@@ -1,5 +1,195 @@
 {
-  "task_id": "none",
-  "summary": "",
-  "units": []
+  "task_id": "t059",
+  "summary": "技能树低影响改动",
+  "units": [
+    {
+      "id": "u1",
+      "title": "空形状和零厚度碰撞改为离散，有厚度的连续碰撞保持 LinearCast",
+      "hook_task": "15",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Scripts/Hotfix/Share/Module/JoltPhysicsUnity/PhysicsBodyComponentSystem.cs"
+      ],
+      "status": "committed",
+      "committed_rev": "8890"
+    },
+    {
+      "id": "u2",
+      "title": "新增取施法者技能体节点，只读单位和坐标，不改移动同步",
+      "hook_task": "15",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Action/BTReadCasterSpellUnit.cs",
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Action/BTReadCasterSpellUnit.cs.meta",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BuffVM/BuffVMReadCasterSpellUnitHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BuffVM/BuffVMReadCasterSpellUnitHandler.cs.meta"
+      ],
+      "status": "committed",
+      "committed_rev": "8891"
+    },
+    {
+      "id": "u3",
+      "title": "视图绑定壳：占位皮字段与取消首次显示门禁，不改旧绑定，不新增同步",
+      "hook_task": "15",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Scripts/ModelView/Client/Demo/Unit/GameObjectComponent.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/TransformViewComponentSystem.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/OverwriteTransformScaleComponentSystem.cs"
+      ],
+      "status": "committed",
+      "committed_rev": "8893"
+    },
+    {
+      "id": "u4",
+      "title": "播放动画可填过渡秒数。0 秒时怪物原有硬切不变，大于 0 才从当前动作融到攻击开头。不发网络",
+      "hook_task": "15",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Action/BTAnimatorPlayAnim.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Spell/BT/BTAnimatorPlayAnimHandler.cs",
+        "Unity/Assets/Scripts/ModelView/Client/Demo/Unit/AnimatorBindingContract.cs",
+        "Unity/Assets/Scripts/ModelView/Client/Demo/Unit/AnimatorComponent.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/AnimatorComponentSystem.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/AnimatorComponentSystem.LegacyAttack.cs"
+      ],
+      "status": "committed",
+      "committed_rev": "8898"
+    },
+    {
+      "id": "u5",
+      "title": "播放动作可勾选结束后保留 Full。不勾时阶段结束仍把 FullKind 清 0。接受新动作时当帧写出 FullKind。不发网络",
+      "hook_task": "15",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Action/BTAnimatorPlayAction.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Spell/BT/BTAnimatorPlayActionHandler.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/AnimatorComponentSystem.ActionSession.cs"
+      ],
+      "status": "committed",
+      "committed_rev": "8899"
+    },
+    {
+      "id": "u6",
+      "title": "新增施法者追击。Buff 在时怪物在攻击姿态朝目标走，速度为跑速乘系数。没有该节点的怪不变。结束时同步一次停步。移动中仍只在方向变化时同步",
+      "hook_task": "15",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Action/BTCasterChase.cs",
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Action/BTCasterChase.cs.meta",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BuffVM/BuffVMCasterChaseHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BuffVM/BuffVMCasterChaseHandler.cs.meta",
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BuffCasterChaseStateComponent.cs",
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BuffCasterChaseStateComponent.cs.meta",
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/CasterChaseLeaseComponent.cs",
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/CasterChaseLeaseComponent.cs.meta",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BuffCasterChaseStateComponentSystem.cs.meta",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/AI/AI_MonsterZhuiJiHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Demo/HybridLS/HLSMoveComponentSystem.cs"
+      ],
+      "status": "committed",
+      "committed_rev": "8900"
+    },
+    {
+      "id": "u7",
+      "title": "等待条件可勾选超时视为成功。不勾且最大等待为 0 时仍一直等到条件成立，超时仍失败。检测间隔为 0 时改为等一帧再查。",
+      "hook_task": "15",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Common/Procedure/BTWaitCondition.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BT/Common/Procedure/BTWaitConditionHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BuffVM/BuffVMWaitConditionHandler.cs"
+      ],
+      "status": "committed",
+      "committed_rev": "8901"
+    },
+    {
+      "id": "u8",
+      "title": "有弹着点时形状和特效放在弹着点。挂点空串按未绑定。没有弹着点且挂点已填的形状仍跟着单位。",
+      "hook_task": "15",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BT/BTCastShapeHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BuffSensorCastShapeHelper.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BuffVM/BuffVMCastShapeHandler.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Spell/BT/BTCreateBuffEffectHandler.cs"
+      ],
+      "status": "committed",
+      "committed_rev": "8905"
+    },
+    {
+      "id": "u9",
+      "title": "等轨迹结束时黑板已有落点的 AddBuff，把该落点盖到子 Buff。黑板没有落点的 AddBuff 仍用父 Buff 弹着点。不改选哪个 Buff。不新增强制位移同步",
+      "hook_task": "15",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BuffHelper.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BuffVM/BuffVMAddBuffHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BT/BTAddBuffHandler.cs"
+      ],
+      "status": "committed",
+      "committed_rev": "8906"
+    },
+    {
+      "id": "u10",
+      "title": "新增距离不大于。到目标的直线距离不大于所填米数时为真，没目标为假。服务器上为真且仍在移动时停步并同步一次；已经停下则不再同步。没有该节点的技能不变",
+      "hook_task": "15",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Common/Expression/BTDistanceWithin.cs",
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Common/Expression/BTDistanceWithin.cs.meta",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BuffVM/BuffVMDistanceWithinHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BuffVM/BuffVMDistanceWithinHandler.cs.meta"
+      ],
+      "status": "committed",
+      "committed_rev": "8913"
+    },
+    {
+      "id": "u11",
+      "title": "设置根运动可填动画对齐推迟。大于 0 时先停步、等这段再出位移，已经停下不再同步。为 0 时立即出根运动，不因追击租约停步",
+      "hook_task": "15",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Action/BTSetRootMotion.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BuffVM/BuffVMSetRootMotionHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BuffCasterChaseStateComponentSystem.cs"
+      ],
+      "status": "committed",
+      "committed_rev": "8917"
+    },
+    {
+      "id": "u12",
+      "title": "分阶段 Buff 单位。骨皮到轨迹是同一颗单位。切入时间为 0 的松开仍用原来的握持采样和朝向。服务器工厂只增加默认 0 的 BuffId。",
+      "hook_task": "15",
+      "workspace_path": "C:\\myProject\\trunk",
+      "paths": [
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/SpellUnit/SpellUnitFollowLaunchPointHelper.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/SpellUnit/SpellUnitComponentSystem.cs",
+        "Unity/Assets/Scripts/Model/Share/Module/Unit/SpellUnit/SpellUnitComponent.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/SpellUnit/SpellUnitTrackMoveComponentSystem.cs",
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/BT/Action/BTCreatePhaseBuffUnit.cs",
+        "Unity/Assets/Scripts/Model/Share/Module/Spell/SpellUnitBoneVfxWatchComponent.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/SpellUnitCreatePhaseHelper.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/BuffVM/BuffVMCreatePhaseBuffUnitHandler.cs",
+        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/SpellUnitHelper.cs",
+        "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Unit/UnitFactory.cs",
+        "Unity/Assets/Scripts/Hotfix/Client/Demo/Main/Unit/UnitFactory.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Spell/SpellUnitPhasePresentInvokeHandler.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Spell/SpellUnitPhasePresentInvokeHandler.cs.meta",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Spell/SpellUnitPhasePlayAnimImpactInvokeHandler.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Spell/SpellUnitPhasePlayAnimImpactInvokeHandler.cs.meta",
+        "Unity/Assets/Scripts/ModelView/Client/Demo/Unit/SpellUnitPhasePresentComponent.cs",
+        "Unity/Assets/Scripts/ModelView/Client/Demo/Unit/SpellUnitPhasePresentComponent.cs.meta",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Spell/SpellUnitBoneVfxWatchComponentSystem.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/AfterUnitCreate_CreateUnitView.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Module/UI/EffectUnitHelper.cs",
+        "Unity/Assets/Scripts/Hotfix/Client/Demo/Main/Spell/BuffHelper.cs",
+        "Unity/Assets/Scripts/Hotfix/Client/Demo/Main/Spell/M2C_BuffRemoveHandler.cs",
+        "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/SpellUnitLandAnimHandoffComponentSystem.cs"
+      ],
+      "status": "committed",
+      "committed_rev": "8922"
+    }
+  ],
+  "omitted": []
 }

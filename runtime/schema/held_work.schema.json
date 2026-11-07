@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "held_work.schema.json",
+  "title": "ET81 held local work index",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["modules"],
+  "properties": {
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "target_id", "workspace_path", "paths", "intent", "blocker", "source_task"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "target_id": { "type": "string" },
+          "workspace_path": { "type": "string" },
+          "paths": { "type": "array", "items": { "type": "string" } },
+          "intent": { "type": "string" },
+          "blocker": { "type": "string" },
+          "source_task": { "type": "string" }
+        }
+      }
+    }
+  }
+}

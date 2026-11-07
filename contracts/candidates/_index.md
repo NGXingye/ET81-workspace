@@ -1,4 +1,4 @@
-> 最新修改时间：2026-10-30 22:05 UTC+8
+> 最新修改时间：2026-11-07 19:55 UTC+8
 > 版本号：1.6.31
 > 文档状态：生效
 > 读取等级：L1（活卡占用时停写发现卡前读取）
@@ -11,6 +11,6 @@
 
 # 1. 文件清单
 
-当前 0 个候选。活卡 t051。
+当前 0 个候选。活卡 none。
 
 发现模板在活卡已 idle 时只写成 `<task_id>.json`，复制 `../_template_scope.json` 填 goal；插队卡复制 `../_template_interrupt.json`。未 park 的 phase 应为 discovery 或 awaiting_scope。最多 2 条。不写版本历史；进度不写在本文件。

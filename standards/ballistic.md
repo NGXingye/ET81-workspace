@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-18 17:52 UTC+8
-> 版本号：1.1.1
+> 最新修改时间：2026-10-20 11:40 UTC+8
+> 版本号：1.2.0
 > 文档状态：生效
 > 读取等级：L1（关键词命中弹道 / Copy / 枪口 / 定点延迟 / 二阶段时读取）
 
@@ -34,6 +34,7 @@
 - 怪物不走 ClampThrowPosAboveGround；SpellUnit 盒子有半高，Y 终点不扣会提前 OnHitGround。
 - 二阶段改动 trunk 与 BridgeEditor `ScriptsET` 成对改。
 - 不把 Play 选 Clip / Binder 当弹道作者入口，不把曲线图当编辑器（UseVelocityCurve 保持关）。
+- 一把 Key 的落点钉在曲线末点。转出生方向或改 speed 会带动整条弧，做不出只在绿色终点周围的圆里落。落点要有偏差就做多把 Key，由 `BTCreateBuffUnit.ballisticIdList` 每次施法定选一把。节点 speed 仍是这一发当前 Key 的 D 除以飞行时间，换到的是曲线形状，不是各自的 D。
 
 # 3. 怎么验证
 

@@ -5,7 +5,6 @@ import re
 import subprocess
 import xml.etree.ElementTree as ET
 from pathlib import Path
-
 ROOT = Path(__file__).resolve().parents[1]
 PLAN = ROOT / "contracts" / "commit_plan.json"
 HELD = ROOT / "contracts" / "held_commit_plan.json"
@@ -13,35 +12,18 @@ TARGETS = ROOT / "targets"
 SCRIPTS = "Unity/Assets/Scripts"
 TOKEN = re.compile(r"\b[A-Za-z_][A-Za-z0-9_]{5,}\b")
 KEEP = {"added", "modified", "deleted", "unversioned", "missing", "replaced", "conflicted"}
-COMMON = {
-    "GetComponent", "AddComponent", "RemoveComponent", "GetParent", "Instance", "ToString",
-    "EntityRef", "ETTask", "Debug", "LogError", "LogWarning", "Component", "Transform",
-    "Position", "Rotation", "Dispose", "Awake", "Destroy", "Update", "Object", "String",
-    "Boolean", "gameObject", "GameObject",
-}
-
-
+COMMON = {"GetComponent", "AddComponent", "RemoveComponent", "GetParent", "Instance", "ToString", "EntityRef", "ETTask", "Debug", "LogError", "LogWarning", "Component", "Transform", "Position", "Rotation", "Dispose", "Awake", "Destroy", "Update", "Object", "String", "Boolean", "gameObject", "GameObject"}
 def norm(path):
     text = str(path).replace("\\", "/")
     mark = text.find(SCRIPTS)
     return text[mark:] if mark >= 0 else text.lstrip("./")
-
-
 def load_plan(path):
     return json.loads(Path(path).read_text(encoding="utf-8"))
-
-
 def save_plan(path, plan):
     Path(path).write_text(json.dumps(plan, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
-
 def svn_out(root, args):
     done = subprocess.run(["svn", *args], cwd=str(root), capture_output=True)
-    if done.returncode != 0:
-        return b""
-    return done.stdout
-
-
+    return b"" if done.returncode != 0 else done.stdout
 def dirty_map(root):
     if not (Path(root) / SCRIPTS).is_dir():
         return {}
@@ -52,75 +34,43 @@ def dirty_map(root):
     for entry in ET.fromstring(raw).iter("entry"):
         rel = norm(entry.get("path") or "")
         status = entry.find("wc-status")
-        if not rel.startswith(SCRIPTS + "/") or status is None or status.get("item") not in KEEP:
-            continue
-        if (Path(root) / rel).is_dir():
+        if not rel.startswith(SCRIPTS + "/") or status is None or status.get("item") not in KEEP or (Path(root) / rel).is_dir():
             continue
         found[rel] = status.get("item")
     return found
-
-
 def tokens_of(text):
-    found = set()
-    for line in text.splitlines():
-        if line.startswith("+") and not line.startswith("+++"):
-            found.update(token for token in TOKEN.findall(line) if token not in COMMON and any(ch.isupper() for ch in token))
-    return found
-
-
+    lines = [line for line in text.splitlines() if line.startswith("+") and not line.startswith("+++")]
+    return {token for line in lines for token in TOKEN.findall(line) if token not in COMMON and any(ch.isupper() for ch in token)}
 def change_text(root, rel, rev, item):
     if item == "unversioned":
         body = (Path(root) / rel).read_bytes()[:80000].decode("utf-8", "replace")
         return "\n".join("+" + line for line in body.splitlines()[:500])
     args = ["diff", "-c", str(rev), rel] if rev else ["diff", rel]
     return svn_out(root, args).decode("utf-8", "replace")
-
-
 def covered(plan):
     return {norm(rel) for unit in plan.get("units") or [] for rel in unit.get("paths") or []}
-
-
 def held_covered_paths():
-    # 暂留槽未交笔 paths：活动槽 fill/verify 视同已覆盖，不写进活动 omitted、不算漏提交
     if not HELD.is_file():
         return set()
     held = load_plan(HELD)
-    if not held.get("task_id") or str(held.get("task_id")) == "none":
-        return set()
-    found = set()
-    for unit in held.get("units") or []:
-        if unit.get("status") == "committed":
-            continue
-        for rel in unit.get("paths") or []:
-            found.add(norm(rel))
-    return found
-
-
+    return {norm(rel) for mod in held.get("modules") or [] for rel in mod.get("paths") or []}
 def local_only_of(root):
-    # 与 commit-units.py 同语义：命中目标 local_only（/ 结尾为目录，含 Unity .meta）
     root = Path(root).resolve()
     for path in TARGETS.glob("*.json"):
         target = json.loads(path.read_text(encoding="utf-8"))
         if Path(str(target.get("workspace_path") or "")).resolve() == root:
             return [str(p).replace("\\", "/").lower() for p in target.get("local_only") or []]
     return []
-
-
 def match_local_only(key, entries):
     for entry in entries:
         base = entry.rstrip("/")
         if key in (base, base + ".meta") or (entry.endswith("/") and key.startswith(entry)):
             return True
     return False
-
-
 def is_local_only(root, rel):
     key = norm(rel).replace("\\", "/").lower()
     return match_local_only(key, local_only_of(root))
-
-
 def is_local_only_any(rel):
-    # omitted 清理用：不绑 workspace，命中任一目标 local_only 即静默丢掉
     key = norm(rel).replace("\\", "/").lower()
     for path in TARGETS.glob("*.json"):
         target = json.loads(path.read_text(encoding="utf-8"))
@@ -128,33 +78,22 @@ def is_local_only_any(rel):
         if match_local_only(key, entries):
             return True
     return False
-
-
 def workspaces(plan):
     found = []
     for unit in plan.get("units") or []:
         root = str(unit.get("workspace_path") or "")
-        if root and root not in found and (Path(root) / SCRIPTS).is_dir():
-            found.append(root)
+        if root and root not in found and (Path(root) / SCRIPTS).is_dir(): found.append(root)
     return found
-
-
 def cs_count(paths):
     return sum(1 for rel in paths if norm(rel).endswith(".cs"))
-
-
 def next_id(plan):
     nums = [int(unit["id"][1:]) for unit in plan["units"] if re.fullmatch(r"u\d+", str(unit.get("id") or ""))]
     return "u" + str(max(nums or [0]) + 1)
-
-
 def digit_hook(plan, unit):
     hook = str((unit or {}).get("hook_task") or "")
     if hook.isdigit():
         return hook
     return next((str(item.get("hook_task") or "") for item in plan["units"] if str(item.get("hook_task") or "").isdigit()), "")
-
-
 def unit_symbols(plan):
     bags = {}
     for unit in plan.get("units") or []:
@@ -165,30 +104,19 @@ def unit_symbols(plan):
             rel = norm(rel)
             if not rel.startswith(SCRIPTS + "/") or not (Path(root) / rel).is_file():
                 continue
-            item = ""
-            if rev == "" and subprocess.run(["svn", "info", rel], cwd=root, capture_output=True).returncode != 0:
-                item = "unversioned"
+            item = "unversioned" if rev == "" and subprocess.run(["svn", "info", rel], cwd=root, capture_output=True).returncode != 0 else ""
             bag |= tokens_of(change_text(root, rel, rev, item))
         bags[unit["id"]] = bag
     return bags
-
-
 def owner_unit(plan, rel):
     for unit in plan["units"]:
         if rel in [norm(item) for item in unit.get("paths") or []]:
             return unit
     return None
-
-
 def append_unit(plan, bags, root, paths, hook, symbol, fresh):
     uid = next_id(plan)
-    plan["units"].append({
-        "id": uid, "title": "补上 " + (symbol or "相关脚本"), "hook_task": hook,
-        "workspace_path": root, "paths": paths, "status": "pending",
-    })
+    plan["units"].append({"id": uid, "title": "补上 " + (symbol or "相关脚本"), "hook_task": hook, "workspace_path": root, "paths": paths, "status": "pending"})
     bags[uid] = set(fresh)
-
-
 def place(plan, bags, root, rel, dirty, fresh, hit):
     meta = rel + ".meta"
     paths = [rel]
@@ -209,8 +137,6 @@ def place(plan, bags, root, rel, dirty, fresh, hit):
         bags[best["id"]] = bags.get(best["id"], set()) | fresh
         return
     append_unit(plan, bags, root, paths, digit_hook(plan, best), sorted(hit)[0] if hit else "", fresh)
-
-
 def fill(path):
     plan = load_plan(path)
     bags = unit_symbols(plan)
@@ -229,10 +155,7 @@ def fill(path):
         seen.add(rel)
     for root in workspaces(plan):
         dirty = dirty_map(root)
-        pending = [
-            rel for rel in dirty
-            if rel not in plan_covered and rel not in held and not is_local_only(root, rel) and not rel.endswith(".meta")
-        ]
+        pending = [rel for rel in dirty if rel not in plan_covered and rel not in held and not is_local_only(root, rel) and not rel.endswith(".meta")]
         for _ in range(6):
             moved = False
             for rel in list(pending):
@@ -271,22 +194,16 @@ def fill(path):
             marked.append(rel)
     plan["omitted"] = omitted
     save_plan(path, plan)
-    print("补进 " + str(len(added)) + " 个")
-    for rel in added:
-        print("  " + rel)
-    print("标注 " + str(len(marked)) + " 个")
-    for rel in marked:
-        print("  " + rel)
+    def show(label, rows):
+        print(label + " " + str(len(rows)) + " 个")
+        for rel in rows:
+            print("  " + rel)
+    show("补进", added)
+    show("标注", marked)
     if skipped_held:
-        print("暂留已覆盖 " + str(len(skipped_held)) + " 个（不写 omitted）")
-        for rel in skipped_held:
-            print("  " + rel)
+        show("暂留已覆盖", skipped_held)
     if skipped_local:
-        print("local_only 跳过 " + str(len(skipped_local)) + " 个")
-        for rel in skipped_local:
-            print("  " + rel)
-
-
+        show("local_only 跳过", skipped_local)
 def verify(path):
     plan = load_plan(path)
     pending = [unit["id"] for unit in plan.get("units") or [] if unit.get("status") != "committed"]
@@ -307,19 +224,17 @@ def verify(path):
             marked.append(rel + "  " + notes[rel]) if rel in notes else missed.append(rel)
     if pending:
         print("未提交：" + " ".join(pending))
-    print("漏提交")
-    print("  无" if not missed else "\n".join("  " + rel for rel in missed))
-    print("已标注")
-    print("  无" if not marked else "\n".join("  " + rel for rel in marked))
-    print("暂留已覆盖")
-    print("  无" if not held_hit else "\n".join("  " + rel for rel in held_hit))
+    def block(title, rows):
+        print(title)
+        print("  无" if not rows else "\n".join("  " + rel for rel in rows))
+    block("漏提交", missed)
+    block("已标注", marked)
+    block("暂留已覆盖", held_hit)
     if local_hit:
         print("local_only 跳过 " + str(len(local_hit)) + " 个")
     if not missed and not marked:
         print("Scripts 范围内没有漏提交")
     return 1 if missed or marked else 0
-
-
 def main():
     parser = argparse.ArgumentParser(description="check commit plan against Scripts")
     parser.add_argument("--fill", action="store_true")
@@ -330,7 +245,5 @@ def main():
         fill(args.plan)
         return
     raise SystemExit(verify(args.plan))
-
-
 if __name__ == "__main__":
     main()
