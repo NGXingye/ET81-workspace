@@ -1,4 +1,4 @@
-> 最新修改时间：2026-11-07 19:55 UTC+8
+> 最新修改时间：2026-11-09 12:15 UTC+8
 > 版本号：1.1.0
 > 文档状态：活动
 > 读取等级：L0（每次冷启动必读、任务状态变更时更新）
@@ -23,8 +23,8 @@
 
 # 3. 当前任务
 
-- `task_id`：`none`
-- `task_status`：`idle`
-- `active_profile`：`none`
-- `contract_ref`：`none`
+- `task_id`：`t060`
+- `task_status`：`in_progress`
+- `active_profile`：`spell_unit_phase`
+- `contract_ref`：`contracts/current.md`
 - `blocked`：`false`

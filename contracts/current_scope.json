@@ -1,5 +1,70 @@
 {
-  "task_id": "none",
-  "phase": "idle",
-  "scope_revision": 0
+  "task_id": "t060",
+  "phase": "implement",
+  "implement_round": 1,
+  "scope_revision": 3,
+  "intent": "fix",
+  "size": "small",
+  "route": "normal",
+  "target_id": "trunk",
+  "profile_id": "spell_unit_phase",
+  "seed_paths": [
+    "C:/myProject/trunk/Unity/Assets/Scripts/Model/Share/Module/Spell/SpellUnitBoneVfxWatchComponent.cs",
+    "C:/myProject/trunk/Unity/Assets/Scripts/Hotfix/Share/Module/Spell/SpellUnitCreatePhaseHelper.cs"
+  ],
+  "read_paths": [
+    "standards/spell_unit_bt_phase.md"
+  ],
+  "write_paths": [
+    "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/SpellUnitCreatePhaseHelper.cs",
+    "Unity/Assets/Scripts/HotfixView/Client/Demo/Spell/SpellUnitPhasePresentInvokeHandler.cs",
+    "Unity/Assets/Scripts/HotfixView/Client/Demo/Spell/SpellUnitBoneVfxWatchComponentSystem.cs",
+    "Unity/Assets/Scripts/Model/Share/Module/Unit/SpellUnit/SpellUnitComponent.cs",
+    "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/SpellUnit/SpellUnitComponentSystem.cs"
+  ],
+  "editor_md_paths": [],
+  "evidence": [
+    {
+      "path": "C:/myProject/trunk/Unity/Assets/Scripts/Hotfix/Share/Module/Message/SyncDataHelper.cs",
+      "note": "NotifySyncData 仅 scene.IsServer 时发布同步。客户端调用直接返回。",
+      "status": "observed"
+    },
+    {
+      "path": "C:/myProject/trunk/Unity/Assets/Scripts/Model/Share/Module/Unit/SpellUnit/SpellUnitComponent.cs",
+      "note": "这两个 MemoryPack 字段已从 SpellUnitComponent 去掉。服务器阶段不再写入，也不为此 NotifySyncData。",
+      "status": "observed"
+    },
+    {
+      "path": "C:/myProject/trunk/Unity/Assets/Scripts/Model/Share/Module/Spell/SpellUnitBoneVfxWatchComponent.cs",
+      "note": "r8930 已把监视组件从 Model/Share 挪到 ModelView/Client/Module/SpellUnitBone，命名空间仍是 ET。本地按 r8936 去掉 BoneVfxPrefab 与 BoneVfxPoint。",
+      "status": "observed"
+    },
+    {
+      "path": "user",
+      "note": "用户要求放入 ModelView。该路径越出 spell_unit_phase 的 allowed_write，用户已点名。",
+      "status": "observed"
+    },
+    {
+      "path": "user",
+      "note": "amend r2–r3：表现字段先问该不该同步。用户同意后按最新 SVN 改本地：客户端自挂，服务器不再写这两个字段。",
+      "status": "observed"
+    }
+  ],
+  "risks": [
+    "改服务器与客户端分界时，先判断字段是权威结果还是表现节点上已有的配置。表现配置不要再抄到服务器组件上同步。",
+    "ModelView 路径不在 spell_unit_phase 前缀菜单内，begin-implement 与机检会警告。用户已点名放入 ModelView。",
+    "逻辑后的挂接改到客户端后，视图晚于 AtMs 到达时要补挂一次；present 已经挂过的同名预制体不能再挂一份。"
+  ],
+  "uncertain": [],
+  "validation": [
+    "服务器不再因为接入特效写 BoneVfxPrefab、BoneVfxPoint，也不为此 NotifySyncData。",
+    "客户端按阶段节点的预制体名、挂点和 AtMs 挂到 present 或本单位活骨。视图晚到补挂一次，已挂过的同名预制体不重复挂。",
+    "DotNet.Model 不再编译带 UnityEngine.GameObject 的监视组件。"
+  ],
+  "plan": [
+    "目标：接入特效的预制体名和挂点只留在客户端。服务器阶段到点不再写 BoneVfxPrefab、BoneVfxPoint，也不为此 NotifySyncData。",
+    "逻辑前已经如此：客户端按 AtMs 把特效挂到 present，不经过这两个字段。逻辑后同样读阶段节点，在本单位活骨上挂；视图晚到则补挂一次。",
+    "监视组件沿用 r8930 的 ModelView/Client/Module/SpellUnitBone。客户端按阶段节点或 present 记录挂接，不再读服务器同步字段。",
+    "本单不改 standards/skill_spec.md。"
+  ]
 }

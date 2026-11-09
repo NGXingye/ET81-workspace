@@ -1,5 +1,5 @@
-> 最新修改时间：2026-11-03 20:30 UTC+8
-> 版本号：2.3.9
+> 最新修改时间：2026-11-09 12:05 UTC+8
+> 版本号：2.3.10
 > 文档状态：生效
 > 读取等级：L1（改发射物阶段 BT / 分阶段Buff单位 时）
 
@@ -69,7 +69,7 @@
 - 挂点跟 **LaunchPoint 烘焙**；EnterBone present 跟施法者活骨是皮，不作权威位姿。
 - 一弹同 Id 改阶段，禁止表现球销毁交接第二颗逻辑球。
 - 服务端 EnterBone 早退，勿 `PresentSpawnKeys.Add`；Create 前写 BuffId，TryConsume 严格同 Buff。
-- 接入特效父级 = 本单位实例骨骼；逻辑前挂特效依赖已接入骨骼。
+- 接入特效父级 = 本单位实例骨骼；逻辑前挂特效依赖已接入骨骼。预制体名和挂点在阶段节点上，由客户端按 AtMs 自己挂。不要写成服务器字段再 NotifySyncData。（未验证）
 - Buff 寿命：`EnsureBuffCoversCreatePhaseWaits` 按最大 AtMs 延长；碰撞窗归 `CollisionDurationMs` / 轨迹；爆炸窗归爆炸子 Buff Duration，不拿创建 Buff 硬顶。
 - 资产若仍残留旧 Wait/Birth/EnterImpact 行：检视器删除后重存。
 - 无「接入碰撞」时转包围盒应对 Stage Unit **清掉 Trigger/Box**（可保留 Move）；勿把空碰撞当成失败。细节见 `skill_sync`。

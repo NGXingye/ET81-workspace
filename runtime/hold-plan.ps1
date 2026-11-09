@@ -92,6 +92,28 @@ function Add-UniquePath($List, [string]$Workspace, [string]$Rel) {
     foreach ($got in $List) { if ((Path-Key $Workspace ([string]$got)) -eq $key) { return } }
     $List.Add($Rel)
 }
+function Workspace-Key([string]$Workspace) {
+    return $Workspace.TrimEnd('\', '/').ToLowerInvariant()
+}
+function New-ModuleId([string]$TaskId, [string]$TargetId, [string]$Workspace, $Modules) {
+    if ($TargetId -and $TargetId -ne 'unknown') { return $TaskId + '-' + $TargetId }
+    $leaf = [System.IO.Path]::GetFileName($Workspace.TrimEnd('\', '/'))
+    $leaf = ([regex]::Replace([string]$leaf, '[^A-Za-z0-9_-]', '')).ToLowerInvariant()
+    if (-not $leaf) { $leaf = 'ws' }
+    $base = $TaskId + '-unknown-' + $leaf
+    $id = $base
+    $n = 2
+    $want = Workspace-Key $Workspace
+    while ($true) {
+        $clash = $false
+        foreach ($m in $Modules) {
+            if ([string]$m.id -eq $id -and (Workspace-Key ([string]$m.workspace_path)) -ne $want) { $clash = $true }
+        }
+        if (-not $clash) { return $id }
+        $id = $base + '-' + $n
+        $n++
+    }
+}
 
 if ($Action -eq 'restore') {
     Write-HoldError 'held is a module index, not a commit plan; write commit_plan for the slice to commit, and remove those paths only after svn success'
@@ -118,7 +140,14 @@ foreach ($u in $pending) {
 $ids = New-Object System.Collections.Generic.List[string]
 foreach ($ws in @($groups.Keys)) {
     $tid = Get-TargetId $ws
-    $id = $taskId + '-' + $tid
+    $id = New-ModuleId $taskId $tid $ws $modules
+    if ($tid -ne 'unknown') {
+        foreach ($m in $modules) {
+            if ([string]$m.id -eq $id -and (Workspace-Key ([string]$m.workspace_path)) -ne (Workspace-Key $ws)) {
+                Write-HoldError ('held module ' + $id + ' belongs to another workspace')
+            }
+        }
+    }
     $paths = New-Object System.Collections.Generic.List[string]
     $titles = New-Object System.Collections.Generic.List[string]
     foreach ($u in $groups[$ws]) {
@@ -131,7 +160,8 @@ foreach ($ws in @($groups.Keys)) {
     $keys = @{}
     foreach ($rel in $paths) { $keys[(Path-Key $ws $rel)] = $true }
     foreach ($m in $modules) {
-        if ([string]$m.id -eq $id) { continue }
+        $same = ([string]$m.id -eq $id) -and ((Workspace-Key ([string]$m.workspace_path)) -eq (Workspace-Key $ws))
+        if ($same) { continue }
         foreach ($rel in @($m.paths)) {
             if ($keys.ContainsKey((Path-Key ([string]$m.workspace_path) ([string]$rel)))) {
                 Write-HoldError ('path overlap with held module ' + $m.id + ': ' + $rel)
@@ -141,13 +171,16 @@ foreach ($ws in @($groups.Keys)) {
     $merged = New-Object System.Collections.Generic.List[string]
     $blocker = ''
     $source = $taskId
+    $workspace = $ws
     $intent = $summary
     if ($titles.Count -gt 0) { $intent = $summary + '；' + ($titles -join '；') }
     $at = -1
     for ($i = 0; $i -lt $modules.Count; $i++) {
         if ([string]$modules[$i].id -ne $id) { continue }
+        if ((Workspace-Key ([string]$modules[$i].workspace_path)) -ne (Workspace-Key $ws)) { continue }
         $old = $modules[$i]
         $at = $i
+        $workspace = [string]$old.workspace_path
         foreach ($rel in @($old.paths)) { Add-UniquePath $merged ([string]$old.workspace_path) ([string]$rel) }
         if ([string]$old.blocker) { $blocker = [string]$old.blocker }
         if ([string]$old.intent) { $intent = [string]$old.intent }
@@ -164,7 +197,7 @@ foreach ($ws in @($groups.Keys)) {
     $fresh = [ordered]@{
         id = $id
         target_id = $tid
-        workspace_path = $ws
+        workspace_path = $workspace
         paths = @($merged)
         intent = $intent
         blocker = $blocker

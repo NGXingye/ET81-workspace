@@ -1,5 +1,5 @@
-> 最新修改时间：2026-11-09 10:30 UTC+8
-> 版本号：2.29.0
+> 最新修改时间：2026-11-09 14:25 UTC+8
+> 版本号：2.30.0
 > 文档状态：生效
 > 读取等级：L1（新增或修改 runtime 下脚本前必读）
 
@@ -45,7 +45,7 @@
   副作用：写该配置，写前备份为 `config.bak-<时间>`。不调 svn。  
   非独立入口，由 `etctl.ps1 sync-ignores [-DryRun]` 调用。
 - [`hold-plan.ps1`](./hold-plan.ps1)  
-  职责：`hold` 把活动槽未交笔按目标合并进同编号模块（路径取并集，保留原阻碍）并清空活动槽；同一路径已在别的模块则拒绝。`restore` 不把索引还原成提交计划。  
+  职责：`hold` 把活动槽未交笔按目标合并进同编号模块（路径取并集，保留原阻碍）并清空活动槽。未登记目标按工作副本目录名分开编号，不共用 `unknown`。同一路径已在别的模块则拒绝。`restore` 不把索引还原成提交计划。  
   副作用：只写两个计划 JSON。无 SVN。  
   非独立入口，由 `etctl.ps1 hold-plan` / `restore-plan` 调用。
 - [`next-id.ps1`](./next-id.ps1)  
@@ -53,7 +53,7 @@
   副作用：无。非独立入口，由 `etctl.ps1 next-id` 调用。
 - [`commit-units.py`](./commit-units.py)  
   职责：命令行列出每笔，输入编号回车提交，已提交变灰并留在窗口。`--unit` 只交点名的那一笔。`--held` 直接拒绝。路径命中目标 `local_only`（含 `.meta`）直接拒绝；未入库路径遇 svn `I` 拒绝，否则先 `svn add`。只检查正在交的那一笔是否还在 held：窗口确认后才提交，成功后划掉正好对上的文件；非交互遇重叠须 `--extract`。失败不改 held。说明写入 UTF-8 文件再 `svn commit -F --encoding utf-8`。  
-  副作用：可 `svn add` 并 `svn commit` 该笔路径。无 `--all`。`--dry-run` 不提交。  
+  副作用：可 `svn add` 并 `svn commit` 该笔路径。无 `--all`。`--dry-run` 不提交、不核销。  
   入口：双击仓库根目录 `commit.cmd`。模型用 `py -3 runtime/commit-units.py --unit <id>`。窗口里 `r` 重新读取计划，`v` 验证 `Unity/Assets/Scripts` 是否还有漏提交或已标注文件。
 - [`idle.ps1`](./idle.ps1)  
   职责：把活卡收成空闲。scope、游标任务段、契约一次写回最小形态。已是空闲则不写文件。不写版本历史。不删提交计划、不删候选、不 svn、不 promote。有 `resume_task_id` 时打印后清掉。收成空闲后重写候选索引的候选行。收口账超过 125 行时删最旧的行留 100 行，活卡、`current.md` 与候选包（`task_id`/`parent_task_id`/`resume_task_id`）引用的号不删。  
@@ -62,7 +62,7 @@
   职责：源码写入门禁。`etctl guard <path>` 在写 `source_root` 或任一目标 `workspace_path` 下的文件前判定；不通过则退出码 2。不写文件、无 SVN。规则见 `global_rules/runtime_code.md`。  
   入口：`powershell -File runtime/etctl.ps1 guard <path>`。Cursor 钩子 `.cursor/hooks/guard-source.ps1` 在写工具和会改文件的 shell 前调用本脚本。
 - [`check-commit-plan.py`](./check-commit-plan.py)  
-  职责：用 `svn status --xml` 对照 `Unity/Assets/Scripts` 和提交计划。`--fill` 把与计划新增符号有交集、且不在 held 的漏文件补进未提交笔，没有交集的写入 `omitted`。held 按工作区匹配：无交集视同已覆盖，有交集不补进、不写入 `omitted`。`--verify` 只提示，遇到「暂留相交」退出码为 1。  
+  职责：用 `svn status --xml` 对照 `Unity/Assets/Scripts` 和提交计划。`--fill` 把与计划新增符号有交集、且不在 held 的漏文件补进未提交笔，没有交集的写入 `omitted`。held 按工作区匹配：无交集视同已覆盖，有交集不补进、不写入 `omitted`。`--fill` 与 `--verify` 遇到「暂留相交」退出码都为 1。  
   副作用：`--fill` 写 `contracts/commit_plan.json`。不 `svn commit`。  
   入口：`py -3 runtime/check-commit-plan.py --fill` 或 `--verify`。
 - [`held_paths.py`](./held_paths.py)  
@@ -80,9 +80,9 @@
 
 # 2. 版本历史
 
+- 2.30.0（2026-11-09）：未登记工作副本分开编号；`--fill` 遇暂留相交退出码 1；`--dry-run` 不核销。
 - 2.29.0（2026-11-09）：hold 合并保留阻碍；提交成功后才核销；符号相交只报告。新增 `held_paths.py`。
 - 2.28.0（2026-11-07）：held 改为模块索引；`hold` 合入模块；`restore` 与 `--held` 不再当提交槽。
 - 2.26.0（2026-10-28）：新增 `hold-plan`/`restore-plan` 与 `held_commit_plan.json`；promote 只拦活动槽；commit-units 支持 `--held`。
 - 2.25.0（2026-10-18）：新增 `boundary.ps1`、`sync-svn-ignores.ps1`（`etctl sync-ignores`）；commit-units 按 `local_only` 拒绝；机检与 begin-implement 加边界警告。
-- 2.24.0（2026-10-15）：`idle` 收口账超 125 行裁到 100 行，保留被引用的号。
 

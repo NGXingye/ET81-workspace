@@ -230,12 +230,14 @@ def main():
         unit = next((item for item in plan["units"] if item["id"] == args.unit), None)
         if not unit:
             raise SystemExit("no unit " + args.unit)
-        if not confirm_overlap(unit, args.extract, args.dry_run, live):
+        dry = args.dry_run or args.demo
+        if not confirm_overlap(unit, args.extract, dry, live):
             raise SystemExit("held overlap left in place")
-        commit_unit(plan, unit, args.dry_run or args.demo)
-        if not args.dry_run and not args.demo:
-            save_plan(path, plan)
-            strike_after(unit, False, True)
+        commit_unit(plan, unit, dry)
+        if dry:
+            return
+        save_plan(path, plan)
+        strike_after(unit, dry, live)
         return
     if args.dry_run and not sys.stdin.isatty():
         plan = load_plan(path)

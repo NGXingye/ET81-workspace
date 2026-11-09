@@ -201,6 +201,7 @@ def fill(path):
         show("暂留相交，需决定", crossed)
     if skipped_local:
         show("local_only 跳过", skipped_local)
+    return 1 if crossed else 0
 def verify(path):
     plan = load_plan(path)
     pending = [unit["id"] for unit in plan.get("units") or [] if unit.get("status") != "committed"]
@@ -242,8 +243,7 @@ def main():
     parser.add_argument("--plan", default=str(PLAN))
     args = parser.parse_args()
     if args.fill:
-        fill(args.plan)
-        return
+        raise SystemExit(fill(args.plan))
     raise SystemExit(verify(args.plan))
 if __name__ == "__main__":
     main()
