@@ -29,13 +29,15 @@ function Json-Str([string]$Text) {
 function Format-EmptyPlan {
     return "{`n  `"task_id`": `"none`",`n  `"summary`": `"`",`n  `"units`": []`n}`n"
 }
+function Workspace-Key([string]$Workspace) {
+    return ([string]$Workspace).Replace('/', '\').Trim().TrimEnd('\').ToLowerInvariant()
+}
 function Get-TargetId([string]$Workspace) {
-    $want = $Workspace.TrimEnd('\', '/').ToLowerInvariant()
+    $want = Workspace-Key $Workspace
     $dir = Join-Path $WorkspaceRoot 'targets'
     foreach ($file in (Get-ChildItem -LiteralPath $dir -Filter '*.json' -File)) {
         $target = Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
-        $wp = [string]$target.workspace_path
-        if ($wp.TrimEnd('\', '/').ToLowerInvariant() -eq $want) { return [string]$target.target_id }
+        if ((Workspace-Key ([string]$target.workspace_path)) -eq $want) { return [string]$target.target_id }
     }
     return 'unknown'
 }
@@ -84,16 +86,14 @@ $pathBody],
     return "{`n  `"modules`": [`n$body  ]`n}`n"
 }
 function Path-Key([string]$Workspace, [string]$Rel) {
-    return ($Workspace.TrimEnd('\', '/') + '|' + ($Rel -replace '\\', '/').ToLowerInvariant())
+    $rel = ([string]$Rel).Replace('\', '/').Trim().ToLowerInvariant()
+    return ((Workspace-Key $Workspace) + '|' + $rel)
 }
 function Add-UniquePath($List, [string]$Workspace, [string]$Rel) {
     if (-not $Rel) { return }
     $key = Path-Key $Workspace $Rel
     foreach ($got in $List) { if ((Path-Key $Workspace ([string]$got)) -eq $key) { return } }
     $List.Add($Rel)
-}
-function Workspace-Key([string]$Workspace) {
-    return $Workspace.TrimEnd('\', '/').ToLowerInvariant()
 }
 function New-ModuleId([string]$TaskId, [string]$TargetId, [string]$Workspace, $Modules) {
     if ($TargetId -and $TargetId -ne 'unknown') { return $TaskId + '-' + $TargetId }
@@ -133,7 +133,7 @@ $modules = Read-Modules $held
 $summary = [string]$active.summary
 $groups = @{}
 foreach ($u in $pending) {
-    $ws = [string]$u.workspace_path
+    $ws = Workspace-Key ([string]$u.workspace_path)
     if (-not $groups.ContainsKey($ws)) { $groups[$ws] = New-Object System.Collections.Generic.List[object] }
     $groups[$ws].Add($u)
 }
