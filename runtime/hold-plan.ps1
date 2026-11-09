@@ -1,5 +1,5 @@
 ﻿# Non-entry. Invoked by etctl.ps1 hold-plan / restore-plan. No SVN.
-# hold folds pending units into held modules. restore does not rebuild a commit plan.
+# hold merges pending units into the same module id and keeps its blocker. restore does not rebuild a commit plan.
 param(
     [Parameter(Mandatory = $true)]
     [ValidateSet('hold', 'restore')]
@@ -86,6 +86,12 @@ $pathBody],
 function Path-Key([string]$Workspace, [string]$Rel) {
     return ($Workspace.TrimEnd('\', '/') + '|' + ($Rel -replace '\\', '/').ToLowerInvariant())
 }
+function Add-UniquePath($List, [string]$Workspace, [string]$Rel) {
+    if (-not $Rel) { return }
+    $key = Path-Key $Workspace $Rel
+    foreach ($got in $List) { if ((Path-Key $Workspace ([string]$got)) -eq $key) { return } }
+    $List.Add($Rel)
+}
 
 if ($Action -eq 'restore') {
     Write-HoldError 'held is a module index, not a commit plan; write commit_plan for the slice to commit, and remove those paths only after svn success'
@@ -132,22 +138,39 @@ foreach ($ws in @($groups.Keys)) {
             }
         }
     }
+    $merged = New-Object System.Collections.Generic.List[string]
+    $blocker = ''
+    $source = $taskId
     $intent = $summary
     if ($titles.Count -gt 0) { $intent = $summary + '；' + ($titles -join '；') }
+    $at = -1
+    for ($i = 0; $i -lt $modules.Count; $i++) {
+        if ([string]$modules[$i].id -ne $id) { continue }
+        $old = $modules[$i]
+        $at = $i
+        foreach ($rel in @($old.paths)) { Add-UniquePath $merged ([string]$old.workspace_path) ([string]$rel) }
+        if ([string]$old.blocker) { $blocker = [string]$old.blocker }
+        if ([string]$old.intent) { $intent = [string]$old.intent }
+        if ([string]$old.source_task) { $source = [string]$old.source_task }
+        break
+    }
+    foreach ($rel in $paths) { Add-UniquePath $merged $ws ([string]$rel) }
+    if ($at -ge 0) {
+        foreach ($title in $titles) {
+            if ($title -and $intent.IndexOf([string]$title) -lt 0) { $intent = $intent + '；' + [string]$title }
+        }
+        if ($summary -and $intent.IndexOf($summary) -lt 0) { $intent = $intent + '；' + $summary }
+    }
     $fresh = [ordered]@{
         id = $id
         target_id = $tid
         workspace_path = $ws
-        paths = @($paths)
+        paths = @($merged)
         intent = $intent
-        blocker = ''
-        source_task = $taskId
+        blocker = $blocker
+        source_task = $source
     }
-    $replaced = $false
-    for ($i = 0; $i -lt $modules.Count; $i++) {
-        if ([string]$modules[$i].id -eq $id) { $modules[$i] = $fresh; $replaced = $true }
-    }
-    if (-not $replaced) { $modules.Add($fresh) }
+    if ($at -ge 0) { $modules[$at] = $fresh } else { $modules.Add($fresh) }
     $ids.Add($id)
 }
 Write-Utf8 $heldPath (Format-Held $modules)

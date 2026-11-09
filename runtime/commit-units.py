@@ -7,10 +7,10 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+import held_paths
 
 ROOT = Path(__file__).resolve().parents[1]
 PLAN = ROOT / "contracts" / "commit_plan.json"
-HELD = ROOT / "contracts" / "held_commit_plan.json"
 TEMPLATE = ROOT / "contracts" / "_template_commit_plan.json"
 
 def load_plan(path):
@@ -44,30 +44,30 @@ def check_plan(plan):
                 raise SystemExit("path must stay inside workspace: " + rel)
             seen.add(key)
 
-def pending_path_keys(plan):
-    keys = set()
-    for unit in plan.get("units") or []:
-        if unit.get("status") == "committed":
-            continue
-        ws = str(unit.get("workspace_path") or "").rstrip("\\/")
-        for rel in unit.get("paths") or []:
-            keys.add(ws + "|" + str(rel).replace("\\", "/").lower())
-    return keys
-def module_path_keys(held):
-    keys = set()
-    for mod in held.get("modules") or []:
-        ws = str(mod.get("workspace_path") or "").rstrip("\\/")
-        for rel in mod.get("paths") or []:
-            keys.add(ws + "|" + str(rel).replace("\\", "/").lower())
-    return keys
-def refuse_slot_overlap(plan, other_path, label):
-    if not other_path.is_file():
+def confirm_overlap(unit, extract, dry, live):
+    if not live:
+        return True
+    lines = held_paths.overlaps(unit)
+    if not lines:
+        return True
+    print("这些路径还在 held，提交会带上该文件的全部本地改动：")
+    for line in lines:
+        print("  " + line)
+    if dry or extract:
+        return True
+    if not sys.stdin.isatty():
+        raise SystemExit("path overlap with held_commit_plan; pass --extract to commit and strike after success")
+    try:
+        answer = input("提交成功后从模块划掉？y/n ").strip().lower()
+    except EOFError:
+        return False
+    return answer == "y"
+
+def strike_after(unit, dry, live):
+    if dry or not live:
         return
-    other = load_plan(other_path)
-    other_keys = module_path_keys(other) if isinstance(other.get("modules"), list) else pending_path_keys(other)
-    hits = sorted(pending_path_keys(plan) & other_keys)
-    if hits:
-        raise SystemExit("path overlap with " + label + ": " + ", ".join(hits))
+    for note in held_paths.strike(unit):
+        print("模块仍按目录暂留，请把剩余文件改成列表：" + note)
 
 def message_of(plan, unit):
     hook = str(unit.get("hook_task") or "").strip()
@@ -162,7 +162,7 @@ def show_verify(path):
         print("验证失败")
     input("回车继续")
 
-def run_menu(path, dry):
+def run_menu(path, dry, live, extract):
     use_gray = enable_gray()
     while True:
         plan = load_plan(path)
@@ -197,6 +197,9 @@ def run_menu(path, dry):
         unit = plan["units"][number - 1]
         if unit.get("status") == "committed":
             continue
+        if not confirm_overlap(unit, extract, dry, live):
+            input("未提交，回车继续")
+            continue
         try:
             commit_unit(plan, unit, dry)
         except SystemExit as err:
@@ -207,6 +210,7 @@ def run_menu(path, dry):
             input("未提交，回车继续")
             continue
         save_plan(path, plan)
+        strike_after(unit, dry, live)
 
 def main():
     parser = argparse.ArgumentParser(description="commit one plan unit")
@@ -214,36 +218,31 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--demo", action="store_true", help="load the template")
     parser.add_argument("--held", action="store_true", help="rejected: held is a module index")
+    parser.add_argument("--extract", action="store_true", help="commit despite held overlap; strike exact files after success")
     args = parser.parse_args()
     if args.held:
         raise SystemExit("held_commit_plan is a module index, not a commit slot; commit contracts/commit_plan.json")
     path = TEMPLATE if args.demo else PLAN
-    other = HELD
-    other_label = "held_commit_plan"
+    live = not args.demo
     if args.unit:
         plan = load_plan(path)
         check_plan(plan)
-        if not args.demo:
-            refuse_slot_overlap(plan, other, other_label)
         unit = next((item for item in plan["units"] if item["id"] == args.unit), None)
         if not unit:
             raise SystemExit("no unit " + args.unit)
+        if not confirm_overlap(unit, args.extract, args.dry_run, live):
+            raise SystemExit("held overlap left in place")
         commit_unit(plan, unit, args.dry_run or args.demo)
         if not args.dry_run and not args.demo:
             save_plan(path, plan)
+            strike_after(unit, False, True)
         return
     if args.dry_run and not sys.stdin.isatty():
         plan = load_plan(path)
         check_plan(plan)
-        if not args.demo:
-            refuse_slot_overlap(plan, other, other_label)
         print("units " + str(len(plan["units"])))
         return
-    if not args.demo:
-        plan = load_plan(path)
-        check_plan(plan)
-        refuse_slot_overlap(plan, other, other_label)
-    run_menu(path, args.dry_run or args.demo)
+    run_menu(path, args.dry_run or args.demo, live, args.extract)
 
 if __name__ == "__main__":
     main()

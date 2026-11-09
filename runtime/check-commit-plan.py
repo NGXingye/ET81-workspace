@@ -1,13 +1,12 @@
-"""Check Unity/Assets/Scripts svn status against contracts/commit_plan.json. No commit."""
 import argparse
 import json
 import re
 import subprocess
 import xml.etree.ElementTree as ET
 from pathlib import Path
+import held_paths
 ROOT = Path(__file__).resolve().parents[1]
 PLAN = ROOT / "contracts" / "commit_plan.json"
-HELD = ROOT / "contracts" / "held_commit_plan.json"
 TARGETS = ROOT / "targets"
 SCRIPTS = "Unity/Assets/Scripts"
 TOKEN = re.compile(r"\b[A-Za-z_][A-Za-z0-9_]{5,}\b")
@@ -49,11 +48,6 @@ def change_text(root, rel, rev, item):
     return svn_out(root, args).decode("utf-8", "replace")
 def covered(plan):
     return {norm(rel) for unit in plan.get("units") or [] for rel in unit.get("paths") or []}
-def held_covered_paths():
-    if not HELD.is_file():
-        return set()
-    held = load_plan(HELD)
-    return {norm(rel) for mod in held.get("modules") or [] for rel in mod.get("paths") or []}
 def local_only_of(root):
     root = Path(root).resolve()
     for path in TARGETS.glob("*.json"):
@@ -141,21 +135,21 @@ def fill(path):
     plan = load_plan(path)
     bags = unit_symbols(plan)
     known = set().union(*bags.values()) if bags else set()
-    added, marked = [], []
-    held = held_covered_paths()
+    added, marked, crossed = [], [], []
+    roots = workspaces(plan)
     plan_covered = covered(plan)
     skipped_held, skipped_local = [], []
     omitted = []
     seen = set()
     for item in plan.get("omitted") or []:
         rel = norm(item.get("path") or "")
-        if not rel or rel in plan_covered or rel in held or is_local_only_any(rel) or rel in seen:
+        if not rel or rel in plan_covered or any(held_paths.held_match(root, rel) for root in roots) or is_local_only_any(rel) or rel in seen:
             continue
         omitted.append(item)
         seen.add(rel)
-    for root in workspaces(plan):
+    for root in roots:
         dirty = dirty_map(root)
-        pending = [rel for rel in dirty if rel not in plan_covered and rel not in held and not is_local_only(root, rel) and not rel.endswith(".meta")]
+        pending = [rel for rel in dirty if rel not in plan_covered and not held_paths.held_match(root, rel) and not is_local_only(root, rel) and not rel.endswith(".meta")]
         for _ in range(6):
             moved = False
             for rel in list(pending):
@@ -176,8 +170,9 @@ def fill(path):
         for rel in dirty:
             if rel in covered(plan) or rel in seen:
                 continue
-            if rel in held:
-                skipped_held.append(rel)
+            if held_paths.held_match(root, rel):
+                fresh = tokens_of(change_text(root, rel, "", dirty[rel]))
+                (crossed if fresh & known else skipped_held).append(rel)
                 continue
             if is_local_only(root, rel):
                 skipped_local.append(rel)
@@ -202,21 +197,25 @@ def fill(path):
     show("标注", marked)
     if skipped_held:
         show("暂留已覆盖", skipped_held)
+    if crossed:
+        show("暂留相交，需决定", crossed)
     if skipped_local:
         show("local_only 跳过", skipped_local)
 def verify(path):
     plan = load_plan(path)
     pending = [unit["id"] for unit in plan.get("units") or [] if unit.get("status") != "committed"]
-    missed, marked, held_hit, local_hit = [], [], [], []
+    missed, marked, held_hit, crossed, local_hit = [], [], [], [], []
     notes = {norm(item.get("path") or ""): str(item.get("note") or "") for item in plan.get("omitted") or []}
     seen = covered(plan)
-    held = held_covered_paths()
+    bags = unit_symbols(plan)
+    known = set().union(*bags.values()) if bags else set()
     for root in workspaces(plan):
-        for rel in dirty_map(root):
+        for rel, item in dirty_map(root).items():
             if rel in seen:
                 continue
-            if rel in held:
-                held_hit.append(rel)
+            if held_paths.held_match(root, rel):
+                fresh = tokens_of(change_text(root, rel, "", item))
+                (crossed if fresh & known else held_hit).append(rel)
                 continue
             if is_local_only(root, rel):
                 local_hit.append(rel)
@@ -230,11 +229,12 @@ def verify(path):
     block("漏提交", missed)
     block("已标注", marked)
     block("暂留已覆盖", held_hit)
+    block("暂留相交，需决定", crossed)
     if local_hit:
         print("local_only 跳过 " + str(len(local_hit)) + " 个")
-    if not missed and not marked:
+    if not missed and not marked and not crossed:
         print("Scripts 范围内没有漏提交")
-    return 1 if missed or marked else 0
+    return 1 if missed or marked or crossed else 0
 def main():
     parser = argparse.ArgumentParser(description="check commit plan against Scripts")
     parser.add_argument("--fill", action="store_true")
