@@ -1,5 +1,5 @@
-> 最新修改时间：2026-11-09 14:45 UTC+8
-> 版本号：2.31.0
+> 最新修改时间：2026-11-11 14:45 UTC+8
+> 版本号：2.32.0
 > 文档状态：生效
 > 读取等级：L1（新增或修改 runtime 下脚本前必读）
 
@@ -45,7 +45,7 @@
   副作用：写该配置，写前备份为 `config.bak-<时间>`。不调 svn。  
   非独立入口，由 `etctl.ps1 sync-ignores [-DryRun]` 调用。
 - [`hold-plan.ps1`](./hold-plan.ps1)  
-  职责：`hold` 把活动槽未交笔按目标合并进同编号模块（路径取并集，保留原阻碍）并清空活动槽。工作副本先统一斜杠并忽略大小写。未登记目标按目录名分开编号，不共用 `unknown`。同一路径已在别的模块则拒绝。`restore` 不把索引还原成提交计划。  
+  职责：`hold` 把活动槽未交笔按目标合并进同编号模块（路径取并集，保留原阻碍）并清空活动槽。工作副本先统一斜杠并忽略大小写。未登记目标按目录名分开编号，不共用 `unknown`。命中目标 `local_only` 的路径不收进模块。同一路径已在别的模块则拒绝。`restore` 不把索引还原成提交计划。  
   副作用：只写两个计划 JSON。无 SVN。  
   非独立入口，由 `etctl.ps1 hold-plan` / `restore-plan` 调用。
 - [`next-id.ps1`](./next-id.ps1)  
@@ -76,13 +76,13 @@
 - [`schema/commit_plan.schema.json`](./schema/commit_plan.schema.json)  
   职责：活动槽 `contracts/commit_plan.json` 的字段契约。笔数以 10 为参考；一笔最多 8 个 `.cs`。`omitted` 记录不纳入的 Scripts 改动。
 - [`schema/held_work.schema.json`](./schema/held_work.schema.json)  
-  职责：`contracts/held_commit_plan.json` 的字段契约。按模块记本地未交工作，不记提交状态。
+  职责：`contracts/held_commit_plan.json` 的字段契约。按模块记这轮不交、以后还能交的文件。不收目标 `local_only`，不记提交状态。
 
 # 2. 版本历史
 
+- 2.32.0（2026-11-11）：hold 不把 local_only 收进 held。
 - 2.31.0（2026-11-09）：hold 比较工作副本时统一斜杠和大小写，避免同一目录登记两次。
 - 2.30.0（2026-11-09）：未登记工作副本分开编号；`--fill` 遇暂留相交退出码 1；`--dry-run` 不核销。
 - 2.29.0（2026-11-09）：hold 合并保留阻碍；提交成功后才核销；符号相交只报告。新增 `held_paths.py`。
 - 2.28.0（2026-11-07）：held 改为模块索引；`hold` 合入模块；`restore` 与 `--held` 不再当提交槽。
-- 2.26.0（2026-10-28）：新增 `hold-plan`/`restore-plan` 与 `held_commit_plan.json`；promote 只拦活动槽；commit-units 支持 `--held`。
 

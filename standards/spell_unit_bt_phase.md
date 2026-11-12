@@ -1,5 +1,5 @@
-> 最新修改时间：2026-11-09 12:05 UTC+8
-> 版本号：2.3.10
+> 最新修改时间：2026-11-10 16:12 UTC+8
+> 版本号：2.3.11
 > 文档状态：生效
 > 读取等级：L1（改发射物阶段 BT / 分阶段Buff单位 时）
 
@@ -52,8 +52,8 @@
 
 # 2. Speed 与时钟
 
-- 阶段节点**不暴露 Speed**；时空归 `BallisticCopy`（`Time`/`Distance`/`animDistance`/`useAnimDistance`）。
-- EnterTrack 握持后再挂 TrackMove：须 `useBallisticGeometry=true`（非仅 useAnimDistance），否则 `duration*speed(=0)` 零前进距。
+- 阶段节点**不暴露 Speed**；时空归 `BallisticCopy` 的 `Time` 与 `Distance`。`animDistance`、`useAnimDistance` 已删除。
+- EnterTrack 握持后再挂 TrackMove：须 `useBallisticGeometry=true`，否则 `duration*speed(=0)` 零前进距。
 - AtMs 与 01 等待是两层语义：门闩管「何时开始跑 04」；AtMs 管「动画轴上何时进下一生命周期」。
 - 接入轨迹本身不阻塞后续阶段；轨完用 `等待轨迹走完`（开火早于 `DelayDispose`）。
 

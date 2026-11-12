@@ -1,5 +1,5 @@
-> 最新修改时间：2026-10-18 12:22 UTC+8
-> 版本号：1.2.0
+> 最新修改时间：2026-11-11 11:49 UTC+8
+> 版本号：1.3.0
 > 文档状态：生效
 > 读取等级：L1（需要框架、程序集、放置或验证事实时读取）
 
@@ -31,6 +31,7 @@
 - Hotfix 程序集不能声明实例字段，也不要可变 static；必须的静态字段加 `[StaticField]`，实例数据放 Model / ModelView 组件。
 - 编进程序集不等于运行时会执行：判断执行端看启动链路和实际调用（见 `_index.md` 跨模块的坑）。
 - 实体、`EntityRef`、`TimerComponent` 不跨 `await` 持有（ET0035），见 `_index.md` 跨模块的坑。
+- 回滚快照的并行恢复不继承调用线程的同步上下文，见 `_index.md` 跨模块的坑。
 - 风格：Tab 宽 4、禁 `var`、大括号必写、块作用域命名空间、用项目 `Log` 不用 `Console`；改已有文件保留原行尾。
 - trunk 内 `Documents/ET框架/Unity工程架构.md` 写的 Unity/C# 版本已过时，不采用。
 - 全局禁碰：`**/Generate/`、`Unity/Library/`、`Unity/Assets/Res/`、`Unity/Bundles/`、`Bin/`、`obj/`、`Share/Share.SourceGenerator/`、`Share/joltc/`。

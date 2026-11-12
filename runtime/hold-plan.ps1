@@ -1,4 +1,4 @@
-﻿# Non-entry. Invoked by etctl.ps1 hold-plan / restore-plan. No SVN.
+# Non-entry. Invoked by etctl.ps1 hold-plan / restore-plan. No SVN.
 # hold merges pending units into the same module id and keeps its blocker. restore does not rebuild a commit plan.
 param(
     [Parameter(Mandatory = $true)]
@@ -95,6 +95,27 @@ function Add-UniquePath($List, [string]$Workspace, [string]$Rel) {
     foreach ($got in $List) { if ((Path-Key $Workspace ([string]$got)) -eq $key) { return } }
     $List.Add($Rel)
 }
+function Get-LocalOnly([string]$Workspace) {
+    $want = Workspace-Key $Workspace
+    $dir = Join-Path $WorkspaceRoot 'targets'
+    foreach ($file in (Get-ChildItem -LiteralPath $dir -Filter '*.json' -File)) {
+        $target = Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ((Workspace-Key ([string]$target.workspace_path)) -ne $want) { continue }
+        $list = @()
+        if ($target.local_only) { $list = @($target.local_only | ForEach-Object { ([string]$_).Replace('\', '/').ToLowerInvariant() }) }
+        return ,$list
+    }
+    return ,@()
+}
+function Test-LocalOnly([string]$Workspace, [string]$Rel) {
+    $key = ([string]$Rel).Replace('\', '/').Trim().ToLowerInvariant()
+    foreach ($entry in (Get-LocalOnly $Workspace)) {
+        $base = $entry.TrimEnd('/')
+        if ($key -eq $base -or $key -eq ($base + '.meta')) { return $true }
+        if ($entry.EndsWith('/') -and $key.StartsWith($entry)) { return $true }
+    }
+    return $false
+}
 function New-ModuleId([string]$TaskId, [string]$TargetId, [string]$Workspace, $Modules) {
     if ($TargetId -and $TargetId -ne 'unknown') { return $TaskId + '-' + $TargetId }
     $leaf = [System.IO.Path]::GetFileName($Workspace.TrimEnd('\', '/'))
@@ -154,9 +175,10 @@ foreach ($ws in @($groups.Keys)) {
         $titles.Add([string]$u.title)
         foreach ($rel in @($u.paths)) {
             $text = [string]$rel
-            if ($text -and -not $paths.Contains($text)) { $paths.Add($text) }
+            if ($text -and -not (Test-LocalOnly $ws $text) -and -not $paths.Contains($text)) { $paths.Add($text) }
         }
     }
+    if ($paths.Count -eq 0) { continue }
     $keys = @{}
     foreach ($rel in $paths) { $keys[(Path-Key $ws $rel)] = $true }
     foreach ($m in $modules) {
@@ -181,13 +203,20 @@ foreach ($ws in @($groups.Keys)) {
         $old = $modules[$i]
         $at = $i
         $workspace = [string]$old.workspace_path
-        foreach ($rel in @($old.paths)) { Add-UniquePath $merged ([string]$old.workspace_path) ([string]$rel) }
+        foreach ($rel in @($old.paths)) {
+            if (Test-LocalOnly ([string]$old.workspace_path) ([string]$rel)) { continue }
+            Add-UniquePath $merged ([string]$old.workspace_path) ([string]$rel)
+        }
         if ([string]$old.blocker) { $blocker = [string]$old.blocker }
         if ([string]$old.intent) { $intent = [string]$old.intent }
         if ([string]$old.source_task) { $source = [string]$old.source_task }
         break
     }
     foreach ($rel in $paths) { Add-UniquePath $merged $ws ([string]$rel) }
+    if ($merged.Count -eq 0) {
+        if ($at -ge 0) { $modules.RemoveAt($at) }
+        continue
+    }
     if ($at -ge 0) {
         foreach ($title in $titles) {
             if ($title -and $intent.IndexOf([string]$title) -lt 0) { $intent = $intent + '；' + [string]$title }

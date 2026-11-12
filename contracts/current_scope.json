@@ -1,70 +1,77 @@
 {
-  "task_id": "t060",
-  "phase": "implement",
-  "implement_round": 1,
-  "scope_revision": 3,
-  "intent": "fix",
-  "size": "small",
-  "route": "normal",
-  "target_id": "trunk",
-  "profile_id": "spell_unit_phase",
-  "seed_paths": [
-    "C:/myProject/trunk/Unity/Assets/Scripts/Model/Share/Module/Spell/SpellUnitBoneVfxWatchComponent.cs",
-    "C:/myProject/trunk/Unity/Assets/Scripts/Hotfix/Share/Module/Spell/SpellUnitCreatePhaseHelper.cs"
-  ],
-  "read_paths": [
-    "standards/spell_unit_bt_phase.md"
-  ],
-  "write_paths": [
-    "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/SpellUnitCreatePhaseHelper.cs",
-    "Unity/Assets/Scripts/HotfixView/Client/Demo/Spell/SpellUnitPhasePresentInvokeHandler.cs",
-    "Unity/Assets/Scripts/HotfixView/Client/Demo/Spell/SpellUnitBoneVfxWatchComponentSystem.cs",
-    "Unity/Assets/Scripts/Model/Share/Module/Unit/SpellUnit/SpellUnitComponent.cs",
-    "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/SpellUnit/SpellUnitComponentSystem.cs"
-  ],
-  "editor_md_paths": [],
-  "evidence": [
-    {
-      "path": "C:/myProject/trunk/Unity/Assets/Scripts/Hotfix/Share/Module/Message/SyncDataHelper.cs",
-      "note": "NotifySyncData 仅 scene.IsServer 时发布同步。客户端调用直接返回。",
-      "status": "observed"
-    },
-    {
-      "path": "C:/myProject/trunk/Unity/Assets/Scripts/Model/Share/Module/Unit/SpellUnit/SpellUnitComponent.cs",
-      "note": "这两个 MemoryPack 字段已从 SpellUnitComponent 去掉。服务器阶段不再写入，也不为此 NotifySyncData。",
-      "status": "observed"
-    },
-    {
-      "path": "C:/myProject/trunk/Unity/Assets/Scripts/Model/Share/Module/Spell/SpellUnitBoneVfxWatchComponent.cs",
-      "note": "r8930 已把监视组件从 Model/Share 挪到 ModelView/Client/Module/SpellUnitBone，命名空间仍是 ET。本地按 r8936 去掉 BoneVfxPrefab 与 BoneVfxPoint。",
-      "status": "observed"
-    },
-    {
-      "path": "user",
-      "note": "用户要求放入 ModelView。该路径越出 spell_unit_phase 的 allowed_write，用户已点名。",
-      "status": "observed"
-    },
-    {
-      "path": "user",
-      "note": "amend r2–r3：表现字段先问该不该同步。用户同意后按最新 SVN 改本地：客户端自挂，服务器不再写这两个字段。",
-      "status": "observed"
-    }
-  ],
-  "risks": [
-    "改服务器与客户端分界时，先判断字段是权威结果还是表现节点上已有的配置。表现配置不要再抄到服务器组件上同步。",
-    "ModelView 路径不在 spell_unit_phase 前缀菜单内，begin-implement 与机检会警告。用户已点名放入 ModelView。",
-    "逻辑后的挂接改到客户端后，视图晚于 AtMs 到达时要补挂一次；present 已经挂过的同名预制体不能再挂一份。"
-  ],
-  "uncertain": [],
-  "validation": [
-    "服务器不再因为接入特效写 BoneVfxPrefab、BoneVfxPoint，也不为此 NotifySyncData。",
-    "客户端按阶段节点的预制体名、挂点和 AtMs 挂到 present 或本单位活骨。视图晚到补挂一次，已挂过的同名预制体不重复挂。",
-    "DotNet.Model 不再编译带 UnityEngine.GameObject 的监视组件。"
-  ],
-  "plan": [
-    "目标：接入特效的预制体名和挂点只留在客户端。服务器阶段到点不再写 BoneVfxPrefab、BoneVfxPoint，也不为此 NotifySyncData。",
-    "逻辑前已经如此：客户端按 AtMs 把特效挂到 present，不经过这两个字段。逻辑后同样读阶段节点，在本单位活骨上挂；视图晚到则补挂一次。",
-    "监视组件沿用 r8930 的 ModelView/Client/Module/SpellUnitBone。客户端按阶段节点或 present 记录挂接，不再读服务器同步字段。",
-    "本单不改 standards/skill_spec.md。"
-  ]
+    "task_id":  "t065",
+    "phase": "implement",
+  "implement_round": 2,
+    "scope_revision":  3,
+    "intent":  "bug",
+    "size":  "small",
+    "route":  "normal",
+    "target_id":  "trunk",
+    "profile_id":  "spell_unit_phase",
+    "seed_paths":  [
+                       "Unity/Assets/Config/Spell/2000182-扶不扶机器人-转圈电磁/2000182.asset",
+                       "Unity/Assets/Config/Spell/2000182-扶不扶机器人-转圈电磁/200018200.asset",
+                       "Unity/Assets/Config/RootMotion/100283_attack.asset"
+                   ],
+    "read_paths":  [
+                       "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/SpellHelper.cs",
+                       "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/UnitSystem.cs",
+                       "Unity/Assets/Scripts/Hotfix/Share/Demo/HybridLS/HLSMoveComponentSystem.cs",
+                       "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Spell/BT/AI/AI_MonsterReturnHandler.cs",
+                       "Unity/Assets/Scripts/Hotfix/Server/Demo/Map/Move/MoveHelper.cs",
+                       "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/AnimatorComponentSystem.Locomotion.cs",
+                       "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/RootMotionComponentSystem.cs",
+                       "Unity/Assets/Scripts/Editor/SkillHitboxDebugDraw.cs",
+                       "Unity/Assets/Config/Spell/2000182-扶不扶机器人-转圈电磁/200018201.asset",
+                       "Unity/Assets/Config/Spell/2000182-扶不扶机器人-转圈电磁/200018203.asset",
+                       "Unity/Assets/Config/RootMotion/100283_attack2.asset",
+                       "Unity/Assets/Config/AI/monster_c_100283_ai.asset"
+                   ],
+    "write_paths":  [
+                        "Unity/Assets/Scripts/Hotfix/Share/Module/Spell/SpellHelper.cs",
+                        "Unity/Assets/Scripts/Editor/SkillHitboxDebugDraw.cs"
+                    ],
+    "editor_md_paths":  [
+
+                        ],
+    "evidence":  [
+                     {
+                         "path":  "Unity/Assets/Scripts/Hotfix/Share/Module/Unit/UnitSystem.cs",
+                         "note":  "出手姿势维持到主 Buff 结束只把 UState.Attack 留到 200018200 实体失效，不进位移锁。位移锁只有 Charging 与 Jumping。施法令牌被取消时，落下 Attack 的语句到不了。正常 Buff 到期不取消这颗令牌。",
+                         "status":  "observed"
+                     },
+                     {
+                         "path":  "Unity/Assets/Config/RootMotion/100283_attack.asset",
+                         "note":  "循环段根运动时长 2 秒，后摇 Attack2 时长 2.03 秒，和后摇 Buff 2033 毫秒对齐。游标走到时长就自己结束。后摇已经播完时，这根游标不该还占着移动。移除 Buff 不调用 EndRootMotion，只说明拆 Buff 那一帧没有额外取消，不能解释后摇结束后仍卡在返回。",
+                         "status":  "stale"
+                     },
+                     {
+                         "path":  "Unity/Assets/Config/AI/monster_c_100283_ai.asset",
+                         "note":  "选择顺序是警戒、巡逻、返回、追击。施法只挂在追击下。返回检查为真时不再放 2000182。全库只有 2000182 的 AttackPoseFollowsBuff 为 true。返回节点不落 Attack。怪物转向在 Attack 且 CanTurnTracking 为 false 时直接返回，朝向等待没有别的出口。",
+                         "status":  "observed"
+                     },
+                     {
+                         "path":  "Unity/Assets/Scripts/HotfixView/Client/Demo/Unit/AnimatorComponentSystem.Locomotion.cs",
+                         "note":  "客户端把 MoveInputType 不是空当成正在移动。返回寻路已提交且攻击门已关时，把速度写成 1、Upper 层权重写成 1，并硬切跑步。这和技能 0、状态返回、Upper 有权重、人不动一致。攻击门还在时这条会把 Upper 权重写成 0，对不上这张图。",
+                         "status":  "observed"
+                     }
+                 ],
+    "risks":  [
+                  "宠物门禁的可写目录不含移动系统和根运动。要改寻路让权或游标退场，需另建或借用门禁。",
+                  "Attack 还在时，怪物转向更新直接返回，返回里的朝向出生点等不到。这发生在寻路之前，不会单独播跑步。头顶同一行若还有攻击，才走这条。"
+              ],
+    "uncertain":  [
+                      "未在编辑器里复现。若返回开始时单位已经朝向出生点，朝向等待会直接返回，随后寻路在 FightState 下改用走路速度；走路速度为 0 时寻路等待同样不结束。"
+                  ],
+    "validation":  [
+                       "2000182 主 Buff 拆掉或施法令牌取消后，服务器上 Attack 为假，返回能转向并朝出生点移动。",
+                       "GM 头顶服务器节点行在返回时若 Attack 仍在，同一行能看见攻击。追击中的转向锁不改。"
+                   ],
+    "plan":  [
+                 "SpellHelper.HandleSpellCastSuccess：置过 Attack 的每个出口都落下，含令牌取消和单位丢失。出手姿势这条等待结束时，若攻击根运动游标还在，由这次施法结束它。后来的施法已换令牌则不动。返回协程不写 UState。",
+                 "SkillHitboxDebugDraw 服务器节点行：列出该单位当前 UState，返回时也显示 Attack。同一行补上根游标或寻路/朝向，以及跑速、走速。不新开客户端状态行。"
+             ],
+    "verify_feedback":  [
+                            "截图为返回 | 返回 无敌，技能 0，没有攻击。返回协程仍停在等待里。Attack 已落下，不是这次卡住的原因。"
+                        ]
 }

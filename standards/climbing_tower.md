@@ -1,5 +1,5 @@
-> 最新修改时间：2026-11-04 12:30 UTC+8
-> 版本号：1.7.0
+> 最新修改时间：2026-11-09 20:47 UTC+8
+> 版本号：1.8.0
 > 文档状态：生效
 > 读取等级：L1（关键词命中爬塔 / TowerView / 任务栏 / TowerWinView 时读取）
 
@@ -20,6 +20,7 @@
 - 当前层击杀分普通怪、Boss 两份存档（`towerKilledMonsterCount` / `towerKilledBossCount`），另存剩余复活和分组击杀。服务端按整图累加并封顶，Pack 直推。人还在塔里关游戏不改当前层，上线仍续这一层。主动离开把层号抄到 `towerProgressFloorId`，再把 `CurrentTowerFloorId` 写成 0，击杀和复活次数不动；再进同一层时恢复层号后清暂存。`EndTowerChallenge` 把暂存清 0。
 - 首通额外 RewardKind=2：`GuaranteedDrop == 1` 的行全部发放且不进权重；其余行仍按 Probability 抽一条，权重全 0 退回第一条。Probability 等于 100 没有特殊含义。Kind 1 仍抽一条，Kind 4 仍按配置全发。
 - 关卡奖励预览：`Mode == 2` 且配了扫荡则只显示 Kind 4，否则显示 Kind 1 和 2。同一 ItemId 合成一张，数量相加。图标挂组件表 `u_ComRewardList1`–`5`，该引用必须指到本格的 `Panel_Rewards`。
+- 未扫荡页右侧：`RewardKind` 1 挂 `u_ComClearRewardList`，2 挂 `u_ComFirstClearRewardList`。两个键都指到各自 Scroll 的 Content。数量用配置值，不乘扫荡次数。旧键 `u_ComInfoRewardLIst` 已从组件表去掉。
 - 正式胜利从 `YIUIMgrComponent.Inst.Root` 打开 ClimbingTowerPanel 再开 TowerWinView，仍发通关协议。GM 预览才设 GmPreviewOpen。
 - 主界面爬塔放 `MainPanelComponentSystem.ClimbingTower.cs`，不要再往 `MainPanelComponentSystem.cs` 里叠。`OnEventOpenClimbingTowerAction` 与 `OnEventOutClimbingTowerAction` 留在大文件：生成器只扫这一份，参数名必须是 `self`。
 - 爬塔按钮与背包、强化同一规则：当前追踪任务是 `TaskId.ClimbingTower` 且状态已到 `TaskState.ClimbingTowerUnlocked`，或任务号更大，就 SetValue `u_DataShowClimbingTowerBtn`。服务端 `FunctionOpenComponentSystemServer` 用同一阈值 `TryOpen`。主界面 TimeCache 约 10 秒会销毁，显隐不能只记在面板字段上。解锁飞线播放期间先隐藏。
@@ -43,6 +44,8 @@
 - 整数键的字典用 ArrayOfArrays。Document 配整数键会在离开存档时 SerializeKeyString，无法退出。旧的整图击杀字典只用于把已有进度并进普通怪/Boss，不作为现行计数。
 - 主动离开不要调用 `EndTowerChallenge`，它会把击杀清掉。暂存层号不要写进旧的 `towerFloorKillCounts`，那份旧数据在当前层为 0 时会把人送回塔里。
 - 奖励父节点绑到 `Panel_Reward` 时，隐藏模板会把 ImageBg 关掉，图标挂成它的兄弟。不要按名字再找 `Panel_Rewards`。
+- 右侧奖励的 ScrollRect 不要挂在带标题的那一层，遮罩会裁掉标题。Content 的 ContentSizeFitter 只开横向 Preferred Size 时，高度停在窄条上，图标被压扁；纵向也要 Preferred Size。两组 Content 不能绑同一个节点，后刷新的会清掉先挂上的道具。
+- 组件表删了键但没重新生成时，打开仍会 `FindComponent`，报「组件表中没有这个组件」。子 CDE 被删后列表里留下 null，报「存在null对象的childCde」；在 CDE 总表点自动检查，按当前层级重收。手改生成类下次点生成会被覆盖。
 - 表里首通额外的 `GuaranteedDrop` 全是 1 时，该层额外全部掉落，不再多选一。想抽一条要把参与抽取的行改成 0。
 - 不按配置顺序或刷怪点列表拆怪。那样会把后加载批次里没打过的怪一起拆掉，差几只卡关。重进怪会再刷，计数接着走。
 - 清图任务栏认服务端同步的绝对数。死亡后再 +1 会比存档多 1，未满就打开胜利界面。64 位任务击杀掩码装不下整图。（未验证）
@@ -50,4 +53,4 @@
 
 # 3. 怎么验证
 
-第一页 1–5、第二页 6–10 有字；翻到第三组只有 Image_Bg 克隆；进关显示 0/b，杀一只任务栏加 1，total=0 的行不显示；倒计时归零离开；锁提示分「前置关卡 / 主线推图 / 前置任务」。前置推图填 N 时，人停在推图 N 的 0% 该层仍锁，N 打满后主线闸通过。未通关层退出再进，普通怪和 Boss 计数续上，怪会再刷；主动离开后再登录停在进塔前的地图，再进同一层击杀还在。Mode 1 预览是通关加首通，同一物品一张；Mode 2 且有扫荡只显示扫荡。杀满后 Layer3 上 ClimbingTowerPanel 与 MainPanel 同级，并完成服务端结算。
+第一页 1–5、第二页 6–10 有字；翻到第三组只有 Image_Bg 克隆；进关显示 0/b，杀一只任务栏加 1，total=0 的行不显示；倒计时归零离开；锁提示分「前置关卡 / 主线推图 / 前置任务」。前置推图填 N 时，人停在推图 N 的 0% 该层仍锁，N 打满后主线闸通过。未通关层退出再进，普通怪和 Boss 计数续上，怪会再刷；主动离开后再登录停在进塔前的地图，再进同一层击杀还在。Mode 1 预览是通关加首通，同一物品一张；Mode 2 且有扫荡只显示扫荡。未扫荡页选中一层，首通只出 Kind 2、通关只出 Kind 1，多过视口可以横滑，图标完整。杀满后 Layer3 上 ClimbingTowerPanel 与 MainPanel 同级，并完成服务端结算。

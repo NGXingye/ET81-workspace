@@ -1,5 +1,5 @@
-> 最新修改时间：2026-11-07 14:53 UTC+8
-> 版本号：1.20.0
+> 最新修改时间：2026-11-11 23:00 UTC+8
+> 版本号：1.24.0
 > 文档状态：生效
 > 读取等级：L1（关键词命中 SkillSync / 转化 / 提交原料或配置时读取）
 
@@ -29,7 +29,7 @@ SkillEditor 管线输出格 → 预检叠入（提交原料：timeline + collide
   | `SkillPipelineCollisionBuff.cs` | 碰撞 Buff 命中汇总；伤害 Buff 的挂点只留黄帧窗口，时长是这段帧数/30 秒；`AppendHits`/`Success` 看 `HasHardError`，`Errors` 里「提示：」不算硬失败 |
   | `SkillPipelineShapeSign.cs` | 把形状位置 Y 乘回正，再调用 Boxes 的挂点局部烘焙 |
 
-- 输出按钮：导出碰撞体、构建源数据、预检叠入在同一行（导出在最左，未验证）。下面是转包围盒、转技能树、转轨迹、取消等待、更新转化工具。主页没有调整 Timeline。提交配置仍在预检之后。只转轨迹先由共享引擎重采样并落盘 BallisticCopy；飞行时间写入攻击时长、水平距离写入攻击距离由 `SkillPipelineBridgeLaunch` 在其后完成，勾了 `useAnimDistance` 的拷贝不改这两项，不改 `SpellConversionEngine`。
+- 输出按钮：导出碰撞体、构建源数据、预检叠入在同一行（导出在最左，未验证）。下面是转包围盒、转技能树、转轨迹、取消等待、全量转技能树。主页没有调整 Timeline。提交配置仍在预检之后。只转轨迹先由共享引擎重采样并落盘 BallisticCopy；飞行时间写入 `Copy.Time`、水平距离写入 `Copy.Distance` 由 `SkillPipelineBridgeLaunch` 在其后完成。`animDistance` 已删除，采样不再写它，也不再按它跳过。共享引擎整次转化仍用 Time×速度写 Distance，只转轨迹再覆盖这两项。
 - trunk 落盘：Buff 与 Spell 同在 `Config/Spell/{id}-名/`（没有 `Config/Buff`）；SpellShape 由 Buff YAML 的 `spellShapesId` 反查；只有 Directional 才有 `Spell/Ballistics/BallisticCopy{id}.asset`；弹体碰撞落 `SpellUnit/{id}_{prefab}.asset`。Damage 的盒子是 SpellShape，位移在 buff 的 LaunchPointConfig。
 - 本地转出 Buff **描述语义**跟结构走（勿写「本地技能树 / 客户端表象 / 服务器逻辑」）：`技能主树`；挂点伤害（逻辑形状，Buff 加在施法者身上）；阶段单位；事件形状（Buff 加在发射物身上，停在当时坐标）。边界见 `skill_tree`。多段时主树写成 `技能主树 · 第N段 · {动画 common}`（转化器尚未按段拆多份主 Buff 时只标到第 1 段；日后 01/02/03 同格式套第 n 段）。`BTTimeWaitViewAsync` 的 **NodeTitle 保持「表现异步等待」**，不要改成「视图异步等待」。
 - 本地写出树的**首个**表现异步等待勾上 `AlignToLogicStart=true`；仍非整树权威时间轴，重转覆盖。见 `skill_spec` 补丁行。
@@ -37,12 +37,14 @@ SkillEditor 管线输出格 → 预检叠入（提交原料：timeline + collide
 
 
 > 多段顺序动画（A→B→C）的 Buff 号分配：原则见 `skill_tree.md`（一动画一 Buff、00 编排）；具体连续号 vs 可覆盖号规则 **待与本卡对齐**，转化器尚未实现顺序多段。
-- Buff 号从 `技能号×100+2` 起复用。可覆盖的是客户端表现、服务器逻辑、`hit fx on ` 和空壳；别的说明视为手改，跳过那个号。本轮没再写出的可覆盖号在 Bridge 删掉，拷到主干后再删主干里 Bridge 已没有的同号文件。不要用目录最大号 +1：受击 Buff 一旦落到末尾，下一轮会从它后面接着编，中间旧号也删不掉。
+- Buff 号从 `技能号×100+2` 起复用。可覆盖的是客户端表现、服务器逻辑、`hit fx on `、说明以「单次子弹发射」结尾的发射 Buff，和空壳；别的说明视为手改，跳过那个号。同一段里稍后相同的齐射复用已建号，每个等待只添加一次，不按发数重复加。本轮没再写出的可覆盖号在 Bridge 删掉，拷到主干后再删主干里 Bridge 已没有的同号文件。不要用目录最大号 +1：受击 Buff 一旦落到末尾，下一轮会从它后面接着编，中间旧号也删不掉。
 - Damage 形状名：技能编辑器读本机 `Assets/Resources/timeline/skills` 里的 effectPrefab，经 job 的 `damageShapeNames` 交给 Bridge。有名把预制体名交给 Bridge。逻辑形状的资产名不跟空名兜底，按 `vfxmodel_c_melee` 编号写出。Bridge 不靠本地有没有这份预制体来取名。转包围盒不改技能树。
 
 # 2. 坑和不变量
 
 - SVN 只取单个技能前缀：EditorAssetsComm `res/timeline/skills`、Bridge `Assets/collider`、该技能实际用到的 ballistic 文件。不 update 整棵 Bridge Resources，不整份覆盖或 `File.Copy` globalconfig，转化不 `SaveAssets` 它。冲突就停，不回退。
+- 同号已有目录时，正式名优先。名字是 skill_{id}、skill、new 或纯数字的占位目录不能当正式目录。枚举的第一个常是占位目录，再转会写进去，已入库的正式目录不动（2000182，用户核对）。
+- 「全量转技能树」不再拉取共享 SpellConversion。勾选后只处理当前技能号：已入库目录先 svn revert -R，再删其中文件，目录留下；未入库目录直接删，然后转。转化前不提交。未勾选不回退、不清空。转包围盒不因勾选清空目录（用户核对）。
 - 改或建弹道 Key 前先 `svn update` SkillEditor 的 globalconfig.asset，只改索引那一行，由预检同笔提交；转行为树前在 EditorAssetsComm 拉同一份。预检看发射点上有没有弹道 Key，不看主页是不是弹道类型。有 Key 就提交对应轨迹和索引并拉到中转；启用随机弹道时，这只怪物磁盘上的 Key 一并提交。没有 Key 不提交这两处。
 - 顺序固定：原料 → 转化 → 配置 → 对齐 ConfigET。转化必须在预检成功之后；原料仍有 diff 时配置钮禁用；ConfigET 只在配置提交成功后对齐，不与 trunk 同批提交。
 - 预检会对磁盘已删的旧变体做 `svn delete`；Headless 只按精确后缀导入 `skill_{id}` 与 `skill_{id}_N`，避免长 ID 前缀误伤。
@@ -51,13 +53,14 @@ SkillEditor 管线输出格 → 预检叠入（提交原料：timeline + collide
 - 转化不切到 Bridge 点确定，不开 SkillSyncJobWindow；引擎不能拷进 SkillEditor（SkillEditor 没有 SpellConfig）。
 - Unity 对象取名先用 `!= null` 判空，不用 `?.name`（见 `_index.md` 跨模块的坑）；角色受击槽挂地面特效是合法数据，不能让转化中断；两条发射物按 effectPrefab 名分开。
 - 共享窗口：`vfxmodel_c_projectile_{N}` 的 SpellUnit Id N 被别的 Prefab 占用时 `PrepareSpellUnitConfig` 抛错，整次 Convert 取消、不覆盖。本地转技能树不写 SpellUnit，不受影响。本地转包围盒以这个名字为权威：只移开这一份旧资产再写，写完放回，控制台提示手删，不因此失败。移开时不要 `AssetDatabase.Refresh()` 整库，否则 Bridge 卡死、`result.json` 写不出。
-- Directional 的 SpellUnit 碰撞体外层是 `PhysicsDecoratedShape`、内部是 `PhysicsBoxShape`。共享写法在位移和旋转都是单帧 0 时只写裸 `PhysicsBoxShape`，本地转包围盒在写完后包一层。
+- Directional 的 SpellUnit 碰撞体外层是 `PhysicsDecoratedShape`、内部是 `PhysicsBoxShape`。共享写法在位移和旋转都是单帧 0 时只写裸 `PhysicsBoxShape`，本地转包围盒在写完后包一层。是逻辑的 SpellUnit、以及要碰撞的阶段单位，半尺寸和偏移以编辑器发射槽为准：半尺寸是大小的一半，偏移写在外层位置，不再留预制体网格盒（t063，用户核对）。
 - 给 Bridge 的 playable 路径是 `Assets/Resources/res/timeline/skills`，技能编辑器加载不到。收集特效名必须用本机 `Assets/Resources/timeline/skills`，否则名字是空的，包围盒写不出文件。
-- 没有发射特效的逻辑形状是合法数据，不要因空名字停转换。包围盒用作者形状号写成 `{编号}_vfxmodel_c_melee_{编号}`；未填形状号才跳过。空发射物的形状 Buff 不写客户端 BTCreateBuffEffect，服务器碰撞保留。名字不是四段 `vfxmodel_c_melee_正整数` 时，客户端特效用真实预制体名。另加的表现发射物仍写客户端。单位行不改名。
+- 没有发射特效的逻辑形状是合法数据，不要因空名字停转换。包围盒用作者形状号写成 `{编号}_vfxmodel_c_melee_{编号}`；未填形状号才跳过。空名不再写成 `skill_{技能号}_damage`。是事件且载体是形状、要碰撞的阶段，同样按形状号写。盘上已有的 skill_damage 文件先留着。空发射物的形状 Buff 不写客户端 BTCreateBuffEffect，服务器碰撞保留。名字不是四段 `vfxmodel_c_melee_正整数` 时，客户端特效用真实预制体名。另加的表现发射物仍写客户端。单位行不改名。
 - 资源对照只列 trunk Buff 已引用的 `spellShapesId`。转包围盒新开的形状号不会出现；被引用的旧号在 trunk 没有文件就显示「缺失」。新号要等转技能树按特效名回填后才进对照。
 - 转技能树按挂点名对发射采样。SkillEditor 多出的 23、24、25 先写成 vfxpoint、vfxpoint3、impactpoint4。对不上时提示这个名字，并要求先导出发射表，不报枚举数字。
-- Damage 与碰撞按挂点名配对：本地转包围盒从一份 `skill_{id}_colliderdata` 取出该挂点的 collisionData 行，再交给共享形状写法。共享写法会把传入资产的每一行写进同一个形状，不能把整份多挂点资产直接交进去。共享 SpellConversion 不改。弹体仍读预制体自己的 colliderdata。（未验证）
+- Damage 与碰撞按挂点名配对：本地转包围盒从一份 `skill_{id}_colliderdata` 取出该挂点的 collisionData 行，再交给共享形状写法。共享写法会把传入资产的每一行写进同一个形状，不能把整份多挂点资产直接交进去。共享 SpellConversion 不改。是逻辑的单位和要碰撞的阶段单位不走这份挂点行，按发射槽上的盒子写 SpellUnit。
 - 写不写服务器碰撞看带逻辑的形状有没有黄帧。复用点自己没记黄帧时，借用同名最早一发；完全没打帧不写服务器碰撞。挂点不同各写一个 Buff，同名共用形状号，不按盒子再拆号。（未验证）
+- SpellShape 的 prefab 名称是特效名。转包围盒靠它找回已有形状，特效名映射也读它。不要改成技能名。描述是另一个字段，只在资源里辨认技能，标 `JsonIgnore`，打 `SpellShapesConfigCategory.bytes` 不写。本地转包围盒把本轮 SpellUnit 和 SpellShape 的描述写成技能号加作者 `SkillName`（t063，用户核对）。
 - 逻辑形状和事件形状不要写成同一个标题。逻辑形状的描述是挂点伤害，Buff 加在该段施法者时间轴上，位移抄这一段的挂点。事件形状的描述才是「事件形状」，Buff 加在发射物上，停在当时坐标，不抄施法者挂点曲线。转技能树不写 SpellShape 文件；盒子要等转包围盒按挂点对上碰撞行。逻辑形状的形状号按四段 `vfxmodel_c_melee` 名或作者形状号填。2000207 第 3 段勾了是逻辑，转出的 Buff 标题仍是事件形状，对照格里 SpellShape 为空（用户所见；按新边界改写尚未验证）。
 - 逻辑形状的 Buff 时长和 BTCastShape 持续都写成黄帧窗口帧数 / 30 的毫秒。窗口帧数是首尾按 30 帧率盖住的帧数，首尾都算。父 Buff 里的等待不推进这个传感器，时钟从创建形状起算。没重转的旧节点仍可能只剩几十毫秒，盒子一闪就没（t043，用户核对）。转树把间隔写成 100。attackType 为 2（持续喷射）或 4（近战持续攻击）时，触发次数上限是这段毫秒除以 100 再加 1；其余类型为 1。攻击距离和元素只在技能面显示。
 - attackType 为 2 时，运行时仍用技能表的攻击时长和攻击频率盖掉节点上的持续时长、间隔和次数上限。类型 4 读节点上的次数。节点上的数不是类型 2 进游戏后的结算值（未验证）。
@@ -73,7 +76,8 @@ SkillEditor 管线输出格 → 预检叠入（提交原料：timeline + collide
 - 角色受击 buff 只保留客户端播特效。空的服务端 Buff 添加仍会建一个没有子节点的 BuffVM，本地转技能树不写；已有的空节点再转时删掉。有子节点的服务端根保留。（未验证）
 - 客户端表现必须写在服务器会下发的 Buff（01）的客户端树上。只在客户端用 BTAddBuff 拉起的子 Buff 服务器不下发，那支树不会跑，表现不出现，也没有加载报错。和怪物 Root 同级的弹体是服务器轨迹，位置是对的。
 - BTCreateBuffEffect 按特效名加载预制体。名字必须是资源预制体名，转树时写入，打开节点不改这个字符串。SpellUnit 配置名是 `{编号}_{预制体}`，里面含着预制体名。检查器若按名字片段取第一份资源，会先绑到这份配置或同名材质，点选后把配置名存回去。`OdinUnityObject` 只接受名字完全相同的预制体做预览；点到配置或材质不改 Name，点到预制体才写入预制体名。这是 trunk 已纳入版本的共享脚本，提交，不进 `local_only`。
-- 已知局限（不改代码，转完人工处理）：等待层 Buff Duration 写的是 Timeline 最晚 clip.end，应改为 `1000 × 挂点总帧 / 采样帧率`；需要贴枪口的 Copy 要把 `animDistance` 置 0。见 `ballistic.md`。
+- 已知局限（不改代码，转完人工处理）：等待层 Buff Duration 写的是 Timeline 最晚 clip.end，应改为 `1000 × 挂点总帧 / 采样帧率`。贴枪口不再靠把 `animDistance` 置 0，该字段已删。见 `ballistic.md`。
+- Bridge `Assets/Plugins` 的 `Share.SourceGenerator.dll`、`Share.Analyzer.dll`、`Jolt.SourceGenerator.dll` 是 Bridge 仓库自己的副本，不是 trunk 外链。trunk 换过这三份后，对 Bridge 做 `svn update` 不会带上。生成器 CS8790 或生成代码找不到类型时，对一下两边文件大小和 Last Changed Rev。脚本外链已经新、插件 DLL 仍旧，会和已删除的字段对不上。
 - Timeline 目录是 svn external（EditorAssetsComm 的 timeline 映到 SkillEditor `Assets/Resources/timeline`），改 playable 要在该层提交；根目录提交默认不带它。
 
 # 3. 怎么验证

@@ -1,11 +1,13 @@
-> 最新修改时间：2026-11-05 18:25 UTC+8
-> 版本号：2.8.0
+> 最新修改时间：2026-11-09 22:20 UTC+8
+> 版本号：2.9.0
 > 文档状态：生效
 > 读取等级：L2（用户发出 /harvest 或 /harvests 时由 Cursor 注入）
 
 # 0. 职责定位
 
 仅当用户在本轮发出 `/harvest` 时执行。这是中途收割：把本单真正学到的东西提炼进 `standards/` 的模块卡。不走冷启动。不必先 `/implement`。不停卡。`/harvests` 的知识部分也按本文 §1 执行。
+
+`/harvest` 只收割知识，不写提交计划、不收回 idle。用户同时要求写提交计划或全量收口时，先说明应切换为 `/harvests`，待用户确认后按完整流程执行；不得只借用其中的提交计划步骤。
 
 正路：同窗口，你已验证（fast 小改、`/implement` 之后、或只收分析且你点名）。
 
@@ -42,12 +44,12 @@
 
 # 2. 不做的事
 
-不改 `task_id`、阶段、`write_paths`、游标。不写 `standards/records/task_outcomes.jsonl`（留给 `/harvests`）。不收回 idle。不 `promote`。不 `svn commit`。
+不改 `task_id`、阶段、`write_paths`、游标。不写 `standards/records/task_outcomes.jsonl`，不写 `contracts/commit_plan.json`（都留给 `/harvests`）。不收回 idle。不 `promote`。不 `svn commit`。
 
 # 3. 版本历史
 
+- 2.9.0（2026-11-09）：要写提交计划或全量收口时先换 `/harvests`，不得只借写计划步骤。
 - 2.8.0（2026-11-05）：改 standards 模块卡或 `_index` 关键词/跨模块坑时，软提示热更 `_index` §4 一条并滚动 ≤5。
 - 2.7.0（2026-10-18）：新增收紧活卡（合并推翻行、压 amend 记录、acceptance 指向 validation）与收尾软提示。
 - 2.6.0（2026-10-17）：收尾核对 skill_spec 补丁清单与覆盖范围。
 - 2.5.0（2026-10-16）：新增结构自查：拆合后更新文件职责表，结构债记为待整理。
-- 2.4.0（2026-10-16）：控长度改为软参考；有价值内容宁可超长也保留，约 120 行以上考虑拆卡。

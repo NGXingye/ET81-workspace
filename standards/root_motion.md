@@ -1,5 +1,5 @@
-> 最新修改时间：2026-11-06 14:18 UTC+8
-> 版本号：1.3.0
+> 最新修改时间：2026-11-11 23:00 UTC+8
+> 版本号：1.4.0
 > 文档状态：生效
 > 读取等级：L1（关键词命中根运动 / 技能无位移 / 姿态维持时读取）
 
@@ -20,7 +20,7 @@
 
 # 2. 坑和不变量
 
-- `IsRootMotion=false` 时两个 Handler 直接 Succeed，不积分；AI 转身（`AILocomotionHelper`）直接 SetRootMotion，不读这个开关，所以「转身正常」不代表开关已开。
+- 两个 Handler 不读 `SpellConfig.IsRootMotion`。没有 RootMotionComponent 才失败；设置根运动返回与否，节点都成功。返回成功才积分，并把本 Buff 的发射起点改成这一刻。同动作游标还有效时默认返回失败，起点不改，后面的枪口会顶到末帧。节点「是否能重复刷新」默认关；打开后同动作也从头再设，游标回到 0，起点改为这一刻。播放动画不改起点。AI 转身仍直接 SetRootMotion，不读技能开关（t064，用户核对）。
 - 查找键用 `attack`，不是 clip 名 `attack_forma`；烘焙器不手动指定 Attack 会写出 `{id}_attack_forma`，运行时不会读。两份可并存，只认 Id 对上的那份。
 - BTSetRootMotion 加在随机选出的动画 Buff（01/03/05）上，排在 BTCastShape 前，不加在 master 00。
 - `SpellConfig.MotionType` 给 AI 施法前探障碍和位移长度用，必须与节点类型一致，不能删。

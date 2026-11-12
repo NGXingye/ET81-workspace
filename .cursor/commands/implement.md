@@ -1,5 +1,5 @@
-> 最新修改时间：2026-11-04 14:40 UTC+8
-> 版本号：1.20.0
+> 最新修改时间：2026-11-12 15:55 UTC+8
+> 版本号：1.23.0
 > 文档状态：生效
 > 读取等级：L2（用户发出 /implement 时由 Cursor 注入）
 
@@ -49,12 +49,12 @@ Trunk 上动手分析前先做廉价检查：对关键文件 `svn status` 加 `s
 - 开工核对 `plan`：本地工具代码是否写了拆 / 合 / 不动及理由（信号见 [`code_structure.md`](../../standards/code_structure.md)，按需查卡）；技能流水线任务末行是否写了本次让 [`skill_spec.md`](../../standards/skill_spec.md) 前进哪一步、是否新增约定或补丁。缺了不拒绝、不为此改 `plan`，在开工回复里补一句判断；新增补丁由 `/harvest` 登记。
 - 测不过：保持 implement，追加 `verify_feedback`，`implement_round+1`；按 §1 的触发条件决定是否再查卡，再读 `read_paths` 并思考。可把与现有 `write_paths` 同目录或被其直接引用的文件追加进包。满 3 轮 `blocked`。
 
-按 §2 做 scoped `svn update`。禁止读编辑器 md。`etctl check` 后请用户验证。不要自动 harvest，不要 `svn commit`。
+按 §2 做 scoped `svn update`。本单改到的脚本，注释按 AGENTS：要写别人会改错的原因；本单改过且在复述或已不准的才改写；没碰到的旧注释不动。改完删掉复述。禁止读编辑器 md。`etctl check` 后请用户验证。不要自动 harvest，不要 `svn commit`。
 
 # 4. 版本历史
 
+- 1.23.0（2026-11-12）：注释规范覆盖本单改到的脚本，不限于进 SVN 的。
+- 1.22.0（2026-11-12）：注释按 AGENTS 分要写、改写、不改；写完删复述。
+- 1.21.0（2026-11-12）：进 SVN 的注释只写关键的为什么；写完删掉复述代码的。
 - 1.20.0（2026-11-04）：补活卡放宽：同 target+profile 且用户明确继续本卡即可；goal 可概括改写；target/profile 变仍新开。
 - 1.19.0（2026-10-18）：补活卡只追加 `plan` 与 `validation`，`acceptance` 不再追加；amend 记录一行写短。
-- 1.18.0（2026-10-18）：补活卡加 `write_paths` 后用机检核对 profile 前缀。
-- 1.17.0（2026-10-18）：plan 要求改为开工核对、缺了不拒绝；结构规则改读 `code_structure` 卡；`?`、`I` 路径与新文件不 update；说明 promote 后范围位置。
-- 1.16.0（2026-10-17）：新增补活卡：同一 goal 下增量追加并记 amend；换目标走新任务。
